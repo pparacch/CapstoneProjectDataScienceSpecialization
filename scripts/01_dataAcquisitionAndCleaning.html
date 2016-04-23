@@ -123,7 +123,13 @@ $(document).ready(function () {
 <div id="loading-the-data" class="section level2">
 <h2>Loading the Data</h2>
 <p>Original data in <em>“.\data\original\final\en_US”</em> - using the <strong>“en_US”</strong> LOCALE.</p>
-<p><strong>THINKING POINT</strong> how to load the data?</p>
+<p><strong>THINKING POINT</strong></p>
+<ul>
+<li>how to load the data? Should I load everything line by line or I can find another more efficient way?</li>
+<li>encoding? What type of encoding shoudl be used when loading the data? Native encodi</li>
+</ul>
+<p><a href="webcachec.googleusercontent.com/search?q=cache:dzpVyq5etNYJ:www.corpora.heliohost.org/aboutcorpus.html+&amp;cd=3&amp;hl=en&amp;ct=clnk&amp;gl=us">link to corpora info</a></p>
+<pre><code>'The corpora are collected from publicly available sources by a web crawler. The crawler checks for language, so as to mainly get texts consisting of the desired language*. ... Corpus Sample * You may still find lines of entirely different languages in the corpus. There are 2 main reasons for that: 1. Similar languages. Some languages are very similar, and the automatic language checker could therefore erroneously accept the foreign language text. 2. &quot;Embedded&quot; foreign languages. While a text may be mainly in the desired language there may be parts of it in another language. Since the text is then split up into individual lines, it is possible to see entire lines written in a foreign language. Whereas number 1 is just an out-and-out error, I think number 2 is actually desirable, as it will give a picture of when foreign language is used within the main language.'</code></pre>
 <p><strong>Tips, tricks, and hints from the Capstone Project material</strong></p>
 <p><strong>Loading the data in (tip &amp; trick)</strong></p>
 <pre><code>'This dataset is fairly large. We emphasize that you don't necessarily need to load the entire dataset in to build your algorithms (see point 2 below). At least initially, you might want to use a smaller subset of the data. Reading in chunks or lines using R's readLines or scan functions can be useful. You can also loop over each line of text by embedding readLines within a for/while loop, but this may be slower than reading in large chunks at a time. Reading pieces of the file at a time will require the use of a file connection in R.'</code></pre>
@@ -143,7 +149,7 @@ close(con) ## It's important to close the connection when you are done
 
 con &lt;- file(&quot;./../data/original/final/en_US/en_US.blogs.txt&quot;, &quot;r&quot;) 
 readLines(con, 1) ## Read the first line of text 
-## [1] &quot;In the years thereafter, most of the Oil fields and platforms were named after pagan â€œgodsâ€.&quot;
+## [1] &quot;In the years thereafter, most of the Oil fields and platforms were named after pagan \342\200\234gods\342\200\235.&quot;
 readLines(con, 1) ## Read the next line of text 
 ## [1] &quot;We love you Mr. Brown.&quot;
 readLines(con, 1) ## Read the next line of text 
@@ -166,6 +172,139 @@ close(con) ## It's important to close the connection when you are done</code></p
 </ul>
 <p><strong>Sampling (tip &amp; trick)</strong></p>
 <pre><code>`To reiterate, to build models you don't need to load in and use all of the data. Often relatively few randomly selected rows or chunks need to be included to get an accurate approximation to results that would be obtained using all the data. Remember your inference class and how a representative sample can be used to infer facts about a population. You might want to create a separate sub-sample dataset by reading in a random subset of the original data and writing it out to a separate file. That way, you can store the sample and not have to recreate it every time. You can use the rbinom function to &quot;flip a biased coin&quot; to determine whether you sample a line of text or not.`</code></pre>
+<pre class="r"><code>con &lt;- file(&quot;./../data/original/final/en_US/en_US.twitter.txt&quot;, &quot;r&quot;) 
+data.twitter.all &lt;- readLines(con, skipNul = T)
+# data.twitter.all &lt;- readLines(con, skipNul = F)
+#Some lines have embedded NULLS - the lines are actually truncated if skipNul = F
+# data.twitter.all[167155]
+# data.twitter.all[167156]
+close(con)
+
+set.seed(19711004)
+coin.biased.outcome &lt;- rbinom(length(data.twitter.all), 1, 0.20)
+table(coin.biased.outcome)
+## coin.biased.outcome
+##       0       1 
+## 1887604  472544
+
+data.twitter.sample &lt;- data.twitter.all[coin.biased.outcome == 1]
+writeLines(data.twitter.sample, &quot;./../data/processed/en_US.twitter.sample.txt&quot;)
+
+con &lt;- file(&quot;./../data/original/final/en_US/en_US.news.txt&quot;, &quot;r&quot;) 
+data.news.all &lt;- readLines(con, skipNul = T)
+close(con)
+
+set.seed(19711004)
+coin.biased.outcome &lt;- rbinom(length(data.news.all), 1, 0.20)
+table(coin.biased.outcome)
+## coin.biased.outcome
+##      0      1 
+## 808351 201891
+
+data.news.sample &lt;- data.news.all[coin.biased.outcome == 1]
+writeLines(data.news.sample, &quot;./../data/processed/en_US.news.sample.txt&quot;)
+
+con &lt;- file(&quot;./../data/original/final/en_US/en_US.blogs.txt&quot;, &quot;r&quot;) 
+data.blogs.all &lt;- readLines(con, skipNul = T)
+close(con)
+
+set.seed(19711004)
+coin.biased.outcome &lt;- rbinom(length(data.blogs.all), 1, 0.20)
+table(coin.biased.outcome)
+## coin.biased.outcome
+##      0      1 
+## 719632 179656
+
+data.blogs.sample &lt;- data.blogs.all[coin.biased.outcome == 1]
+writeLines(data.blogs.sample, &quot;./../data/processed/en_US.blogs.sample.txt&quot;)</code></pre>
+</div>
+<div id="some-data-exploration" class="section level2">
+<h2>Some data exploration</h2>
+<div id="lines-available-in-the-different-datasets" class="section level3">
+<h3>Lines available in the different datasets</h3>
+<pre class="r"><code>length(data.twitter.all)
+## [1] 2360148
+length(data.news.all)
+## [1] 1010242
+length(data.blogs.all)
+## [1] 899288</code></pre>
+</div>
+<div id="longest-line" class="section level3">
+<h3>Longest line</h3>
+<pre class="r"><code>data.twitter.all.nchar &lt;- nchar(data.twitter.all)
+summary(data.twitter.all.nchar)
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##     2.0    37.0    64.0    68.8   100.0   213.0
+
+data.news.all.nchar &lt;- nchar(data.news.all)
+summary(data.news.all.nchar)
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##     1.0   110.0   185.0   201.7   268.0 11380.0
+
+data.blogs.all.nchar &lt;- nchar(data.blogs.all)
+summary(data.blogs.all.nchar)
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##     1.0    47.0   157.0   231.7   331.0 40840.0</code></pre>
+</div>
+<div id="hate-and-love-in-the-twitter-dataset" class="section level3">
+<h3>‘hate’ and ‘love’ in the twitter dataset</h3>
+<pre><code>'In the en_US twitter data set, if you divide the number of lines where the word &quot;love&quot; (all lowercase) occurs by the number of lines the word &quot;hate&quot; (all lowercase) occurs, about what do you get?'</code></pre>
+<pre class="r"><code>twitter.love &lt;- grepl(&quot;love&quot;, data.twitter.all, ignore.case = T)
+twitter.hate &lt;- grepl(&quot;hate&quot;, data.twitter.all, ignore.case = T)
+sum(twitter.love)/ sum(twitter.hate)</code></pre>
+<pre><code>## [1] 4.669125</code></pre>
+<pre><code>'The one tweet in the en_US twitter data set that matches the word &quot;biostats&quot; says what?'</code></pre>
+<pre class="r"><code>twitter.biostats &lt;- grepl(&quot;biostats&quot;, data.twitter.all, ignore.case = T)
+sum(twitter.biostats)
+## [1] 1
+data.twitter.all[twitter.biostats]
+## [1] &quot;i know how you feel.. i have biostats on tuesday and i have yet to study =/&quot;</code></pre>
+<pre><code>'How many tweets have the exact characters &quot;A computer once beat me at chess, but it was no match for me at kickboxing&quot;. (I.e. the line matches those characters exactly.)'</code></pre>
+<pre class="r"><code>twitter.sentence &lt;- grepl(&quot;A computer once beat me at chess, but it was no match for me at kickboxing&quot;, data.twitter.all, ignore.case = F)
+sum(twitter.sentence)
+## [1] 3
+data.twitter.all[twitter.sentence]
+## [1] &quot;A computer once beat me at chess, but it was no match for me at kickboxing&quot;
+## [2] &quot;A computer once beat me at chess, but it was no match for me at kickboxing&quot;
+## [3] &quot;A computer once beat me at chess, but it was no match for me at kickboxing&quot;</code></pre>
+</div>
+</div>
+<div id="left-over-to-be-reviewed" class="section level2">
+<h2>Left Over To Be Reviewed</h2>
+<pre class="r"><code>
+require(R.utils)
+## Loading required package: R.utils
+## Warning: package 'R.utils' was built under R version 3.1.3
+## Loading required package: R.oo
+## Warning: package 'R.oo' was built under R version 3.1.3
+## Loading required package: R.methodsS3
+## Warning: package 'R.methodsS3' was built under R version 3.1.3
+## R.methodsS3 v1.7.1 (2016-02-15) successfully loaded. See ?R.methodsS3 for help.
+## R.oo v1.20.0 (2016-02-17) successfully loaded. See ?R.oo for help.
+## 
+## Attaching package: 'R.oo'
+## The following objects are masked from 'package:methods':
+## 
+##     getClasses, getMethods
+## The following objects are masked from 'package:base':
+## 
+##     attach, detach, gc, load, save
+## R.utils v2.2.0 (2015-12-09) successfully loaded. See ?R.utils for help.
+## 
+## Attaching package: 'R.utils'
+## The following object is masked from 'package:utils':
+## 
+##     timestamp
+## The following objects are masked from 'package:base':
+## 
+##     cat, commandArgs, getOption, inherits, isOpen, parse, warnings
+con.bin &lt;- file(&quot;./../data/original/final/en_US/en_US.twitter.txt&quot;, &quot;rb&quot;) 
+data.twitter.info &lt;- countLines(con.bin)
+close(con.bin)
+
+noOfTwitters &lt;- data.twitter.info[1]
+data.twitter.sample.id &lt;- sample(1:noOfTwitters, noOfTwitters * 0.001, replace = F)</code></pre>
+<p><a href="http://tm.r-forge.r-project.org/faq.html">bigrams in tm</a></p>
 </div>
 
 
