@@ -121,6 +121,11 @@ table(coin.biased.outcome)
 
 data.blogs.sample <- data.blogs.all[coin.biased.outcome == 1]
 writeLines(data.blogs.sample, "./../data/processed/en_US.blogs.sample.txt")
+
+
+save(data.twitter.all, data.twitter.sample, file = "./../data/processed/en_US.twitter.Rdata")
+save(data.blogs.all, data.blogs.sample, file = "./../data/processed/en_US.blogs.Rdata")
+save(data.news.all, data.news.sample, file = "./../data/processed/en_US.news.Rdata")
 ```
 
 ## Some data exploration

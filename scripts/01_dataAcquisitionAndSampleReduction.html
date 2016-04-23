@@ -216,7 +216,12 @@ table(coin.biased.outcome)
 ## 719632 179656
 
 data.blogs.sample &lt;- data.blogs.all[coin.biased.outcome == 1]
-writeLines(data.blogs.sample, &quot;./../data/processed/en_US.blogs.sample.txt&quot;)</code></pre>
+writeLines(data.blogs.sample, &quot;./../data/processed/en_US.blogs.sample.txt&quot;)
+
+
+save(data.twitter.all, data.twitter.sample, file = &quot;./../data/processed/en_US.twitter.Rdata&quot;)
+save(data.blogs.all, data.blogs.sample, file = &quot;./../data/processed/en_US.blogs.Rdata&quot;)
+save(data.news.all, data.news.sample, file = &quot;./../data/processed/en_US.news.Rdata&quot;)</code></pre>
 </div>
 <div id="some-data-exploration" class="section level2">
 <h2>Some data exploration</h2>
