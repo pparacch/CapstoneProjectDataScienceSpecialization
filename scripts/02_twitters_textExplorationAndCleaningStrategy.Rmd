@@ -1,0 +1,211 @@
+---
+title: "Text Exploration"
+author: "Pier Lorenzo Paracchini"
+date: "23 April 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r supportingFunctions, echo = F}
+normalizeLowerLetter <- function(texts, replaceWith = ""){
+    gsub(pattern = "[a-z]{1,}", replacement = replaceWith, x = texts)
+}
+
+normalizeCapitalLetter <- function(texts, replaceWith = ""){
+    gsub(pattern = "[A-Z]", replacement = replaceWith, x = texts)
+}
+
+normalizeDigits <- function(texts, replaceWith = ""){
+    gsub(pattern = "[0-9]", replacement = replaceWith, x = texts)
+}
+
+normalizePunctuation <- function(texts, replaceWith = ""){
+    gsub(pattern = "[[:punct:]]", replacement = replaceWith, x = texts)
+}
+
+normalizeSpaces <- function(texts, replaceWith = ""){
+    gsub(pattern = "[[:space:]]", replacement = replaceWith, x = texts)
+}
+
+findContractions <- function(aText){
+    a <- regexpr("[a-z]* ?'[a-z]*", aText, perl=TRUE, ignore.case = T)
+    regmatches(aText,a)
+}
+
+replaceContraction <- function(texts, contraction, replaceWith, ignoreCase = F){
+    gsub(pattern = contraction, replacement = replaceWith, x = texts, ignore.case = ignoreCase)
+}
+
+```
+
+
+```{r someInfo, collapse = T}
+#View the locale encoding
+getOption("encoding")
+Sys.getlocale("LC_CTYPE")
+
+#Same info
+localeToCharset()
+```
+
+
+## Twitter Data - Text Exploration
+TOTHINK Do I need to split the datasets? Applicable for all of the others
+TODO How many tweets are into the dataset?
+
+```{r loadTwitterData, echo = F, cache = T}
+con <- file("./../data/original/final/en_US/en_US.twitter.txt", "r") 
+data.twitter.all <- readLines(con, skipNul = T)
+close(con)
+
+#For an easy visual inspection
+data.twitter.all.df <- as.data.frame(data.twitter.all)
+```
+
+Let's start to see which are the characters used in the tweets if some interesting patterns are found
+
+### Visual Text Analysis
+```{r twitterTextExplorations}
+tmp <- normalizeLowerLetter(texts = data.twitter.all, replaceWith = "a")
+data.twitter.all.df$normalizedLower <- tmp
+head(tmp, 20)
+
+#Same patterns with Capital letters 
+# RT, DC (Washington DC)
+data.twitter.all[1]
+
+# a'a -> you'll know, don't, they've, I'm
+data.twitter.all[2]
+data.twitter.all[3]
+
+contractions <- Reduce(c,lapply(data.twitter.all[1:20000], findContractions))
+head(sort(table(contractions), decreasing = T), 20)
+
+##Contractions Replacement
+##Note I'd, ain't not easy to replace, replacement is connected to the sentence and context
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "haven't", replaceWith = "have not",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "hasn't", replaceWith = "has not",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "hadn't", replaceWith = "had not",ignoreCase = T)
+
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "I've", replaceWith = "I have",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "you've", replaceWith = "you have",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "we've", replaceWith = "we have",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "they've", replaceWith = "they have",ignoreCase = T)
+
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "isn't", replaceWith = "is not",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "aren't", replaceWith = "are not",ignoreCase = T)
+
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "wasn't", replaceWith = "was not",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "weren't", replaceWith = "were not",ignoreCase = T)
+
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "i'm", replaceWith = "I am",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "you're", replaceWith = "you are",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "he's", replaceWith = "he is",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "it's", replaceWith = "it is",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "we're", replaceWith = "we are",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "they're", replaceWith = "they are",ignoreCase = T)
+
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "don't", replaceWith = "do not",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "doesn't", replaceWith = "does not",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "didn't", replaceWith = "did not",ignoreCase = T)
+
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "can't", replaceWith = "can not",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "wouldn't", replaceWith = "would not",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "would've", replaceWith = "would have",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "shouldn't", replaceWith = "should not",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "should've", replaceWith = "should have",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "couldn't", replaceWith = "could not",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "could've", replaceWith = "could have",ignoreCase = T)
+
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "won't", replaceWith = "will not",ignoreCase = T)
+
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "I'll", replaceWith = "I will",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "you'll", replaceWith = "you will",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "he'll", replaceWith = "he will",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "she'll", replaceWith = "she will",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "it'll", replaceWith = "it will",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "we'll", replaceWith = "we will",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "they'll", replaceWith = "they will",ignoreCase = T)
+
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "that'll", replaceWith = "that will",ignoreCase = T)
+
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "that's", replaceWith = "that is",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "what's", replaceWith = "what is",ignoreCase = T)
+
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "let's", replaceWith = "let us",ignoreCase = T)
+
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "there's", replaceWith = "there is",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "here's", replaceWith = "here is",ignoreCase = T)
+
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "who's", replaceWith = "who is",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "where's", replaceWith = "where is",ignoreCase = T)
+
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "how's", replaceWith = "how is",ignoreCase = T)
+
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "c'mon", replaceWith = "come on",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "doin'", replaceWith = "doing",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "y'all", replaceWith = "you all",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "[yY]a?'a?ll", replaceWith = "you all",ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "ma'am", replaceWith = "madam",ignoreCase = T)
+
+contractions <- Reduce(c,lapply(data.twitter.all[500000:520000], findContractions))
+head(sort(table(contractions), decreasing = T), 30)
+
+contractions <- Reduce(c,lapply(data.twitter.all[580000:620000], findContractions))
+head(sort(table(contractions), decreasing = T), 30)
+
+contractions <- Reduce(c,lapply(data.twitter.all[1000000:1500000], findContractions))
+head(sort(table(contractions), decreasing = T), 50)
+
+# usage of r (are) u (you), and an example of mispelling coo ... instead of cool
+data.twitter.all[8]
+
+# THIS, THIS WEEK, BILLION - safe to normalize to lower letter
+data.twitter.all[7]
+data.twitter.all[10]
+data.twitter.all[20]
+
+# "RT :"" (as re-tweeted) - add to the list of stopwords
+data.twitter.all[20]
+data.twitter.all[length(data.twitter.all) - 3]
+
+# hastags like #MothersDay
+# TODO hashtags should be removed
+data.twitter.all[20]
+
+
+#Lets find some unexpected characters not alphanum, space, punctuation
+
+tmp <- normalizeLowerLetter(texts = data.twitter.all, replaceWith = "")
+data.twitter.all.df$removedLower <- tmp
+tmp <- normalizeCapitalLetter(texts = tmp, replaceWith = "")
+data.twitter.all.df$removedCapital <- tmp
+tmp <- normalizeDigits(texts = tmp, replaceWith = "")
+data.twitter.all.df$removedDigits <- tmp
+tmp <- normalizePunctuation(texts = tmp, replaceWith = "")
+data.twitter.all.df$removedPunctuation <- tmp
+tmp <- normalizeSpaces(texts = tmp, replaceWith = "")
+data.twitter.all.df$removedSpaces <- tmp
+data.twitter.all.df$nchar <- nchar(data.twitter.all.df$removedSpaces)
+
+special <- data.twitter.all.df[data.twitter.all.df$nchar > 0,]
+
+```
+### Unconventional Tweets
+
+```{r someDirtyInvestigation}
+twitters.g1Spam <- grepl("WET TSHIRT", data.twitter.all, ignore.case = F)
+banned.g1Spam <- as.data.frame(data.twitter.all[twitters.g1Spam])
+head(banned.g1Spam)
+## These could be safely remove from the tweets
+
+## Look for any word based on "sex" .. 
+twitters.sex <- grepl("[[:space:]]sex[a-z]*[[:space:]]", data.twitter.all, ignore.case = T)
+banned.sex <- as.data.frame(data.twitter.all[twitters.sex])
+
+
+```
+
