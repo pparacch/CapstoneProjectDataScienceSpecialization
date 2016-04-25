@@ -1,5 +1,5 @@
 ---
-title: "Text Exploration"
+title: "Twitters - Text Exploration"
 author: "Pier Lorenzo Paracchini"
 date: "23 April 2016"
 output: html_document
@@ -7,6 +7,8 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(doMC)
+registerDoMC(cores = 4)
 ```
 
 ```{r supportingFunctions, echo = F}
@@ -27,7 +29,7 @@ normalizePunctuation <- function(texts, replaceWith = ""){
 }
 
 normalizeSpaces <- function(texts, replaceWith = ""){
-    gsub(pattern = "[[:space:]]", replacement = replaceWith, x = texts)
+    gsub(pattern = "[[:space:]]+", replacement = replaceWith, x = texts)
 }
 
 findContractions <- function(aText){
@@ -38,6 +40,25 @@ findContractions <- function(aText){
 replaceContraction <- function(texts, contraction, replaceWith, ignoreCase = F){
     gsub(pattern = contraction, replacement = replaceWith, x = texts, ignore.case = ignoreCase)
 }
+
+test.u <- "I'm coo... Jus at work hella tired are u ever in cali"
+test.u.expected <- "I'm coo... Jus at work hella tired are you ever in cali"
+test.u.expected == replaceContraction(texts = test.u, contraction = " u ", replaceWith = " you ", ignoreCase = T)
+
+test.r <- "I'm coo... Jus at work hella tired r you ever in cali"
+test.r.expected <- "I'm coo... Jus at work hella tired are you ever in cali"
+test.r.expected == replaceContraction(texts = test.r, contraction = " r ", replaceWith = " are ", ignoreCase = T)
+
+removeRT_retweetted <- function(texts, ignoreCase = T){
+    a <- gsub(pattern = " RT :? ?", replacement = " ", x = texts, ignore.case = ignoreCase)
+    gsub(pattern = "^RT ", replacement = "", x = a, ignore.case = ignoreCase)
+}
+
+test.RT <- c("I'm cool... RT : Just at work RT tired r you ever in cali", "RT I'm cool...")
+test.RT.expected <- c("I'm cool... Just at work tired r you ever in cali", "I'm cool...")
+result <- removeRT_retweetted(test.RT)
+test.RT.expected[1] == result[1]
+test.RT.expected[2] == result[2]
 
 ```
 
@@ -61,13 +82,15 @@ con <- file("./../data/original/final/en_US/en_US.twitter.txt", "r")
 data.twitter.all <- readLines(con, skipNul = T)
 close(con)
 
+#Limit for testing purpose
+data.twitter.all <- data.twitter.all[1:500000]
+
 #For an easy visual inspection
 data.twitter.all.df <- as.data.frame(data.twitter.all)
 ```
 
 Let's start to see which are the characters used in the tweets if some interesting patterns are found
 
-### Visual Text Analysis
 ```{r twitterTextExplorations}
 tmp <- normalizeLowerLetter(texts = data.twitter.all, replaceWith = "a")
 data.twitter.all.df$normalizedLower <- tmp
@@ -81,6 +104,51 @@ data.twitter.all[1]
 data.twitter.all[2]
 data.twitter.all[3]
 
+## more details on contractions
+contractions <- Reduce(c,lapply(data.twitter.all[1:30000], findContractions))
+head(sort(table(contractions), decreasing = T), 20)
+
+# usage of r (are) u (you), and an example of mispelling coo ... instead of cool
+data.twitter.all[8]
+
+# THIS, THIS WEEK, BILLION - safe to normalize to lower letter
+data.twitter.all[7]
+data.twitter.all[10]
+data.twitter.all[20]
+
+# "RT :" (as re-tweeted) - add to the list of stopwords
+data.twitter.all[20]
+data.twitter.all[length(data.twitter.all) - 3]
+
+# hastags like #MothersDay or @something
+# TODO should be removed
+data.twitter.all[20]
+
+
+#Lets find some unexpected characters not alphanum, space, punctuation
+tmp <- normalizeLowerLetter(texts = data.twitter.all, replaceWith = "")
+data.twitter.all.df$removedLower <- tmp
+tmp <- normalizeCapitalLetter(texts = tmp, replaceWith = "")
+data.twitter.all.df$removedCapital <- tmp
+tmp <- normalizeDigits(texts = tmp, replaceWith = "")
+data.twitter.all.df$removedDigits <- tmp
+tmp <- normalizePunctuation(texts = tmp, replaceWith = "")
+data.twitter.all.df$removedPunctuation <- tmp
+tmp <- normalizeSpaces(texts = tmp, replaceWith = "")
+data.twitter.all.df$removedSpaces <- tmp
+data.twitter.all.df$nchar <- nchar(data.twitter.all.df$removedSpaces)
+
+special <- data.twitter.all.df[data.twitter.all.df$nchar > 0,]
+```
+
+#### Contractions
+
+    'A contraction is a shortened form of one or two words (one of which is usually a verb). In a contraction, an apostrophe takes the place of the missing letter or letters. Some contractions are: I'm (I am), can't (cannot), how's (how is), and Ma'am (Madam). For example, "don't" is a contraction that is short for "do not"; the apostrophe in "don't" takes the place of the missing "o". Another example is "o'clock," a contraction "of the clock." A less common example of a contraction is "jack-o'-lantern," short for "jack-of-lantern"; in it, the apostrophe takes the place of the missing "f" in "of."'
+
+__Strategy__: replace contraction with the full form (only for unambiguous cases) 
+Note More complex cases like _I'd_ where the full form could be _I would or I had_ have not been considered.
+
+```{r twitterContractionsRemoval}
 contractions <- Reduce(c,lapply(data.twitter.all[1:20000], findContractions))
 head(sort(table(contractions), decreasing = T), 20)
 
@@ -151,61 +219,155 @@ data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "
 data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "[yY]a?'a?ll", replaceWith = "you all",ignoreCase = T)
 data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "ma'am", replaceWith = "madam",ignoreCase = T)
 
-contractions <- Reduce(c,lapply(data.twitter.all[500000:520000], findContractions))
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = " u ", replaceWith = " you ", ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = " r ", replaceWith = " are ", ignoreCase = T)
+
+contractions <- Reduce(c,lapply(data.twitter.all[1:100000], findContractions))
 head(sort(table(contractions), decreasing = T), 30)
-
-contractions <- Reduce(c,lapply(data.twitter.all[580000:620000], findContractions))
-head(sort(table(contractions), decreasing = T), 30)
-
-contractions <- Reduce(c,lapply(data.twitter.all[1000000:1500000], findContractions))
-head(sort(table(contractions), decreasing = T), 50)
-
-# usage of r (are) u (you), and an example of mispelling coo ... instead of cool
-data.twitter.all[8]
-
-# THIS, THIS WEEK, BILLION - safe to normalize to lower letter
-data.twitter.all[7]
-data.twitter.all[10]
-data.twitter.all[20]
-
-# "RT :"" (as re-tweeted) - add to the list of stopwords
-data.twitter.all[20]
-data.twitter.all[length(data.twitter.all) - 3]
-
-# hastags like #MothersDay
-# TODO hashtags should be removed
-data.twitter.all[20]
-
-
-#Lets find some unexpected characters not alphanum, space, punctuation
-
-tmp <- normalizeLowerLetter(texts = data.twitter.all, replaceWith = "")
-data.twitter.all.df$removedLower <- tmp
-tmp <- normalizeCapitalLetter(texts = tmp, replaceWith = "")
-data.twitter.all.df$removedCapital <- tmp
-tmp <- normalizeDigits(texts = tmp, replaceWith = "")
-data.twitter.all.df$removedDigits <- tmp
-tmp <- normalizePunctuation(texts = tmp, replaceWith = "")
-data.twitter.all.df$removedPunctuation <- tmp
-tmp <- normalizeSpaces(texts = tmp, replaceWith = "")
-data.twitter.all.df$removedSpaces <- tmp
-data.twitter.all.df$nchar <- nchar(data.twitter.all.df$removedSpaces)
-
-special <- data.twitter.all.df[data.twitter.all.df$nchar > 0,]
-
 ```
-### Unconventional Tweets
+
+### Remove RT (retweet)
+
+```{r removeRT_retweet}
+data.twitter.all <- removeRT_retweetted(data.twitter.all)
+```
+
+### Remove hashtags
+
+
+
+### Unconventional Tweets & Profanity Words
 
 ```{r someDirtyInvestigation}
 twitters.g1Spam <- grepl("WET TSHIRT", data.twitter.all, ignore.case = F)
-banned.g1Spam <- as.data.frame(data.twitter.all[twitters.g1Spam])
-head(banned.g1Spam)
+head(data.twitter.all[twitters.g1Spam],3)
+
 ## These could be safely remove from the tweets
+data.twitter.all <- data.twitter.all[!twitters.g1Spam]
+
+twitters.g1Spam <- grepl("WET TSHIRT", data.twitter.all, ignore.case = F)
+head(data.twitter.all[twitters.g1Spam],3)
 
 ## Look for any word based on "sex" .. 
 twitters.sex <- grepl("[[:space:]]sex[a-z]*[[:space:]]", data.twitter.all, ignore.case = T)
 banned.sex <- as.data.frame(data.twitter.all[twitters.sex])
 
+twitters.ass <- grepl("[[:space:]]ass[a-z]*[[:space:]]", data.twitter.all, ignore.case = T)
+banned.ass <- as.data.frame(data.twitter.all[twitters.ass])
+```
+
+__Strategy__ -> profanity words will be removed from the tweeters (as stopwords)
+Using external resource http://www.cs.cmu.edu/~biglou/resources/
+
+```{r loadBasWordsList, echo = F, cache = T}
+con <- file("./bad-words.txt", "r") 
+stopwords.badWords <- readLines(con, skipNul = T)
+close(con)
+
+head(stopwords.badWords)
+tail(stopwords.badWords)
+```
+
+### Remove Special Characters due to Encoding
+
+__Strategy__ -> limit the set of available characters to alphanumeric, punctuation and spaces
+
+```{r removeSpecialCharacters}
+data.twitter.all.simple <- gsub(pattern = "[^[:alnum:]^[:space:]^[:punct:]]", replacement = "", x = data.twitter.all)
+data.twitter.all[7036:7066]
+data.twitter.all.simple[7036:7066]
+```
+
+```{r ngrams}
+require(tm)
+require(wordcloud)
+require(RWeka)
+tdm.generate <- function(string, ng){
+  corpus <- Corpus(VectorSource(string))
+  corpus <- tm_map(corpus, content_transformer(tolower))
+  corpus <- tm_map(corpus, removeWords, stopwords.badWords)
+  corpus <- tm_map(corpus, removeNumbers) 
+  corpus <- tm_map(corpus, removePunctuation)
+  corpus <- tm_map(corpus, stripWhitespace)
+  #options(mc.cores=1) 
+  # http://stackoverflow.com/questions/17703553/bigrams-instead-of-single-words-in-termdocument-matrix-using-r-and-rweka/20251039#20251039
+  BigramTokenizer <- function(x) NGramTokenizer(x, Weka_control(min = ng, max = ng)) # create n-grams
+  tdm <- TermDocumentMatrix(corpus, control = list(tokenize = BigramTokenizer)) # create tdm from n-grams
+  tdm
+}
+
+tdm.1g <- tdm.generate(data.twitter.all.simple[1:30000], 1)
+findFreqTerms(tdm.1g, 40)
+findFreqTerms(tdm.1g, 60)
+findFreqTerms(tdm.1g, 80)
+findFreqTerms(tdm.1g, 100)
+
+tdm89.1g <- removeSparseTerms(tdm.1g, 0.89)
+tdm9.1g  <- removeSparseTerms(tdm.1g, 0.9)
+tdm91.1g <- removeSparseTerms(tdm.1g, 0.91)
+tdm99.1g <- removeSparseTerms(tdm.1g, 0.99)
+
+notsparse <- tdm99.1g
+m = as.matrix(notsparse)
+v = sort(rowSums(m),decreasing=TRUE)
+d.1g = data.frame(word = names(v),freq=v)
+ 
+# Create the word cloud
+pal = brewer.pal(9,"BuPu")
+wordcloud(words = d.1g$word,
+          freq = d.1g$freq,
+          #scale = c(3,.8),
+          random.order = F,
+          colors = pal)
+
+tdm.2g <- tdm.generate(data.twitter.all.simple[1:30000], 2)
+findFreqTerms(tdm.2g, 40)
+findFreqTerms(tdm.2g, 60)
+findFreqTerms(tdm.2g, 80)
+findFreqTerms(tdm.2g, 100)
+
+tdm89.2g <- removeSparseTerms(tdm.2g, 0.89)
+tdm9.2g  <- removeSparseTerms(tdm.2g, 0.9)
+tdm91.2g <- removeSparseTerms(tdm.2g, 0.91)
+tdm99.2g <- removeSparseTerms(tdm.2g, 0.99)
+
+notsparse <- tdm99.2g
+m = as.matrix(notsparse)
+v = sort(rowSums(m),decreasing=TRUE)
+d.2g = data.frame(word = names(v),freq=v)
+ 
+# Create the word cloud
+pal = brewer.pal(9,"BuPu")
+wordcloud(words = d.2g$word,
+          freq = d.2g$freq,
+          scale = c(3,.8),
+          random.order = F,
+          colors = pal)
+
+
+tdm.3g <- tdm.generate(data.twitter.all.simple[1:100000], 3)
+findFreqTerms(tdm.3g, 40)
+findFreqTerms(tdm.3g, 60)
+findFreqTerms(tdm.3g, 80)
+findFreqTerms(tdm.3g, 100)
+
+tdm89.3g <- removeSparseTerms(tdm.3g, 0.89)
+tdm9.3g  <- removeSparseTerms(tdm.3g, 0.9)
+tdm91.3g <- removeSparseTerms(tdm.3g, 0.91)
+tdm99.3g <- removeSparseTerms(tdm.3g, 0.998)
+
+notsparse <- tdm99.3g
+m = as.matrix(notsparse)
+v = sort(rowSums(m),decreasing=TRUE)
+d.3g = data.frame(word = names(v),freq=v)
+ 
+# Create the word cloud
+pal = brewer.pal(9,"BuPu")
+wordcloud(words = d.3g$word,
+          freq = d.3g$freq,
+          scale = c(3,.8),
+          random.order = F,
+          colors = pal)
 
 ```
 
