@@ -7,8 +7,22 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(doMC)
-registerDoMC(cores = 4)
+
+# MAC OS 
+#library(doMC)
+#registerDoMC(cores = 4)
+
+#View the locale encoding
+getOption("encoding")
+Sys.getlocale("LC_CTYPE")
+localeToCharset()
+
+# WINDOWS LOCALE SETTING
+Sys.setlocale(category = "LC_ALL",locale = "English_United States.1252")
+
+getOption("encoding")
+Sys.getlocale("LC_CTYPE")
+localeToCharset()
 ```
 
 ```{r supportingFunctions, echo = F}
@@ -33,7 +47,8 @@ normalizeSpaces <- function(texts, replaceWith = ""){
 }
 
 findContractions <- function(aText){
-    a <- regexpr("[a-z]* ?'[a-z]*", aText, perl=TRUE, ignore.case = T)
+    # a <- regexpr("[a-z]* ?'[a-z]*", aText, perl=TRUE, ignore.case = T)
+    a <- regexpr("[a-z]* ?'[a-z]* ?[a-z]*", aText, perl=TRUE, ignore.case = T)
     regmatches(aText,a)
 }
 
@@ -63,27 +78,17 @@ test.RT.expected[2] == result[2]
 ```
 
 
-```{r someInfo, collapse = T}
-#View the locale encoding
-getOption("encoding")
-Sys.getlocale("LC_CTYPE")
-
-#Same info
-localeToCharset()
-```
-
-
 ## Twitter Data - Text Exploration
 TOTHINK Do I need to split the datasets? Applicable for all of the others
 TODO How many tweets are into the dataset?
 
 ```{r loadTwitterData, echo = F, cache = T}
 con <- file("./../data/original/final/en_US/en_US.twitter.txt", "r") 
-data.twitter.all <- readLines(con, skipNul = T)
+data.twitter.all.ori <- readLines(con, skipNul = T)
 close(con)
 
-#Limit for testing purpose
-data.twitter.all <- data.twitter.all[1:500000]
+data.twitter.all <- data.twitter.all.ori #Optional
+
 
 #For an easy visual inspection
 data.twitter.all.df <- as.data.frame(data.twitter.all)
@@ -222,8 +227,26 @@ data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "
 data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = " u ", replaceWith = " you ", ignoreCase = T)
 data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = " r ", replaceWith = " are ", ignoreCase = T)
 
-contractions <- Reduce(c,lapply(data.twitter.all[1:100000], findContractions))
-head(sort(table(contractions), decreasing = T), 30)
+contractions.sample <- Reduce(c,lapply(data.twitter.all[1:100000], findContractions))
+head(sort(table(contractions.sample), decreasing = T), 30)
+
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "'d be ", replaceWith = " would be", ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "'d like ", replaceWith = " would like", ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "'d love ", replaceWith = " would love", ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "'d rather ", replaceWith = " would rather", ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "'d say ", replaceWith = " would say", ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "'d have ", replaceWith = " would have", ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "'d make ", replaceWith = " would make", ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "'d think ", replaceWith = " would think", ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "'d go ", replaceWith = " would go", ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "'d get ", replaceWith = " would get", ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "'d do ", replaceWith = " would do", ignoreCase = T)
+data.twitter.all <- replaceContraction(texts = data.twitter.all, contraction = "'d give ", replaceWith = " would give", ignoreCase = T)
+
+
+contractions.sample <- Reduce(c,lapply(data.twitter.all[1:300000], findContractions))
+head(sort(table(contractions.sample), decreasing = T), 30)
+
 ```
 
 ### Remove RT (retweet)
@@ -273,15 +296,21 @@ tail(stopwords.badWords)
 __Strategy__ -> limit the set of available characters to alphanumeric, punctuation and spaces
 
 ```{r removeSpecialCharacters}
-data.twitter.all.simple <- gsub(pattern = "[^[:alnum:]^[:space:]^[:punct:]]", replacement = "", x = data.twitter.all)
+# data.twitter.all.simple <- gsub(pattern = "[^[:alnum:]^[:space:]^[:punct:]]", replacement = "", x = data.twitter.all)
+#data.twitter.all.simple <- gsub(pattern = "[^a-zA-Z0-9[:space:]]", replacement = " ", x = data.twitter.all)
+data.twitter.all.simple <-  iconv(data.twitter.all, from = localeToCharset(), to = "ASCII", "")
+
 data.twitter.all[7036:7066]
 data.twitter.all.simple[7036:7066]
+
+save(data.twitter.all.ori, data.twitter.all, data.twitter.all.simple, file = "./../data/processed/twitter.datasets.Rdata")
 ```
 
 ```{r ngrams}
 require(tm)
 require(wordcloud)
 require(RWeka)
+
 tdm.generate <- function(string, ng){
   corpus <- Corpus(VectorSource(string))
   corpus <- tm_map(corpus, content_transformer(tolower))
@@ -289,6 +318,7 @@ tdm.generate <- function(string, ng){
   corpus <- tm_map(corpus, removeNumbers) 
   corpus <- tm_map(corpus, removePunctuation)
   corpus <- tm_map(corpus, stripWhitespace)
+  # MAC OS Manadtory if not using doMC library
   #options(mc.cores=1) 
   # http://stackoverflow.com/questions/17703553/bigrams-instead-of-single-words-in-termdocument-matrix-using-r-and-rweka/20251039#20251039
   BigramTokenizer <- function(x) NGramTokenizer(x, Weka_control(min = ng, max = ng)) # create n-grams
@@ -296,7 +326,7 @@ tdm.generate <- function(string, ng){
   tdm
 }
 
-tdm.1g <- tdm.generate(data.twitter.all.simple[1:30000], 1)
+tdm.1g <- tdm.generate(data.twitter.all.simple[1:20000], 1)
 findFreqTerms(tdm.1g, 40)
 findFreqTerms(tdm.1g, 60)
 findFreqTerms(tdm.1g, 80)
@@ -320,7 +350,7 @@ wordcloud(words = d.1g$word,
           random.order = F,
           colors = pal)
 
-tdm.2g <- tdm.generate(data.twitter.all.simple[1:30000], 2)
+tdm.2g <- tdm.generate(data.twitter.all.simple[1:10000], 2)
 findFreqTerms(tdm.2g, 40)
 findFreqTerms(tdm.2g, 60)
 findFreqTerms(tdm.2g, 80)
@@ -345,7 +375,7 @@ wordcloud(words = d.2g$word,
           colors = pal)
 
 
-tdm.3g <- tdm.generate(data.twitter.all.simple[1:100000], 3)
+tdm.3g <- tdm.generate(data.twitter.all.simple[1:10000], 3)
 findFreqTerms(tdm.3g, 40)
 findFreqTerms(tdm.3g, 60)
 findFreqTerms(tdm.3g, 80)
