@@ -1,5 +1,5 @@
 ---
-title: "WIP Exploration and Cleaning"
+title: "Assignment: Milestone Report (Capstone Prject)"
 author: "Pier Lorenzo Paracchini"
 date: "25 april 2016"
 output: 
@@ -10,9 +10,8 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-getOption("encoding")
-Sys.getlocale("LC_CTYPE")
-localeToCharset()
+#Required Libraries
+require(knitr)
 
 # WINDOWS LOCALE SETTING
 Sys.setlocale(category = "LC_ALL",locale = "English_United States.1252")
@@ -20,50 +19,46 @@ Sys.setlocale(category = "LC_ALL",locale = "English_United States.1252")
 getOption("encoding")
 Sys.getlocale("LC_CTYPE")
 localeToCharset()
-
 ```
 
 ## Summary
 
+The main objective of this __MIlestone Report__ is to display and explain only the major features of the data you have identified and briefly summarize your next" plans for creating the prediction algorithm and Shiny app behind the final product. Specifically as stated in the assignment description:
 
-## Load the data
+* Demonstrate that the data has been downloaded and loaded
+* Create a basic report of summary statistics about the data sets (twitters, news, blogs)
+* Report any interesting findings and eventual considerations/ implications 
+* Get feedback on the "next" plans for creating a prediction algorithm and Shiny app
 
-```{r dataLoad, collapse=T, cache = T}
+## The Data
+
+The data is from a corpus called [HC Corpora](www.corpora.heliohost.org) and it can be downloded at the following [link](https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip). The corpora have been collected from publicly available sources by a web crawler and includes tweets, blogs and news in engligh, german, finnish and russian (separated in different set of files for each language).
+
+From the iformation available [About the Corpora](http://webcache.googleusercontent.com/search?q=cache:dzpVyq5etNYJ:www.corpora.heliohost.org/aboutcorpus.html+&cd=3&hl=en&ct=clnk&gl=us):
+
+    ' You may still find lines of entirely different languages in the corpus. There are 2 main reasons for that: 1. Similar languages. Some languages are very similar, and the automatic language checker could therefore erroneously accept the foreign language text. 2. "Embedded" foreign languages. While a text may be mainly in the desired language there may be parts of it in another language. Since the text is then split up into individual lines, it is possible to see entire lines written in a foreign language.Whereas number 1 is just an out-and-out error, I think number 2 is actually desirable, as it will give a picture of when foreign language is used within the main language.'
+
+Note! The focus of the analysis has been on the english language only ('en_US') - covering: tweets (twitter), news and blogs.
+
+```{r dataLoad, cache = T, include = F}
 con <- file("./../data/original/final/en_US/en_US.twitter.txt", "r") 
 data.twitter.all <- readLines(con, skipNul = T)
-data.twitter.all.nchar <- nchar(data.twitter.all)
 close(con)
 
 con <- file("./../data/original/final/en_US/en_US.news.txt", "r") 
 data.news.all <- readLines(con, skipNul = T)
-data.news.all.nchar <- nchar(data.news.all)
 close(con)
 
 con <- file("./../data/original/final/en_US/en_US.blogs.txt", "r") 
 data.blogs.all <- readLines(con, skipNul = T)
-data.blogs.all.nchar <- nchar(data.blogs.all)
 close(con)
 
-```
+data.twitter.all.nchar <- nchar(data.twitter.all)
+data.news.all.nchar <- nchar(data.news.all)
+data.blogs.all.nchar <- nchar(data.blogs.all)
 
-### Gremlings due to Encoding issues
 
-__Strategy__ -> limit the set of available characters to ASCII charset.
-
-```{r removeGremlings}
-data.twitter.all.ascii <-  iconv(data.twitter.all, from = localeToCharset(), to = "ASCII", "")
-data.news.all.ascii <-  iconv(data.news.all, from = localeToCharset(), to = "ASCII", "")
-data.blogs.all.ascii <-  iconv(data.blogs.all, from = localeToCharset(), to = "ASCII", "")
-
-data.twitter.all[7036:7047]
-data.twitter.all.ascii[7036:7047]
-
-data.twitter.all <- data.twitter.all.ascii
-data.news.all <- data.news.all.ascii
-data.blogs.all <- data.blogs.all.ascii
-```
-
-```{r someDataStatistics, collapse=T}
+#Some Statistic about the original files
 data.sources <- c("twitters", "news", "blogs")
 data.noOfLines <- c(length(data.twitter.all), length(data.news.all), length(data.blogs.all))
 data.maxNoOfChars <- c(max(data.twitter.all.nchar), max(data.news.all.nchar), max(data.blogs.all.nchar))
@@ -73,12 +68,53 @@ data.info.df <- data.frame(sources = data.sources,
                            noOfLines = data.noOfLines, 
                            maxNoOfChar = data.maxNoOfChars,
                            minNoOfChar = data.minNoOfChars)
+```
 
-data.info.df
+### Some basic statics about the data
 
-#######Twitters
-hist(nchar(data.twitter.all), main = "No Of Chars per Twitter")
+`r kable(data.info.df)`
 
+Some considerations
+
+* The amount of data available considering the tweets, news and blogs entries - such analysis is done using a representative sample can be used to infer facts about a population (considering limitations connected with the available processing hardware)
+* The minimum size, in terms of number of characters, for teh different entries. There are tweets, news and blogs with few characters - are they relevant?
+
+### Encoding Issues (Gremlings)
+
+When loading the data using the following locale/ encoding has been used __`r Sys.getlocale("LC_CTYPE")` \ `r localeToCharset()`__. Inspecting the loaded data it is possible to identify some encoding issues (gremlings) due to the unrecognized characters (not supported languages, emoticons, etc)
+
+    '`r data.twitter.all[15]`'
+    '`r data.twitter.all[10967]`'
+    '`r data.twitter.all[7046]`'
+
+
+In order to remove such gremlings the following __strategy__ and __simplification__ has been considered: limit the set of available characters to the __ASCII__ charset, removing non ASCII characters.
+
+
+```{r removeGremlings, collapse = T}
+##Using iconv to replace non ASCII char with an empty char
+data.twitter.all.ascii <-  iconv(data.twitter.all, from = localeToCharset(), to = "ASCII", "")
+data.news.all.ascii <-  iconv(data.news.all, from = localeToCharset(), to = "ASCII", "")
+data.blogs.all.ascii <-  iconv(data.blogs.all, from = localeToCharset(), to = "ASCII", "")
+
+data.twitter.all <- data.twitter.all.ascii
+data.news.all <- data.news.all.ascii
+data.blogs.all <- data.blogs.all.ascii
+```
+
+    '`r data.twitter.all[15]`'
+    '`r data.twitter.all[10967]`'
+    '`r data.twitter.all[7046]`'
+
+### Entries (tweets, news and blogs) with a limited number of chars
+
+#### Tweets
+
+```{r tweetsShortDistribution}
+hist(nchar(data.twitter.all), main = "No Of Chars Distribution - Tweets")
+```
+
+```{r tweetsShort, collapse=T}
 #How many twitter are under 20 chars?
 sum(data.twitter.all.nchar <= 20)
 twitter.lessThanOr3chars <- data.twitter.all[data.twitter.all.nchar <= 20]
@@ -92,7 +128,9 @@ data.twitter.all.nchar <- nchar(data.twitter.all)
 twitter.df <- data.frame(text = data.twitter.all, nchar = data.twitter.all.nchar)
 
 ##What about twitters more than 140? Analysis
+```
 
+```{r newsShort}
 ######News
 hist(nchar(data.news.all), main = "No Of Chars per News")
 
@@ -152,7 +190,7 @@ data1.info.df
 
 ### Sampling
 
-```{r dataReductionForExploration, collapse=T, cache=T}
+```{r dataReductionForExploration, collapse=T, cache=T, eval=F}
 set.seed(19711004)
 coin.biased.outcome <- rbinom(length(data.twitter.all), 1, 0.10)
 table(coin.biased.outcome)
@@ -171,7 +209,7 @@ data.blogs.sample <- data.blogs.all[coin.biased.outcome == 1]
 save(data.twitter.sample, data.news.sample, data.blogs.sample, file = "./../data/processed/datasets_sample.Rdata")
 ```
 
-```{r visualizeData}
+```{r visualizeData, eval=F}
 load("./../data/processed/datasets_sample.Rdata")
 
 require(tm)
