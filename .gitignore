@@ -20,4 +20,5 @@ vignettes/*.pdf
 
 #Data
 data/
+scripts/*_cache/
 .Rproj.user

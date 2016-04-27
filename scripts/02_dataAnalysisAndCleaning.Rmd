@@ -28,7 +28,7 @@ localeToCharset()
 
 ## Load the data
 
-```{r dataReductionForExploration, collapse=T, cache = T}
+```{r dataLoad, collapse=T, cache = T}
 con <- file("./../data/original/final/en_US/en_US.twitter.txt", "r") 
 data.twitter.all <- readLines(con, skipNul = T)
 data.twitter.all.nchar <- nchar(data.twitter.all)
@@ -44,6 +44,23 @@ data.blogs.all <- readLines(con, skipNul = T)
 data.blogs.all.nchar <- nchar(data.blogs.all)
 close(con)
 
+```
+
+### Gremlings due to Encoding issues
+
+__Strategy__ -> limit the set of available characters to ASCII charset.
+
+```{r removeGremlings}
+data.twitter.all.ascii <-  iconv(data.twitter.all, from = localeToCharset(), to = "ASCII", "")
+data.news.all.ascii <-  iconv(data.news.all, from = localeToCharset(), to = "ASCII", "")
+data.blogs.all.ascii <-  iconv(data.blogs.all, from = localeToCharset(), to = "ASCII", "")
+
+data.twitter.all[7036:7047]
+data.twitter.all.ascii[7036:7047]
+
+data.twitter.all <- data.twitter.all.ascii
+data.news.all <- data.news.all.ascii
+data.blogs.all <- data.blogs.all.ascii
 ```
 
 ```{r someDataStatistics, collapse=T}
