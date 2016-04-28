@@ -259,39 +259,24 @@ data.blogs.all.nchar &lt;- nchar(data.blogs.all)</code></pre>
 </table>
 </div>
 </div>
+<div id="others" class="section level2">
+<h2>Others</h2>
+<div id="removal-of-profanity-words" class="section level3">
+<h3>Removal of Profanity Words</h3>
+<p>Some examples …</p>
+<pre><code>!++-~| G1 CERTIFIED WET TSHIRT CONTEST --- FRIDAY CLUB DRAMA --WANT TO GET IN FOR FREE?? TXT ME I WILL TELL YOU HOW---214 609 3316 --
+Wisconsin Governor Walker Attacks Sex Ed</code></pre>
+<p>Profanity words will be removed from the Corpora (as stopwords). An external <a href="http://www.cs.cmu.edu/~biglou/resources/">resource</a> providing a comprehensive list of <strong>1383 profanity words</strong> is used.</p>
+</div>
+</div>
 <div id="sampling-of-the-corpora" class="section level2">
 <h2>Sampling of the Corpora</h2>
-<p>For this analysis it is not needed use all of the data. Often relatively few randomly selected rows or chunks need to be included to get an accurate approximation to results that would be obtained using all the data. A biased coin&quot; has been used to select the tweets, news and blogs to be included in the analysis based on teh following percentages</p>
+<p>For this analysis it is not needed use all of the data. Often relatively few randomly selected rows or chunks need to be included to get an accurate approximation to results that would be obtained using all the data. A “biased coin” approach has been used to select the tweets, news and blogs to be included in the analysis based on the following percentages</p>
 <ul>
-<li>5% of the tweets</li>
-<li>10% of the news</li>
-<li>10% of the blogs</li>
+<li><strong>5%</strong> of the tweets (<strong>107110</strong> tweets)</li>
+<li><strong>10%</strong> of the news (<strong>97775</strong> news)</li>
+<li><strong>10%</strong> of the blogs (<strong>82168</strong> blogs)</li>
 </ul>
-<pre class="r"><code>set.seed(19711004)
-coin.biased.outcome &lt;- rbinom(length(data.twitter.all), 1, 0.05)
-table(coin.biased.outcome)
-## coin.biased.outcome
-##       0       1 
-## 2038941  107110
-data.twitter.sample &lt;- data.twitter.all[coin.biased.outcome == 1]
-
-set.seed(19711004)
-coin.biased.outcome &lt;- rbinom(length(data.news.all), 1, 0.10)
-table(coin.biased.outcome)
-## coin.biased.outcome
-##      0      1 
-## 881823  97775
-data.news.sample &lt;- data.news.all[coin.biased.outcome == 1]
-
-set.seed(19711004)
-coin.biased.outcome &lt;- rbinom(length(data.blogs.all), 1, 0.10)
-table(coin.biased.outcome)
-## coin.biased.outcome
-##      0      1 
-## 739879  82168
-data.blogs.sample &lt;- data.blogs.all[coin.biased.outcome == 1]
-
-save(data.twitter.sample, data.news.sample, data.blogs.sample, file = &quot;./../data/processed/datasets_sample.Rdata&quot;)</code></pre>
 <pre class="r"><code>load(&quot;./../data/processed/datasets_sample.Rdata&quot;)
 
 require(tm)

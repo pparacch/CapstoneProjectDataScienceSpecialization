@@ -144,42 +144,32 @@ blogs          822047         40832            21
 
 
 
+## Others
+
+### Removal of Profanity Words
+
+
+
+Some examples ...
+
+    !++-~| G1 CERTIFIED WET TSHIRT CONTEST --- FRIDAY CLUB DRAMA --WANT TO GET IN FOR FREE?? TXT ME I WILL TELL YOU HOW---214 609 3316 --
+    Wisconsin Governor Walker Attacks Sex Ed
+
+
+
+Profanity words will be removed from the Corpora (as stopwords). An external [resource](http://www.cs.cmu.edu/~biglou/resources/) providing a comprehensive list of __1383 profanity words__ is used.
+
 ## Sampling of the Corpora
 
-For this analysis it is not needed use all of the data. Often relatively few randomly selected rows or chunks need to be included to get an accurate approximation to results that would be obtained using all the data. A biased coin" has been used to select the tweets, news and blogs to be included in the analysis based on teh following percentages
-
-* 5% of the tweets
-* 10% of the news
-* 10% of the blogs
 
 
-```r
-set.seed(19711004)
-coin.biased.outcome <- rbinom(length(data.twitter.all), 1, 0.05)
-table(coin.biased.outcome)
-## coin.biased.outcome
-##       0       1 
-## 2038941  107110
-data.twitter.sample <- data.twitter.all[coin.biased.outcome == 1]
+For this analysis it is not needed use all of the data. Often relatively few randomly selected rows or chunks need to be included to get an accurate approximation to results that would be obtained using all the data. A "biased coin" approach has been used to select the tweets, news and blogs to be included in the analysis based on the following percentages
 
-set.seed(19711004)
-coin.biased.outcome <- rbinom(length(data.news.all), 1, 0.10)
-table(coin.biased.outcome)
-## coin.biased.outcome
-##      0      1 
-## 881823  97775
-data.news.sample <- data.news.all[coin.biased.outcome == 1]
+* __5%__ of the tweets (__107110__ tweets)
+* __10%__ of the news (__97775__ news)
+* __10%__ of the blogs (__82168__ blogs)
 
-set.seed(19711004)
-coin.biased.outcome <- rbinom(length(data.blogs.all), 1, 0.10)
-table(coin.biased.outcome)
-## coin.biased.outcome
-##      0      1 
-## 739879  82168
-data.blogs.sample <- data.blogs.all[coin.biased.outcome == 1]
 
-save(data.twitter.sample, data.news.sample, data.blogs.sample, file = "./../data/processed/datasets_sample.Rdata")
-```
 
 
 ```r

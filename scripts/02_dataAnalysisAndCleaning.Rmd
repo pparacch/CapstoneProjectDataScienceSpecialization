@@ -211,60 +211,236 @@ data1.info.df <- data.frame(sources = data1.sources,
 
 `r kable(data1.info.df)`
 
+## Removal of Profanity Words
+
+```{r profanityEntries, include=F}
+twitters.g1Spam <- grepl("WET TSHIRT", data.twitter.all, ignore.case = F)
+twitters.sex <- grepl("[[:space:]]sex[a-z]*[[:space:]]", data.twitter.all, ignore.case = T)
+```
+
+Some examples ...
+
+    `r data.twitter.all[twitters.g1Spam][1]`
+    `r data.twitter.all[twitters.sex][2]`
+
+```{r loadProfanityWords, echo = F, cache = T}
+con <- file("./bad-words.txt", "r") 
+stopwords.profanityWords <- readLines(con, skipNul = T)
+close(con)
+```
+
+Profanity words will be removed from the Corpora (as stopwords). An external [resource](http://www.cs.cmu.edu/~biglou/resources/) providing a comprehensive list of __`r length(stopwords.profanityWords)` profanity words__ is used.
+
+## Others
+
+```{r othersRemoval}
+replaceContraction <- function(texts, contraction, replaceWith, ignoreCase = F){
+    gsub(pattern = contraction, replacement = replaceWith, x = texts, ignore.case = ignoreCase)
+}
+
+remove_RT_retweetted <- function(texts, ignoreCase = T){
+    a <- gsub(pattern = " RT :? ?", replacement = " ", x = texts, ignore.case = ignoreCase)
+    gsub(pattern = "^RT ", replacement = "", x = a, ignore.case = ignoreCase)
+}
+
+remove_links <- function(texts, ignoreCase = T){
+    gsub(pattern = "^(https?:\\/\\/)?([\\da-z\\.-]+)\\.([a-z\\.]{2,6})([\\/\\w \\.-]*)*\\/?$", 
+         replacement = " ", x = texts, ignore.case = ignoreCase)
+}
+
+
+remove_contractions <- function(theTexts){
+    rem.contr.tmp <- replaceContraction(texts = theTexts, contraction = " u ", replaceWith = " you ", ignoreCase = T)
+    rem.contr.tmp <- replaceContraction(texts = theTexts, contraction = " r ", replaceWith = " are ", ignoreCase = T)
+    rem.contr.tmp <- replaceContraction(texts = theTexts, contraction = "c'mon", replaceWith = "come on",ignoreCase = T)
+    rem.contr.tmp <- replaceContraction(texts = theTexts, contraction = "doin'", replaceWith = "doing",ignoreCase = T)
+    rem.contr.tmp <- replaceContraction(texts = theTexts, contraction = "[yY]a?'a?ll", replaceWith = "you all",ignoreCase = T)
+    rem.contr.tmp <- replaceContraction(texts = theTexts, contraction = "ma'am", replaceWith = "madam",ignoreCase = T)
+    rem.contr.tmp
+}
+
+# test.u <- "I'm coo... Jus at work hella tired are u ever in cali"
+# test.u.expected <- "I'm coo... Jus at work hella tired are you ever in cali"
+# test.u.expected == replaceContraction(texts = test.u, contraction = " u ", replaceWith = " you ", ignoreCase = T)
+# 
+# test.r <- "I'm coo... Jus at work hella tired r you ever in cali"
+# test.r.expected <- "I'm coo... Jus at work hella tired are you ever in cali"
+# test.r.expected == replaceContraction(texts = test.r, contraction = " r ", replaceWith = " are ", ignoreCase = T)
+# 
+# test.RT <- c("I'm cool... RT : Just at work RT tired r you ever in cali", "RT I'm cool...")
+# test.RT.expected <- c("I'm cool... Just at work tired r you ever in cali", "I'm cool...")
+# result <- remove_RT_retweetted(test.RT)
+# test.RT.expected[1] == result[1]
+# test.RT.expected[2] == result[2]
+
+## Remove RT (retweet)
+data.twitter.all <- remove_RT_retweetted(data.twitter.all)
+
+## REmove Links
+data.twitter.all <- remove_links(texts =  data.twitter.all)
+data.news.all <- remove_links(texts =  data.news.all)
+data.blogs.all <- remove_links(texts = data.blogs.all)
+
+## Remove Contractions
+data.twitter.all <- remove_contractions(theTexts = data.twitter.all)
+data.news.all <- remove_contractions(theTexts = data.news.all)
+data.blogs.all <- remove_contractions(theTexts = data.blogs.all)
+
+save(stopwords.profanityWords, data.twitter.all, data.news.all, data.blogs.all, file = "./../data/processed/step1_afterCleaning.Rdata")
+```
+
+
 ## Sampling of the Corpora
 
-For this analysis it is not needed use all of the data. Often relatively few randomly selected rows or chunks need to be included to get an accurate approximation to results that would be obtained using all the data. A biased coin" has been used to select the tweets, news and blogs to be included in the analysis based on teh following percentages
+```{r dataReductionForExploration, collapse=T, echo = F}
+#load("./../data/processed/step1_afterCleaning.Rdata")
 
-* 5% of the tweets
-* 10% of the news
-* 10% of the blogs
-
-```{r dataReductionForExploration, collapse=T}
 set.seed(19711004)
 coin.biased.outcome <- rbinom(length(data.twitter.all), 1, 0.05)
-table(coin.biased.outcome)
+#table(coin.biased.outcome)
 data.twitter.sample <- data.twitter.all[coin.biased.outcome == 1]
 
 set.seed(19711004)
 coin.biased.outcome <- rbinom(length(data.news.all), 1, 0.10)
-table(coin.biased.outcome)
+#table(coin.biased.outcome)
 data.news.sample <- data.news.all[coin.biased.outcome == 1]
 
 set.seed(19711004)
 coin.biased.outcome <- rbinom(length(data.blogs.all), 1, 0.10)
-table(coin.biased.outcome)
+#table(coin.biased.outcome)
 data.blogs.sample <- data.blogs.all[coin.biased.outcome == 1]
 
-save(data.twitter.sample, data.news.sample, data.blogs.sample, file = "./../data/processed/datasets_sample.Rdata")
+save(stopwords.profanityWords, data.twitter.sample, data.news.sample, data.blogs.sample, file = "./../data/processed/step2_afterSampling.Rdata")
+rm(data.twitter.all, data.news.all, data.blogs.all)
 ```
 
-```{r visualizeData, eval=F}
-load("./../data/processed/datasets_sample.Rdata")
+For this analysis it is not needed use all of the data. Often relatively few randomly selected rows or chunks need to be included to get an accurate approximation to results that would be obtained using all the data. A "biased coin" approach has been used to select the tweets, news and blogs to be included in the analysis based on the following percentages
 
+* __5%__ of the tweets (__`r length(data.twitter.sample)`__ tweets)
+* __10%__ of the news (__`r length(data.news.sample)`__ news)
+* __10%__ of the blogs (__`r length(data.blogs.sample)`__ blogs)
+
+# Exploring the (Sample) Corpora
+
+Exploration of the corpora is done using __natural language processing techniques__ - specifically identify the most frequents ngrams (1-gram, 2-gram and 3-gram) using __term document matrices__. Before tokenizing the corpora the following steps are performed:
+
+* transform to lower case
+* remove profanity words
+* remove numbers
+* remove punctuations - exceåt of the `'` in order to not lose contractions (e.g. I'll, I'm, etc)
+
+```{r libraries, include = F}
 require(tm)
 require(wordcloud)
 require(RWeka)
 require(ggplot2)
 
-
+##In order to keep contractions like I'm or I'll ....
 removePunctuations.exceptApostrophe <- function(texts){
     gsub(pattern = "[^'[:^punct:]]", replacement = " ", x = texts, perl = T)
 }
 
-test <- "I like %$@to*&, chew;: gum, but don't like|}{[] bubble@#^)( gum!?"
-test.expected <- "I like    to    chew   gum  but don't like      bubble      gum  "
-test.expected == removePunctuations.exceptApostrophe(texts = test)
+# test <- "I like %$@to*&, chew;: gum, but don't like|}{[] bubble@#^)( gum!?"
+# test.expected <- "I like    to    chew   gum  but don't like      bubble      gum  "
+# test.expected == removePunctuations.exceptApostrophe(texts = test)
 
-tdm.generate <- function(x){
+tdm.generate.1g <- function(x){
   corpus <- Corpus(VectorSource(x))
   corpus <- tm_map(corpus, content_transformer(tolower))
-  #corpus <- tm_map(corpus, removeWords, stopwords.badWords)
+  corpus <- tm_map(corpus, removeWords, stopwords.profanityWords)
   corpus <- tm_map(corpus, removeNumbers) 
   corpus <- tm_map(corpus, content_transformer(removePunctuations.exceptApostrophe))
   corpus <- tm_map(corpus, stripWhitespace)
   tdm <- TermDocumentMatrix(corpus)
   tdm
 }
+
+tdm.generate.ng <- function(x, ng){
+  corpus <- Corpus(VectorSource(x))
+  corpus <- tm_map(corpus, content_transformer(tolower))
+  corpus <- tm_map(corpus, removeWords, stopwords.badWords)
+  corpus <- tm_map(corpus, removeNumbers) 
+  corpus <- tm_map(corpus, content_transformer(removePunctuations.exceptApostrophe))
+  corpus <- tm_map(corpus, stripWhitespace)
+  # MAC OS Manadtory if not using doMC library
+  #options(mc.cores=1) 
+  ngramTokenizer <- function(y) NGramTokenizer(y, Weka_control(min = ng, max = ng, delimiters = " \\r\\n\\t.,;:\"()?!")) 
+  # create n-grams
+  tdm <- TermDocumentMatrix(corpus, control = list(tokenize = ngramTokenizer)) # create tdm from n-grams
+  tdm
+}
+
+```
+
+## Twitter Corpora
+
+```{r generateTermDocumentMatrix}
+twitter.corpora.tdm.1g <- tdm.generate.1g(data.twitter.sample)
+save(twitter.corpora.tdm.1g, file = "./../data/processed/twitter.tdm.1g.Rdata")
+rs(twitter.corpora.tdm.1g)
+
+news.corpora.tdm.1g <- tdm.generate.1g(data.news.sample)
+save(news.corpora.tdm.1g, file = "./../data/processed/news.tdm.1g.Rdata")
+rs(news.corpora.tdm.1g)
+
+blogs.corpora.tdm.1g <- tdm.generate.1g(data.blogs.sample)
+save(blogs.corpora.tdm.1g, file = "./../data/processed/blogs.tdm.1g.Rdata")
+rs(blogs.corpora.tdm.1g)
+
+## Bi-grams
+twitter.corpora.tdm.2g <- tdm.generate.ng(x = data.twitter.sample,ng = 2)
+save(twitter.corpora.tdm.2g, file = "./../data/processed/twitter.tdm.2g.Rdata")
+rs(twitter.corpora.tdm.2g)
+
+news.corpora.tdm.2g <- tdm.generate.ng(x = data.news.sample, ng = 2)
+save(news.corpora.tdm.2g, file = "./../data/processed/news.tdm.2g.Rdata")
+rs(news.corpora.tdm.2g)
+
+blogs.corpora.tdm.2g <- tdm.generate.ng(x = data.blogs.sample, ng = 2)
+save(blogs.corpora.tdm.2g, file = "./../data/processed/blogs.tdm.2g.Rdata")
+rs(blogs.corpora.tdm.2g)
+
+## Tri-grams
+twitter.corpora.tdm.3g <- tdm.generate.ng(x = data.twitter.sample,ng = 3)
+save(twitter.corpora.tdm.3g, file = "./../data/processed/twitter.tdm.3g.Rdata")
+rs(twitter.corpora.tdm.3g)
+
+news.corpora.tdm.3g <- tdm.generate.ng(x = data.news.sample, ng = 3)
+save(news.corpora.tdm.3g, file = "./../data/processed/news.tdm.3g.Rdata")
+rs(news.corpora.tdm.3g)
+
+blogs.corpora.tdm.3g <- tdm.generate.ng(x = data.blogs.sample, ng = 3)
+save(blogs.corpora.tdm.3g, file = "./../data/processed/blogs.tdm.3g.Rdata")
+rs(blogs.corpora.tdm.3g)
+```
+
+```{r visualizeData, eval=F}
+#load("./../data/processed/datasets_sample.Rdata")
+
+# require(tm)
+# require(wordcloud)
+# require(RWeka)
+# require(ggplot2)
+
+# removePunctuations.exceptApostrophe <- function(texts){
+#     gsub(pattern = "[^'[:^punct:]]", replacement = " ", x = texts, perl = T)
+# }
+
+
+# test <- "I like %$@to*&, chew;: gum, but don't like|}{[] bubble@#^)( gum!?"
+# test.expected <- "I like    to    chew   gum  but don't like      bubble      gum  "
+# test.expected == removePunctuations.exceptApostrophe(texts = test)
+
+# tdm.generate <- function(x){
+#   corpus <- Corpus(VectorSource(x))
+#   corpus <- tm_map(corpus, content_transformer(tolower))
+#   #corpus <- tm_map(corpus, removeWords, stopwords.badWords)
+#   corpus <- tm_map(corpus, removeNumbers) 
+#   corpus <- tm_map(corpus, content_transformer(removePunctuations.exceptApostrophe))
+#   corpus <- tm_map(corpus, stripWhitespace)
+#   tdm <- TermDocumentMatrix(corpus)
+#   tdm
+# }
 
 
 tdm.1g <- tdm.generate(data.twitter.sample[1:50000])
