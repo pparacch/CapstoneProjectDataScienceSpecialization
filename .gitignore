@@ -21,4 +21,5 @@ vignettes/*.pdf
 #Data
 data/
 scripts/*_cache/
+scripts/*_files/
 .Rproj.user
