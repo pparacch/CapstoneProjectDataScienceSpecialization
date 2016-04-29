@@ -1,7 +1,7 @@
 ---
-title: "Assignment: Milestone Report (Capstone Project)"
+title: "Text Prediction - Milestone Report (Capstone Project)"
 author: "Pier Lorenzo Paracchini"
-date: "25 april 2016"
+date: "29 april 2016"
 output: 
   html_document: 
     keep_md: yes
@@ -23,7 +23,7 @@ localeToCharset()
 
 # Synopsis
 
-The main objective of this __MIlestone Report__ is to display and explain only the major features of the data you have identified and briefly summarize your next" plans for creating the prediction algorithm and Shiny app behind the final product. Specifically as stated in the assignment description:
+The main objective of this __Milestone Report__ is to display and explain only the major features of the data you have identified and briefly summarize your next" plans for creating the prediction algorithm and Shiny app behind the final product. Specifically as stated in the assignment description:
 
 * Demonstrate that the data has been downloaded and loaded
 * Create a basic report of summary statistics about the data sets (twitters, news, blogs)
@@ -236,7 +236,7 @@ Profanity words will be removed from the Corpora (as stopwords). An external [re
 * remove __links__ (e.g. "https://www.coursera.org/" or "http://www.coursera.org/")
 * remove __"RT"__ (only for the twitter corpora)
 
-```{r othersRemoval, echo = F}
+```{r othersRemoval, echo = F, cache = T}
 replaceContraction <- function(texts, contraction, replaceWith, ignoreCase = F){
     gsub(pattern = contraction, replacement = replaceWith, x = texts, ignore.case = ignoreCase)
 }
@@ -345,8 +345,6 @@ require(RWeka)
 require(ggplot2)
 require(RColorBrewer)
 
-mypalette<-brewer.pal(8,"Dark2")
-
 ##In order to keep contractions like I'm or I'll ....
 removePunctuations.exceptApostrophe <- function(texts){
     gsub(pattern = "[^'[:^punct:]]", replacement = " ", x = texts, perl = T)
@@ -393,6 +391,37 @@ tdm.generate.ng <- function(x, ng = 1){
   tdm
 }
 
+getTermFrequencyInformationOrderedByTermFrequency <- function(aTdm, lowFrequency){
+    ft.lf <- findFreqTerms(aTdm,lowfreq = lowFrequency)
+    aTdm.l <- aTdm[ft.lf,]
+    aTdm.l.asMatrix <- as.matrix(aTdm.l)
+    # calculate frequency of each term
+    aTdm.l.termFreq <- rowSums(aTdm.l.asMatrix)
+    # create data frame from subset of terms
+    aTdm.l.termFreq.df <- data.frame(term = names(aTdm.l.termFreq), freq = aTdm.l.termFreq)
+    # sort by subset DataFrame frequency
+    aTdm.l.termFreq.df[with(aTdm.l.termFreq.df, order(-aTdm.l.termFreq.df$freq)), ]
+}
+
+mypalette <- brewer.pal(8,"Dark2")
+
+visualizeBarPlot <- function(ftm.df, colorBars = "grey40", titleBarPlot = ""){
+    
+    ggplot(ftm.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) +
+        geom_bar(stat = "identity", fill=colorBars) +
+        xlab("Terms") + ylab("Frequency (* 1000)")+
+        ggtitle(paste(titleBarPlot, "(Top 30)"))  + coord_flip()
+
+}
+
+visualizeWordcloud <- function(ftm.df){
+    mypal <- brewer.pal(8,"Dark2")
+    wordcloud(words = ftm.df$term,
+          freq = ftm.df$freq, 
+          colors = mypal, 
+          scale=c(6,.5),
+          random.order = F, max.words = 200)
+}
 ```
 
 ```{r generateTermDocumentMatrix, eval = F, cache = T, echo = F}
@@ -441,18 +470,6 @@ rm(blogs.corpora.tdm.3g)
 load("./../data/processed/twitter.tdm.1g.Rdata")
 load("./../data/processed/twitter.tdm.2g.Rdata")
 load("./../data/processed/twitter.tdm.3g.Rdata")
-
-getTermFrequencyInformationOrderedByTermFrequency <- function(aTdm, lowFrequency){
-    ft.lf <- findFreqTerms(aTdm,lowfreq = lowFrequency)
-    aTdm.l <- aTdm[ft.lf,]
-    aTdm.l.asMatrix <- as.matrix(aTdm.l)
-    # calculate frequency of each term
-    aTdm.l.termFreq <- rowSums(aTdm.l.asMatrix)
-    # create data frame from subset of terms
-    aTdm.l.termFreq.df <- data.frame(term = names(aTdm.l.termFreq), freq = aTdm.l.termFreq)
-    # sort by subset DataFrame frequency
-    aTdm.l.termFreq.df[with(aTdm.l.termFreq.df, order(-aTdm.l.termFreq.df$freq)), ]
-}
 ```
 
 ### 1-grams
@@ -460,20 +477,12 @@ getTermFrequencyInformationOrderedByTermFrequency <- function(aTdm, lowFrequency
 ```{r visualizeTwitterData_1g, eval=T, warning = F, message = F, echo = F}
 corpora.tdm <- twitter.corpora.tdm.1g
 
-ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
-ft.lf.300 <- findFreqTerms(corpora.tdm,lowfreq = 300)
-ft.lf.500 <- findFreqTerms(corpora.tdm,lowfreq = 500)
-ft.lf.1000 <- findFreqTerms(corpora.tdm,lowfreq = 1000)
 ft.lf.1500 <- findFreqTerms(corpora.tdm,lowfreq = 1500)
 
 frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 1500)
-ggplot(frequentTermsLimited.df[3:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
-        geom_bar(stat = "identity", fill="#E69F00") +xlab("Terms") + ylab("Frequency (* 1000)")+ ggtitle("Frequent 1-grams (top 30)")  + coord_flip()
-wordcloud(words = frequentTermsLimited.df$term[-c(1,2)],
-          freq = frequentTermsLimited.df$freq[-c(1,2)], 
-          colors = mypalette, 
-          scale=c(8,.3), 
-          rot.per=.15)
+
+visualizeBarPlot(ftm.df = frequentTermsLimited.df[-c(1,2),], titleBarPlot = "Frequent 1-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df[-c(1,2),])
 ```
 
 ### 2-grams
@@ -481,16 +490,12 @@ wordcloud(words = frequentTermsLimited.df$term[-c(1,2)],
 ```{r visualizeTwitterData_2g, eval=T, warning = F, message = F, echo = F}
 corpora.tdm <- twitter.corpora.tdm.2g
 
-ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
-ft.lf.300 <- findFreqTerms(corpora.tdm,lowfreq = 300)
-ft.lf.500 <- findFreqTerms(corpora.tdm,lowfreq = 500)
 ft.lf.1000 <- findFreqTerms(corpora.tdm,lowfreq = 1000)
-ft.lf.1500 <- findFreqTerms(corpora.tdm,lowfreq = 1500)
 
 frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 1000)
-ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
-        geom_bar(stat = "identity", fill="#56B4E9") +xlab("Terms") + ylab("Frequency (* 1000)")+ ggtitle("Frequent 2-grams (top 30)") + coord_flip()
-wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq, colors = mypalette, scale=c(8,.3), rot.per=.15)
+
+visualizeBarPlot(ftm.df = frequentTermsLimited.df,titleBarPlot = "Frequent 2-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df)
 ```
 
 ### 3-grams
@@ -498,16 +503,12 @@ wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$fr
 ```{r visualizeTwitterData_3g, eval=T, warning = F, message = F, echo = F}
 corpora.tdm <- twitter.corpora.tdm.3g
 
-ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
 ft.lf.150 <- findFreqTerms(corpora.tdm,lowfreq = 150)
-ft.lf.200 <- findFreqTerms(corpora.tdm,lowfreq = 200)
-ft.lf.300 <- findFreqTerms(corpora.tdm,lowfreq = 300)
-ft.lf.500 <- findFreqTerms(corpora.tdm,lowfreq = 500)
 
 frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 150)
-ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
-        geom_bar(stat = "identity", fill="#009E73") +xlab("Terms") + ylab("Frequency (* 1000)")+ ggtitle("Frequent 3-grams (top 30)") + coord_flip()
-wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq, colors = mypalette, scale=c(8,.3), rot.per=.15)
+
+visualizeBarPlot(ftm.df = frequentTermsLimited.df,titleBarPlot = "Frequent 3-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df)
 ```
 
 ## News Corpora
@@ -523,19 +524,11 @@ load("./../data/processed/news.tdm.3g.Rdata")
 ```{r visualizeNewsData_1g, eval=T, warning = F, message = F, echo = F}
 corpora.tdm <- news.corpora.tdm.1g
 
-ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
-ft.lf.300 <- findFreqTerms(corpora.tdm,lowfreq = 300)
-ft.lf.500 <- findFreqTerms(corpora.tdm,lowfreq = 500)
-ft.lf.1000 <- findFreqTerms(corpora.tdm,lowfreq = 1000)
-ft.lf.1500 <- findFreqTerms(corpora.tdm,lowfreq = 1500)
-ft.lf.2000 <- findFreqTerms(corpora.tdm,lowfreq = 2000)
-ft.lf.2500 <- findFreqTerms(corpora.tdm,lowfreq = 2500)
 ft.lf.3500 <- findFreqTerms(corpora.tdm,lowfreq = 3500)
 
 frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 3500)
-ggplot(frequentTermsLimited.df[c(1,4:30),], aes(x = reorder(term,freq), y = freq/1000)) + 
-        geom_bar(stat = "identity", fill="#E69F00") +xlab("Terms") + ylab("Frequency (* 1000)")+ ggtitle("Frequent 1-grams (top 30)") + coord_flip()
-wordcloud(words = frequentTermsLimited.df$term[-c(2,3)],freq = frequentTermsLimited.df$freq[-c(2,3)], colors = mypalette, scale=c(8,.3), rot.per=.15)
+visualizeBarPlot(ftm.df = frequentTermsLimited.df[-c(2,3),],titleBarPlot = "Frequent 1-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df[-c(2,3),])
 ```
 
 ### 2-grams
@@ -543,19 +536,12 @@ wordcloud(words = frequentTermsLimited.df$term[-c(2,3)],freq = frequentTermsLimi
 ```{r visualizeNewsData_2g, eval=T, warning = F, message = F, echo = F}
 corpora.tdm <- news.corpora.tdm.2g
 
-ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
-ft.lf.300 <- findFreqTerms(corpora.tdm,lowfreq = 300)
-ft.lf.500 <- findFreqTerms(corpora.tdm,lowfreq = 500)
-ft.lf.1000 <- findFreqTerms(corpora.tdm,lowfreq = 1000)
-ft.lf.1500 <- findFreqTerms(corpora.tdm,lowfreq = 1500)
 ft.lf.2000 <- findFreqTerms(corpora.tdm,lowfreq = 2000)
-ft.lf.2500 <- findFreqTerms(corpora.tdm,lowfreq = 2500)
-ft.lf.3500 <- findFreqTerms(corpora.tdm,lowfreq = 3500)
 
 frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 2000)
-ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
-        geom_bar(stat = "identity", fill="#56B4E9") +xlab("Terms") + ylab("Frequency (* 1000)")+ ggtitle("Frequent 2-grams (top 30)") + coord_flip()
-wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq, colors = mypalette, scale=c(8,.3), rot.per=.15)
+
+visualizeBarPlot(ftm.df = frequentTermsLimited.df,titleBarPlot = "Frequent 2-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df)
 ```
 
 ### 3-grams
@@ -563,16 +549,12 @@ wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$fr
 ```{r visualizeNewsData_3g, eval=T, warning = F, message = F, echo = F}
 corpora.tdm <- news.corpora.tdm.3g
 
-ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
-ft.lf.150 <- findFreqTerms(corpora.tdm,lowfreq = 150)
-ft.lf.200 <- findFreqTerms(corpora.tdm,lowfreq = 200)
 ft.lf.300 <- findFreqTerms(corpora.tdm,lowfreq = 300)
-ft.lf.500 <- findFreqTerms(corpora.tdm,lowfreq = 500)
 
 frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 300)
-ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
-        geom_bar(stat = "identity", fill="#009E73") +xlab("Terms") + ylab("Frequency (* 1000)")+ ggtitle("Frequent 3-grams (top 30)") + coord_flip()
-wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq, colors = mypalette, scale=c(8,.3), rot.per=.15)
+
+visualizeBarPlot(ftm.df = frequentTermsLimited.df,titleBarPlot = "Frequent 3-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df)
 ```
 
 ## Blogs Corpora
@@ -588,20 +570,12 @@ load("./../data/processed/blogs.tdm.3g.Rdata")
 ```{r visualizeBlogsData_1g, eval=T, warning = F, message = F, echo = F}
 corpora.tdm <- blogs.corpora.tdm.1g
 
-ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
-ft.lf.300 <- findFreqTerms(corpora.tdm,lowfreq = 300)
-ft.lf.500 <- findFreqTerms(corpora.tdm,lowfreq = 500)
-ft.lf.1000 <- findFreqTerms(corpora.tdm,lowfreq = 1000)
-ft.lf.1500 <- findFreqTerms(corpora.tdm,lowfreq = 1500)
-ft.lf.2000 <- findFreqTerms(corpora.tdm,lowfreq = 2000)
-ft.lf.2500 <- findFreqTerms(corpora.tdm,lowfreq = 2500)
-ft.lf.3500 <- findFreqTerms(corpora.tdm,lowfreq = 3500)
 ft.lf.5000 <- findFreqTerms(corpora.tdm,lowfreq = 5000)
 
 frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 5000)
-ggplot(frequentTermsLimited.df[c(1,2,5:30),], aes(x = reorder(term,freq), y = freq/1000)) + 
-        geom_bar(stat = "identity", fill="#E69F00") +xlab("Terms") + ylab("Frequency (* 1000)")+ ggtitle("Frequent 1-grams (top 30)") + coord_flip()
-wordcloud(words = frequentTermsLimited.df$term[-c(3,4)],freq = frequentTermsLimited.df$freq[-c(3,4)], colors = mypalette, scale=c(8,.3), rot.per=.15)
+
+visualizeBarPlot(ftm.df = frequentTermsLimited.df[-c(3,4),],titleBarPlot = "Frequent 1-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df[-c(3,4),])
 ```
 
 ### 2-grams
@@ -609,19 +583,12 @@ wordcloud(words = frequentTermsLimited.df$term[-c(3,4)],freq = frequentTermsLimi
 ```{r visualizeBlogsData_2g, eval=T, warning = F, message = F, echo = F}
 corpora.tdm <- blogs.corpora.tdm.2g
 
-ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
-ft.lf.300 <- findFreqTerms(corpora.tdm,lowfreq = 300)
-ft.lf.500 <- findFreqTerms(corpora.tdm,lowfreq = 500)
-ft.lf.1000 <- findFreqTerms(corpora.tdm,lowfreq = 1000)
-ft.lf.1500 <- findFreqTerms(corpora.tdm,lowfreq = 1500)
-ft.lf.2000 <- findFreqTerms(corpora.tdm,lowfreq = 2000)
 ft.lf.2500 <- findFreqTerms(corpora.tdm,lowfreq = 2500)
-ft.lf.3500 <- findFreqTerms(corpora.tdm,lowfreq = 3500)
 
 frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 2500)
-ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
-        geom_bar(stat = "identity", fill="#56B4E9") +xlab("Terms") + ylab("Frequency (* 1000)")+ ggtitle("Frequent 2-grams (top 30)") + coord_flip()
-wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq, colors = mypalette, scale=c(8,.3), rot.per=.15)
+
+visualizeBarPlot(ftm.df = frequentTermsLimited.df,titleBarPlot = "Frequent 2-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df)
 ```
 
 ### 3-grams
@@ -629,16 +596,12 @@ wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$fr
 ```{r visualizeBlogsData_3g, eval=T, warning = F, message = F, echo = F}
 corpora.tdm <- blogs.corpora.tdm.3g
 
-ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
-ft.lf.150 <- findFreqTerms(corpora.tdm,lowfreq = 150)
-ft.lf.200 <- findFreqTerms(corpora.tdm,lowfreq = 200)
 ft.lf.300 <- findFreqTerms(corpora.tdm,lowfreq = 300)
-ft.lf.500 <- findFreqTerms(corpora.tdm,lowfreq = 500)
 
 frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 300)
-ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
-        geom_bar(stat = "identity", fill="#009E73") +xlab("Terms") + ylab("Frequency (* 1000)")+ ggtitle("Frequent 3-grams (top 30)") + coord_flip()
-wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq, colors = mypalette, scale=c(8,.3), rot.per=.15)
+
+visualizeBarPlot(ftm.df = frequentTermsLimited.df,titleBarPlot = "Frequent 3-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df)
 ```
 
 # Next Steps

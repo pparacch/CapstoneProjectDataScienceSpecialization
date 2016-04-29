@@ -1,12 +1,12 @@
-# Assignment: Milestone Report (Capstone Project)
+# Text Prediction - Milestone Report (Capstone Project)
 Pier Lorenzo Paracchini  
-25 april 2016  
+29 april 2016  
 
 
 
 # Synopsis
 
-The main objective of this __MIlestone Report__ is to display and explain only the major features of the data you have identified and briefly summarize your next" plans for creating the prediction algorithm and Shiny app behind the final product. Specifically as stated in the assignment description:
+The main objective of this __Milestone Report__ is to display and explain only the major features of the data you have identified and briefly summarize your next" plans for creating the prediction algorithm and Shiny app behind the final product. Specifically as stated in the assignment description:
 
 * Demonstrate that the data has been downloaded and loaded
 * Create a basic report of summary statistics about the data sets (twitters, news, blogs)
