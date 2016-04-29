@@ -144,9 +144,7 @@ blogs          822047         40832            21
 
 
 
-## Others
-
-### Removal of Profanity Words
+## Removal of Profanity Words
 
 
 
@@ -159,6 +157,66 @@ Some examples ...
 
 Profanity words will be removed from the Corpora (as stopwords). An external [resource](http://www.cs.cmu.edu/~biglou/resources/) providing a comprehensive list of __1383 profanity words__ is used.
 
+## Others
+
+
+```r
+replaceContraction <- function(texts, contraction, replaceWith, ignoreCase = F){
+    gsub(pattern = contraction, replacement = replaceWith, x = texts, ignore.case = ignoreCase)
+}
+
+remove_RT_retweetted <- function(texts, ignoreCase = T){
+    a <- gsub(pattern = " RT :? ?", replacement = " ", x = texts, ignore.case = ignoreCase)
+    gsub(pattern = "^RT ", replacement = "", x = a, ignore.case = ignoreCase)
+}
+
+remove_links <- function(texts, ignoreCase = T){
+    gsub(pattern = "^(https?:\\/\\/)?([\\da-z\\.-]+)\\.([a-z\\.]{2,6})([\\/\\w \\.-]*)*\\/?$", 
+         replacement = " ", x = texts, ignore.case = ignoreCase)
+}
+
+
+remove_contractions <- function(theTexts){
+    rem.contr.tmp <- replaceContraction(texts = theTexts, contraction = " u ", replaceWith = " you ", ignoreCase = T)
+    rem.contr.tmp <- replaceContraction(texts = theTexts, contraction = " r ", replaceWith = " are ", ignoreCase = T)
+    rem.contr.tmp <- replaceContraction(texts = theTexts, contraction = "c'mon", replaceWith = "come on",ignoreCase = T)
+    rem.contr.tmp <- replaceContraction(texts = theTexts, contraction = "doin'", replaceWith = "doing",ignoreCase = T)
+    rem.contr.tmp <- replaceContraction(texts = theTexts, contraction = "[yY]a?'a?ll", replaceWith = "you all",ignoreCase = T)
+    rem.contr.tmp <- replaceContraction(texts = theTexts, contraction = "ma'am", replaceWith = "madam",ignoreCase = T)
+    rem.contr.tmp
+}
+
+# test.u <- "I'm coo... Jus at work hella tired are u ever in cali"
+# test.u.expected <- "I'm coo... Jus at work hella tired are you ever in cali"
+# test.u.expected == replaceContraction(texts = test.u, contraction = " u ", replaceWith = " you ", ignoreCase = T)
+# 
+# test.r <- "I'm coo... Jus at work hella tired r you ever in cali"
+# test.r.expected <- "I'm coo... Jus at work hella tired are you ever in cali"
+# test.r.expected == replaceContraction(texts = test.r, contraction = " r ", replaceWith = " are ", ignoreCase = T)
+# 
+# test.RT <- c("I'm cool... RT : Just at work RT tired r you ever in cali", "RT I'm cool...")
+# test.RT.expected <- c("I'm cool... Just at work tired r you ever in cali", "I'm cool...")
+# result <- remove_RT_retweetted(test.RT)
+# test.RT.expected[1] == result[1]
+# test.RT.expected[2] == result[2]
+
+## Remove RT (retweet)
+data.twitter.all <- remove_RT_retweetted(data.twitter.all)
+
+## REmove Links
+data.twitter.all <- remove_links(texts =  data.twitter.all)
+data.news.all <- remove_links(texts =  data.news.all)
+data.blogs.all <- remove_links(texts = data.blogs.all)
+
+## Remove Contractions
+data.twitter.all <- remove_contractions(theTexts = data.twitter.all)
+data.news.all <- remove_contractions(theTexts = data.news.all)
+data.blogs.all <- remove_contractions(theTexts = data.blogs.all)
+
+save(stopwords.profanityWords, data.twitter.all, data.news.all, data.blogs.all, file = "./../data/processed/step1_afterCleaning.Rdata")
+```
+
+
 ## Sampling of the Corpora
 
 
@@ -169,36 +227,368 @@ For this analysis it is not needed use all of the data. Often relatively few ran
 * __10%__ of the news (__97775__ news)
 * __10%__ of the blogs (__82168__ blogs)
 
+# Exploring the (Sample) Corpora
+
+Exploration of the corpora is done using __natural language processing techniques__ - specifically identify the most frequents ngrams (1-gram, 2-gram and 3-gram) using __term document matrices__. Before tokenizing the corpora the following steps are performed:
+
+* transform to lower case
+* remove profanity words
+* remove numbers
+* remove punctuations - except of the `'` (apostrophe) in order to not lose contractions (e.g. I'll, I'm, etc)
+
 
 
 
 ```r
-load("./../data/processed/datasets_sample.Rdata")
+twitter.corpora.tdm.1g <- tdm.generate.1g(data.twitter.sample)
+save(twitter.corpora.tdm.1g, file = "./../data/processed/twitter.tdm.1g.Rdata")
+rm(twitter.corpora.tdm.1g)
 
-require(tm)
-require(wordcloud)
-require(RWeka)
-require(ggplot2)
+news.corpora.tdm.1g <- tdm.generate.1g(data.news.sample)
+save(news.corpora.tdm.1g, file = "./../data/processed/news.tdm.1g.Rdata")
+rm(news.corpora.tdm.1g)
+
+blogs.corpora.tdm.1g <- tdm.generate.1g(data.blogs.sample)
+save(blogs.corpora.tdm.1g, file = "./../data/processed/blogs.tdm.1g.Rdata")
+rm(blogs.corpora.tdm.1g)
+
+## Bi-grams
+twitter.corpora.tdm.2g <- tdm.generate.ng(x = data.twitter.sample,ng = 2)
+save(twitter.corpora.tdm.2g, file = "./../data/processed/twitter.tdm.2g.Rdata")
+rm(twitter.corpora.tdm.2g)
+
+news.corpora.tdm.2g <- tdm.generate.ng(x = data.news.sample, ng = 2)
+save(news.corpora.tdm.2g, file = "./../data/processed/news.tdm.2g.Rdata")
+rm(news.corpora.tdm.2g)
+
+blogs.corpora.tdm.2g <- tdm.generate.ng(x = data.blogs.sample, ng = 2)
+save(blogs.corpora.tdm.2g, file = "./../data/processed/blogs.tdm.2g.Rdata")
+rm(blogs.corpora.tdm.2g)
+
+## Tri-grams
+twitter.corpora.tdm.3g <- tdm.generate.ng(x = data.twitter.sample,ng = 3)
+save(twitter.corpora.tdm.3g, file = "./../data/processed/twitter.tdm.3g.Rdata")
+rm(twitter.corpora.tdm.3g)
+
+news.corpora.tdm.3g <- tdm.generate.ng(x = data.news.sample, ng = 3)
+save(news.corpora.tdm.3g, file = "./../data/processed/news.tdm.3g.Rdata")
+rm(news.corpora.tdm.3g)
+
+blogs.corpora.tdm.3g <- tdm.generate.ng(x = data.blogs.sample, ng = 3)
+save(blogs.corpora.tdm.3g, file = "./../data/processed/blogs.tdm.3g.Rdata")
+rm(blogs.corpora.tdm.3g)
+```
+
+## Twitter Corpora
 
 
-removePunctuations.exceptApostrophe <- function(texts){
-    gsub(pattern = "[^'[:^punct:]]", replacement = " ", x = texts, perl = T)
+```r
+load("./../data/processed/twitter.tdm.1g.Rdata")
+load("./../data/processed/twitter.tdm.2g.Rdata")
+load("./../data/processed/twitter.tdm.3g.Rdata")
+
+getTermFrequencyInformationOrderedByTermFrequency <- function(aTdm, lowFrequency){
+    ft.lf <- findFreqTerms(aTdm,lowfreq = lowFrequency)
+    aTdm.l <- aTdm[ft.lf,]
+    aTdm.l.asMatrix <- as.matrix(aTdm.l)
+    # calculate frequency of each term
+    aTdm.l.termFreq <- rowSums(aTdm.l.asMatrix)
+    # create data frame from subset of terms
+    aTdm.l.termFreq.df <- data.frame(term = names(aTdm.l.termFreq), freq = aTdm.l.termFreq)
+    # sort by subset DataFrame frequency
+    aTdm.l.termFreq.df[with(aTdm.l.termFreq.df, order(-aTdm.l.termFreq.df$freq)), ]
 }
 
-test <- "I like %$@to*&, chew;: gum, but don't like|}{[] bubble@#^)( gum!?"
-test.expected <- "I like    to    chew   gum  but don't like      bubble      gum  "
-test.expected == removePunctuations.exceptApostrophe(texts = test)
+corpora.tdm <- twitter.corpora.tdm.1g
 
-tdm.generate <- function(x){
-  corpus <- Corpus(VectorSource(x))
-  corpus <- tm_map(corpus, content_transformer(tolower))
-  #corpus <- tm_map(corpus, removeWords, stopwords.badWords)
-  corpus <- tm_map(corpus, removeNumbers) 
-  corpus <- tm_map(corpus, content_transformer(removePunctuations.exceptApostrophe))
-  corpus <- tm_map(corpus, stripWhitespace)
-  tdm <- TermDocumentMatrix(corpus)
-  tdm
-}
+ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
+ft.lf.300 <- findFreqTerms(corpora.tdm,lowfreq = 300)
+ft.lf.500 <- findFreqTerms(corpora.tdm,lowfreq = 500)
+ft.lf.1000 <- findFreqTerms(corpora.tdm,lowfreq = 1000)
+ft.lf.1500 <- findFreqTerms(corpora.tdm,lowfreq = 1500)
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 1500)
+ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
+        geom_bar(stat = "identity") +xlab("Terms") + ylab("Frequency (* 1000)") + coord_flip()
+```
+
+![](02_dataAnalysisAndCleaning_files/figure-html/visualizeTwitterData-1.png)
+
+```r
+wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq)
+```
+
+![](02_dataAnalysisAndCleaning_files/figure-html/visualizeTwitterData-2.png)
+
+```r
+corpora.tdm <- twitter.corpora.tdm.2g
+
+ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
+ft.lf.300 <- findFreqTerms(corpora.tdm,lowfreq = 300)
+ft.lf.500 <- findFreqTerms(corpora.tdm,lowfreq = 500)
+ft.lf.1000 <- findFreqTerms(corpora.tdm,lowfreq = 1000)
+ft.lf.1500 <- findFreqTerms(corpora.tdm,lowfreq = 1500)
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 1000)
+ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
+        geom_bar(stat = "identity") +xlab("Terms") + ylab("Frequency (* 1000)") + coord_flip()
+```
+
+![](02_dataAnalysisAndCleaning_files/figure-html/visualizeTwitterData-3.png)
+
+```r
+wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq)
+```
+
+![](02_dataAnalysisAndCleaning_files/figure-html/visualizeTwitterData-4.png)
+
+```r
+corpora.tdm <- twitter.corpora.tdm.3g
+
+ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
+ft.lf.150 <- findFreqTerms(corpora.tdm,lowfreq = 150)
+ft.lf.200 <- findFreqTerms(corpora.tdm,lowfreq = 200)
+ft.lf.300 <- findFreqTerms(corpora.tdm,lowfreq = 300)
+ft.lf.500 <- findFreqTerms(corpora.tdm,lowfreq = 500)
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 150)
+ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
+        geom_bar(stat = "identity") +xlab("Terms") + ylab("Frequency (* 1000)") + coord_flip()
+```
+
+![](02_dataAnalysisAndCleaning_files/figure-html/visualizeTwitterData-5.png)
+
+```r
+wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq)
+```
+
+![](02_dataAnalysisAndCleaning_files/figure-html/visualizeTwitterData-6.png)
+
+## News Corpora
+
+
+```r
+load("./../data/processed/news.tdm.1g.Rdata")
+load("./../data/processed/news.tdm.2g.Rdata")
+load("./../data/processed/news.tdm.3g.Rdata")
+
+
+corpora.tdm <- news.corpora.tdm.1g
+
+ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
+ft.lf.300 <- findFreqTerms(corpora.tdm,lowfreq = 300)
+ft.lf.500 <- findFreqTerms(corpora.tdm,lowfreq = 500)
+ft.lf.1000 <- findFreqTerms(corpora.tdm,lowfreq = 1000)
+ft.lf.1500 <- findFreqTerms(corpora.tdm,lowfreq = 1500)
+ft.lf.2000 <- findFreqTerms(corpora.tdm,lowfreq = 2000)
+ft.lf.2500 <- findFreqTerms(corpora.tdm,lowfreq = 2500)
+ft.lf.3500 <- findFreqTerms(corpora.tdm,lowfreq = 3500)
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 3500)
+ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
+        geom_bar(stat = "identity") +xlab("Terms") + ylab("Frequency (* 1000)") + coord_flip()
+```
+
+![](02_dataAnalysisAndCleaning_files/figure-html/visualizeNewsData-1.png)
+
+```r
+wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq)
+```
+
+![](02_dataAnalysisAndCleaning_files/figure-html/visualizeNewsData-2.png)
+
+```r
+corpora.tdm <- news.corpora.tdm.2g
+
+ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
+ft.lf.300 <- findFreqTerms(corpora.tdm,lowfreq = 300)
+ft.lf.500 <- findFreqTerms(corpora.tdm,lowfreq = 500)
+ft.lf.1000 <- findFreqTerms(corpora.tdm,lowfreq = 1000)
+ft.lf.1500 <- findFreqTerms(corpora.tdm,lowfreq = 1500)
+ft.lf.2000 <- findFreqTerms(corpora.tdm,lowfreq = 2000)
+ft.lf.2500 <- findFreqTerms(corpora.tdm,lowfreq = 2500)
+ft.lf.3500 <- findFreqTerms(corpora.tdm,lowfreq = 3500)
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 2000)
+ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
+        geom_bar(stat = "identity") +xlab("Terms") + ylab("Frequency (* 1000)") + coord_flip()
+```
+
+![](02_dataAnalysisAndCleaning_files/figure-html/visualizeNewsData-3.png)
+
+```r
+wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq)
+```
+
+![](02_dataAnalysisAndCleaning_files/figure-html/visualizeNewsData-4.png)
+
+```r
+corpora.tdm <- news.corpora.tdm.3g
+
+ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
+ft.lf.150 <- findFreqTerms(corpora.tdm,lowfreq = 150)
+ft.lf.200 <- findFreqTerms(corpora.tdm,lowfreq = 200)
+ft.lf.300 <- findFreqTerms(corpora.tdm,lowfreq = 300)
+ft.lf.500 <- findFreqTerms(corpora.tdm,lowfreq = 500)
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 300)
+ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
+        geom_bar(stat = "identity") +xlab("Terms") + ylab("Frequency (* 1000)") + coord_flip()
+```
+
+![](02_dataAnalysisAndCleaning_files/figure-html/visualizeNewsData-5.png)
+
+```r
+wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq)
+```
+
+![](02_dataAnalysisAndCleaning_files/figure-html/visualizeNewsData-6.png)
+
+## Blogs Corpora
+
+
+```r
+load("./../data/processed/blogs.tdm.1g.Rdata")
+load("./../data/processed/blogs.tdm.2g.Rdata")
+load("./../data/processed/blogs.tdm.3g.Rdata")
+
+
+corpora.tdm <- blogs.corpora.tdm.1g
+
+ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
+ft.lf.300 <- findFreqTerms(corpora.tdm,lowfreq = 300)
+ft.lf.500 <- findFreqTerms(corpora.tdm,lowfreq = 500)
+ft.lf.1000 <- findFreqTerms(corpora.tdm,lowfreq = 1000)
+ft.lf.1500 <- findFreqTerms(corpora.tdm,lowfreq = 1500)
+ft.lf.2000 <- findFreqTerms(corpora.tdm,lowfreq = 2000)
+ft.lf.2500 <- findFreqTerms(corpora.tdm,lowfreq = 2500)
+ft.lf.3500 <- findFreqTerms(corpora.tdm,lowfreq = 3500)
+ft.lf.5000 <- findFreqTerms(corpora.tdm,lowfreq = 5000)
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 5000)
+ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
+        geom_bar(stat = "identity") +xlab("Terms") + ylab("Frequency (* 1000)") + coord_flip()
+```
+
+![](02_dataAnalysisAndCleaning_files/figure-html/visualizeBlogsData-1.png)
+
+```r
+wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq)
+```
+
+![](02_dataAnalysisAndCleaning_files/figure-html/visualizeBlogsData-2.png)
+
+```r
+corpora.tdm <- blogs.corpora.tdm.2g
+
+ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
+ft.lf.300 <- findFreqTerms(corpora.tdm,lowfreq = 300)
+ft.lf.500 <- findFreqTerms(corpora.tdm,lowfreq = 500)
+ft.lf.1000 <- findFreqTerms(corpora.tdm,lowfreq = 1000)
+ft.lf.1500 <- findFreqTerms(corpora.tdm,lowfreq = 1500)
+ft.lf.2000 <- findFreqTerms(corpora.tdm,lowfreq = 2000)
+ft.lf.2500 <- findFreqTerms(corpora.tdm,lowfreq = 2500)
+ft.lf.3500 <- findFreqTerms(corpora.tdm,lowfreq = 3500)
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 2500)
+ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
+        geom_bar(stat = "identity") +xlab("Terms") + ylab("Frequency (* 1000)") + coord_flip()
+```
+
+![](02_dataAnalysisAndCleaning_files/figure-html/visualizeBlogsData-3.png)
+
+```r
+wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq)
+```
+
+![](02_dataAnalysisAndCleaning_files/figure-html/visualizeBlogsData-4.png)
+
+```r
+corpora.tdm <- blogs.corpora.tdm.3g
+
+ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
+ft.lf.150 <- findFreqTerms(corpora.tdm,lowfreq = 150)
+ft.lf.200 <- findFreqTerms(corpora.tdm,lowfreq = 200)
+ft.lf.300 <- findFreqTerms(corpora.tdm,lowfreq = 300)
+ft.lf.500 <- findFreqTerms(corpora.tdm,lowfreq = 500)
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 300)
+ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
+        geom_bar(stat = "identity") +xlab("Terms") + ylab("Frequency (* 1000)") + coord_flip()
+```
+
+![](02_dataAnalysisAndCleaning_files/figure-html/visualizeBlogsData-5.png)
+
+```r
+wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq)
+```
+
+```
+## Warning in wordcloud(words = frequentTermsLimited.df$term, freq =
+## frequentTermsLimited.df$freq): going to be could not be fit on page. It
+## will not be plotted.
+```
+
+```
+## Warning in wordcloud(words = frequentTermsLimited.df$term, freq =
+## frequentTermsLimited.df$freq): there is a could not be fit on page. It will
+## not be plotted.
+```
+
+```
+## Warning in wordcloud(words = frequentTermsLimited.df$term, freq =
+## frequentTermsLimited.df$freq): you have to could not be fit on page. It
+## will not be plotted.
+```
+
+```
+## Warning in wordcloud(words = frequentTermsLimited.df$term, freq =
+## frequentTermsLimited.df$freq): it was a could not be fit on page. It will
+## not be plotted.
+```
+
+```
+## Warning in wordcloud(words = frequentTermsLimited.df$term, freq =
+## frequentTermsLimited.df$freq): one of my could not be fit on page. It will
+## not be plotted.
+```
+
+```
+## Warning in wordcloud(words = frequentTermsLimited.df$term, freq =
+## frequentTermsLimited.df$freq): the fact that could not be fit on page. It
+## will not be plotted.
+```
+
+![](02_dataAnalysisAndCleaning_files/figure-html/visualizeBlogsData-6.png)
+
+
+```r
+#load("./../data/processed/datasets_sample.Rdata")
+
+# require(tm)
+# require(wordcloud)
+# require(RWeka)
+# require(ggplot2)
+
+# removePunctuations.exceptApostrophe <- function(texts){
+#     gsub(pattern = "[^'[:^punct:]]", replacement = " ", x = texts, perl = T)
+# }
+
+
+# test <- "I like %$@to*&, chew;: gum, but don't like|}{[] bubble@#^)( gum!?"
+# test.expected <- "I like    to    chew   gum  but don't like      bubble      gum  "
+# test.expected == removePunctuations.exceptApostrophe(texts = test)
+
+# tdm.generate <- function(x){
+#   corpus <- Corpus(VectorSource(x))
+#   corpus <- tm_map(corpus, content_transformer(tolower))
+#   #corpus <- tm_map(corpus, removeWords, stopwords.badWords)
+#   corpus <- tm_map(corpus, removeNumbers) 
+#   corpus <- tm_map(corpus, content_transformer(removePunctuations.exceptApostrophe))
+#   corpus <- tm_map(corpus, stripWhitespace)
+#   tdm <- TermDocumentMatrix(corpus)
+#   tdm
+# }
 
 
 tdm.1g <- tdm.generate(data.twitter.sample[1:50000])
