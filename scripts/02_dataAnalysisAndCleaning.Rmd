@@ -21,7 +21,7 @@ Sys.getlocale("LC_CTYPE")
 localeToCharset()
 ```
 
-# Summary
+# Synopsis
 
 The main objective of this __MIlestone Report__ is to display and explain only the major features of the data you have identified and briefly summarize your next" plans for creating the prediction algorithm and Shiny app behind the final product. Specifically as stated in the assignment description:
 
@@ -32,15 +32,15 @@ The main objective of this __MIlestone Report__ is to display and explain only t
 
 # The Data
 
-The data is from a corpus called [HC Corpora](www.corpora.heliohost.org) and it can be downloded at the following [link](https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip). The corpora have been collected from publicly available sources by a web crawler and includes tweets, blogs and news in engligh, german, finnish and russian (separated in different set of files for each language).
+The data is originated from a corpus called [HC Corpora](www.corpora.heliohost.org) and it can be downloded at the following [link](https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip). The corpora have been collected from publicly available sources by a web crawler and includes tweets, blogs and news in english, german, finnish and russian.
 
-From the information available at [About the Corpora](http://webcache.googleusercontent.com/search?q=cache:dzpVyq5etNYJ:www.corpora.heliohost.org/aboutcorpus.html+&cd=3&hl=en&ct=clnk&gl=us):
+A meaningful excerpt from the [About the Corpora](http://webcache.googleusercontent.com/search?q=cache:dzpVyq5etNYJ:www.corpora.heliohost.org/aboutcorpus.html+&cd=3&hl=en&ct=clnk&gl=us) informational page:
 
     ' You may still find lines of entirely different languages in the corpus. There are 2 main reasons for that: 1. Similar languages. Some languages are very similar, and the automatic language checker could therefore erroneously accept the foreign language text. 2. "Embedded" foreign languages. While a text may be mainly in the desired language there may be parts of it in another language. Since the text is then split up into individual lines, it is possible to see entire lines written in a foreign language.Whereas number 1 is just an out-and-out error, I think number 2 is actually desirable, as it will give a picture of when foreign language is used within the main language.'
 
 Note! The focus of the analysis is on the __english language only ('en_US')__ - covering: tweets (twitter), news and blogs.
 
-```{r dataLoad, cache = T, echo = F}
+```{r dataLoad, echo = F, cache = T}
 con <- file("./../data/original/final/en_US/en_US.twitter.txt", "r") 
 data.twitter.all <- readLines(con, skipNul = T)
 close(con)
@@ -70,15 +70,16 @@ data.info.df <- data.frame(sources = data.sources,
                            minNoOfChar = data.minNoOfChars)
 ```
 
-## Some basic statistics about the Corpora
 
-`r kable(data.info.df)`
+`r kable(data.info.df, caption = "Some basic statistics about the Corpora")`
 
-Some considerations
+__Some considerations__
 
-* the __amount of data available__ considering the tweets, news and blogs entries. For simplification the __exporation__ has been done using a representative sample to infer facts about a population (considering also limitations connected with the available processing hardware)
+* the __amount of data available__ considering the tweets, news and blogs entries. For simplification, the __exploration__ has been done using a representative sample to infer facts about a population (considering also limitations connected with the available processing hardware)
 
 * the minimum size, in terms of number of characters, for the different entries. There are tweets, news and blogs with few characters - __are they relevant__?
+
+# Cleaning the Data
 
 ## Encoding Issues (Gremlings)
 
@@ -92,7 +93,7 @@ When loading the data the following locale/ encoding has been used __`r Sys.getl
 In order to remove such gremlings the following __strategy__ and __simplification__ has been considered: limit the set of available characters to the __ASCII__ charset, removing non ASCII characters.
 
 
-```{r removeGremlings, collapse = T, cache=T}
+```{r removeGremlings, collapse = T, echo = F}
 ##Using iconv to replace non ASCII char with an empty char
 data.twitter.all.ascii <-  iconv(data.twitter.all, from = localeToCharset(), to = "ASCII", "")
 data.news.all.ascii <-  iconv(data.news.all, from = localeToCharset(), to = "ASCII", "")
@@ -124,7 +125,7 @@ hist(nchar(data.twitter.all), main = "No Of Chars Distribution - Tweets", xlab =
 shortTweets.maxNoOfChar <- 20
 ```
 
-There are around `r sum(data.twitter.all.nchar <= shortTweets.maxNoOfChar)` tweets (`r round(sum(data.twitter.all.nchar <= shortTweets.maxNoOfChar)/ length(data.twitter.all),2)`% ) that are less than `r shortTweets.maxNoOfChar` chars long. Few examples of such tweets can be found below:
+There are around __`r sum(data.twitter.all.nchar <= shortTweets.maxNoOfChar)` tweets__ (__`r round(sum(data.twitter.all.nchar <= shortTweets.maxNoOfChar)/ length(data.twitter.all),2)`%__) that are less than __`r shortTweets.maxNoOfChar`__ chars long. Few examples of such tweets can be found below:
 
 ```{r tweetsShortAnalysis, collapse=T, echo=F}
 #Find tweets that are less than 
@@ -154,7 +155,7 @@ hist(nchar(data.news.all[!a]), main = "No Of Chars per News (>= 1500)", breaks =
 shortNews.maxNoOfChar <- 20
 ```
 
-There are around `r sum(data.news.all.nchar <= shortNews.maxNoOfChar)` news (`r round(sum(data.news.all.nchar <= shortNews.maxNoOfChar)/ length(data.news.all),2)`% ) that are less than `r shortNews.maxNoOfChar` chars long. Few examples of such news can be found below:
+There are around __`r sum(data.news.all.nchar <= shortNews.maxNoOfChar)` news__ (__`r round(sum(data.news.all.nchar <= shortNews.maxNoOfChar)/ length(data.news.all),2)`%__) that are less than __`r shortNews.maxNoOfChar`__ chars long. Few examples of such news can be found below:
 
 ```{r newsShortAnalysis, echo = F}
 a <- data.news.all.nchar <= shortNews.maxNoOfChar
@@ -182,7 +183,7 @@ hist(nchar(data.blogs.all[!a]), main = "No Of Chars per Blogs (>= 1300)", breaks
 shortBlogs.maxNoOfChar <- 20
 ```
 
-There are around `r sum(data.blogs.all.nchar <= shortBlogs.maxNoOfChar)` blogs __(`r round(sum(data.blogs.all.nchar <= shortBlogs.maxNoOfChar)/ length(data.blogs.all),2)`%)__ that are less than __`r shortBlogs.maxNoOfChar` chars__ long. Few examples of such blogs can be found below:
+There are around __`r sum(data.blogs.all.nchar <= shortBlogs.maxNoOfChar)` blogs__ (__`r round(sum(data.blogs.all.nchar <= shortBlogs.maxNoOfChar)/ length(data.blogs.all),2)`%__) that are less than __`r shortBlogs.maxNoOfChar` chars__ long. Few examples of such blogs can be found below:
 
 ```{r blogsShortAnalysis, echo = F}
 a <- data.blogs.all.nchar <= shortBlogs.maxNoOfChar
@@ -209,21 +210,19 @@ data1.info.df <- data.frame(sources = data1.sources,
                            minNoOfChar = data1.minNoOfChars)
 ```
 
-`r kable(data1.info.df)`
-
 ## Removal of Profanity Words
 
-```{r profanityEntries, include=F}
+```{r profanityEntries, echo=F}
 twitters.g1Spam <- grepl("WET TSHIRT", data.twitter.all, ignore.case = F)
 twitters.sex <- grepl("[[:space:]]sex[a-z]*[[:space:]]", data.twitter.all, ignore.case = T)
 ```
 
-Some examples ...
+Note that the data contain words of offensive and profane meaning. Some examples ...
 
     `r data.twitter.all[twitters.g1Spam][1]`
     `r data.twitter.all[twitters.sex][2]`
 
-```{r loadProfanityWords, echo = F, cache = T}
+```{r loadProfanityWords, echo = F}
 con <- file("./bad-words.txt", "r") 
 stopwords.profanityWords <- readLines(con, skipNul = T)
 close(con)
@@ -231,9 +230,13 @@ close(con)
 
 Profanity words will be removed from the Corpora (as stopwords). An external [resource](http://www.cs.cmu.edu/~biglou/resources/) providing a comprehensive list of __`r length(stopwords.profanityWords)` profanity words__ is used.
 
-## Others
+## Others 
 
-```{r othersRemoval}
+* replace contractions __"u, r, c'mon, doin', y'all, ya'll, ma'am"__ with __"you, are, come on, doing, you all, madam"__
+* remove __links__ (e.g. "https://www.coursera.org/" or "http://www.coursera.org/")
+* remove __"RT"__ (only for the twitter corpora)
+
+```{r othersRemoval, echo = F}
 replaceContraction <- function(texts, contraction, replaceWith, ignoreCase = F){
     gsub(pattern = contraction, replacement = replaceWith, x = texts, ignore.case = ignoreCase)
 }
@@ -322,12 +325,16 @@ For this analysis it is not needed use all of the data. Often relatively few ran
 
 # Exploring the (Sample) Corpora
 
-Exploration of the corpora is done using __natural language processing techniques__ - specifically identify the most frequents ngrams (1-gram, 2-gram and 3-gram) using __term document matrices__. Before tokenizing the corpora the following steps are performed:
+Exploration of the corpora is done using __natural language processing techniques__ - specifically term frequency analysis using ngrams (1-gram, 2-gram and 3-gram). Before tokenizing the corpora the following steps are performed:
 
 * transform to lower case
 * remove profanity words
 * remove numbers
 * remove punctuations - except of the `'` (apostrophe) in order to not lose contractions (e.g. I'll, I'm, etc)
+* add a `<s> ` marker at the beginning of each entry (tweet, news, blog)
+* add a ` </s>` marker at the end of each entry (tweet, news, blog) 
+
+`Wordclouds` and `barplots` are used to visualize the most frequent words/ tokens for the different n-grams. When plotting the 'barplots' only the first most frequent terms are shown. __Note:__ For 2-grams and 3-grams a token like `<s> at the` refers to `at the` at the beginning of the entry (tweet, news or blog), while `the top </s>` refers to `the top` at the end of the entry (tweet, news or blog).
 
 ```{r libraries, include = F}
 #load("./../data/processed/step2_afterSampling.Rdata")
@@ -336,6 +343,9 @@ require(tm)
 require(wordcloud)
 require(RWeka)
 require(ggplot2)
+require(RColorBrewer)
+
+mypalette<-brewer.pal(8,"Dark2")
 
 ##In order to keep contractions like I'm or I'll ....
 removePunctuations.exceptApostrophe <- function(texts){
@@ -346,23 +356,34 @@ removePunctuations.exceptApostrophe <- function(texts){
 # test.expected <- "I like    to    chew   gum  but don't like      bubble      gum  "
 # test.expected == removePunctuations.exceptApostrophe(texts = test)
 
-tdm.generate.1g <- function(x){
-  corpus <- Corpus(VectorSource(x))
-  corpus <- tm_map(corpus, content_transformer(tolower))
-  corpus <- tm_map(corpus, removeWords, stopwords.profanityWords)
-  corpus <- tm_map(corpus, removeNumbers) 
-  corpus <- tm_map(corpus, content_transformer(removePunctuations.exceptApostrophe))
-  corpus <- tm_map(corpus, stripWhitespace)
-  tdm <- TermDocumentMatrix(corpus)
-  tdm
+##Add start sentence (<s>) and end sentence (</s>) markers in the sentences
+addStartEndMarkers <- function(texts){
+    paste("<s>", texts, "</s>")
 }
 
-tdm.generate.ng <- function(x, ng){
+# test <- c("I love nlp.", "I like the sea.")
+# test.expected <- c("<s> I love nlp. </s>", "<s> I like the sea. </s>")
+# test.expected == addStartEndMarkers(texts = test)
+
+
+# tdm.generate.1g <- function(x){
+#   corpus <- Corpus(VectorSource(x))
+#   corpus <- tm_map(corpus, content_transformer(tolower))
+#   corpus <- tm_map(corpus, removeWords, stopwords.profanityWords)
+#   corpus <- tm_map(corpus, removeNumbers) 
+#   corpus <- tm_map(corpus, content_transformer(removePunctuations.exceptApostrophe))
+#   corpus <- tm_map(corpus, stripWhitespace)
+#   tdm <- TermDocumentMatrix(corpus)
+#   tdm
+# }
+
+tdm.generate.ng <- function(x, ng = 1){
   corpus <- Corpus(VectorSource(x))
   corpus <- tm_map(corpus, content_transformer(tolower))
   corpus <- tm_map(corpus, removeWords, stopwords.profanityWords)
   corpus <- tm_map(corpus, removeNumbers) 
   corpus <- tm_map(corpus, content_transformer(removePunctuations.exceptApostrophe))
+  corpus <- tm_map(corpus, content_transformer(addStartEndMarkers))
   corpus <- tm_map(corpus, stripWhitespace)
   # MAC OS Manadtory if not using doMC library
   #options(mc.cores=1) 
@@ -374,16 +395,16 @@ tdm.generate.ng <- function(x, ng){
 
 ```
 
-```{r generateTermDocumentMatrix, eval = F}
-twitter.corpora.tdm.1g <- tdm.generate.1g(data.twitter.sample)
+```{r generateTermDocumentMatrix, eval = F, cache = T, echo = F}
+twitter.corpora.tdm.1g <- tdm.generate.ng(data.twitter.sample)
 save(twitter.corpora.tdm.1g, file = "./../data/processed/twitter.tdm.1g.Rdata")
 rm(twitter.corpora.tdm.1g)
 
-news.corpora.tdm.1g <- tdm.generate.1g(data.news.sample)
+news.corpora.tdm.1g <- tdm.generate.ng(data.news.sample)
 save(news.corpora.tdm.1g, file = "./../data/processed/news.tdm.1g.Rdata")
 rm(news.corpora.tdm.1g)
 
-blogs.corpora.tdm.1g <- tdm.generate.1g(data.blogs.sample)
+blogs.corpora.tdm.1g <- tdm.generate.ng(data.blogs.sample)
 save(blogs.corpora.tdm.1g, file = "./../data/processed/blogs.tdm.1g.Rdata")
 rm(blogs.corpora.tdm.1g)
 
@@ -416,7 +437,7 @@ rm(blogs.corpora.tdm.3g)
 
 ## Twitter Corpora
 
-```{r visualizeTwitterData, eval=T}
+```{r loadTwitterData, eval=T, echo = F}
 load("./../data/processed/twitter.tdm.1g.Rdata")
 load("./../data/processed/twitter.tdm.2g.Rdata")
 load("./../data/processed/twitter.tdm.3g.Rdata")
@@ -432,7 +453,11 @@ getTermFrequencyInformationOrderedByTermFrequency <- function(aTdm, lowFrequency
     # sort by subset DataFrame frequency
     aTdm.l.termFreq.df[with(aTdm.l.termFreq.df, order(-aTdm.l.termFreq.df$freq)), ]
 }
+```
 
+### 1-grams
+
+```{r visualizeTwitterData_1g, eval=T, warning = F, message = F, echo = F}
 corpora.tdm <- twitter.corpora.tdm.1g
 
 ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
@@ -442,11 +467,18 @@ ft.lf.1000 <- findFreqTerms(corpora.tdm,lowfreq = 1000)
 ft.lf.1500 <- findFreqTerms(corpora.tdm,lowfreq = 1500)
 
 frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 1500)
-ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
-        geom_bar(stat = "identity") +xlab("Terms") + ylab("Frequency (* 1000)") + coord_flip()
-wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq)
+ggplot(frequentTermsLimited.df[3:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
+        geom_bar(stat = "identity", fill="#E69F00") +xlab("Terms") + ylab("Frequency (* 1000)")+ ggtitle("Frequent 1-grams (top 30)")  + coord_flip()
+wordcloud(words = frequentTermsLimited.df$term[-c(1,2)],
+          freq = frequentTermsLimited.df$freq[-c(1,2)], 
+          colors = mypalette, 
+          scale=c(8,.3), 
+          rot.per=.15)
+```
 
+### 2-grams
 
+```{r visualizeTwitterData_2g, eval=T, warning = F, message = F, echo = F}
 corpora.tdm <- twitter.corpora.tdm.2g
 
 ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
@@ -457,9 +489,13 @@ ft.lf.1500 <- findFreqTerms(corpora.tdm,lowfreq = 1500)
 
 frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 1000)
 ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
-        geom_bar(stat = "identity") +xlab("Terms") + ylab("Frequency (* 1000)") + coord_flip()
-wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq)
+        geom_bar(stat = "identity", fill="#56B4E9") +xlab("Terms") + ylab("Frequency (* 1000)")+ ggtitle("Frequent 2-grams (top 30)") + coord_flip()
+wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq, colors = mypalette, scale=c(8,.3), rot.per=.15)
+```
 
+### 3-grams
+
+```{r visualizeTwitterData_3g, eval=T, warning = F, message = F, echo = F}
 corpora.tdm <- twitter.corpora.tdm.3g
 
 ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
@@ -470,18 +506,21 @@ ft.lf.500 <- findFreqTerms(corpora.tdm,lowfreq = 500)
 
 frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 150)
 ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
-        geom_bar(stat = "identity") +xlab("Terms") + ylab("Frequency (* 1000)") + coord_flip()
-wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq)
+        geom_bar(stat = "identity", fill="#009E73") +xlab("Terms") + ylab("Frequency (* 1000)")+ ggtitle("Frequent 3-grams (top 30)") + coord_flip()
+wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq, colors = mypalette, scale=c(8,.3), rot.per=.15)
 ```
 
 ## News Corpora
 
-```{r visualizeNewsData, eval=T}
+```{r loadNewsData, eval=T, echo = F}
 load("./../data/processed/news.tdm.1g.Rdata")
 load("./../data/processed/news.tdm.2g.Rdata")
 load("./../data/processed/news.tdm.3g.Rdata")
+```
 
+### 1-grams
 
+```{r visualizeNewsData_1g, eval=T, warning = F, message = F, echo = F}
 corpora.tdm <- news.corpora.tdm.1g
 
 ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
@@ -494,11 +533,14 @@ ft.lf.2500 <- findFreqTerms(corpora.tdm,lowfreq = 2500)
 ft.lf.3500 <- findFreqTerms(corpora.tdm,lowfreq = 3500)
 
 frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 3500)
-ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
-        geom_bar(stat = "identity") +xlab("Terms") + ylab("Frequency (* 1000)") + coord_flip()
-wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq)
+ggplot(frequentTermsLimited.df[c(1,4:30),], aes(x = reorder(term,freq), y = freq/1000)) + 
+        geom_bar(stat = "identity", fill="#E69F00") +xlab("Terms") + ylab("Frequency (* 1000)")+ ggtitle("Frequent 1-grams (top 30)") + coord_flip()
+wordcloud(words = frequentTermsLimited.df$term[-c(2,3)],freq = frequentTermsLimited.df$freq[-c(2,3)], colors = mypalette, scale=c(8,.3), rot.per=.15)
+```
 
+### 2-grams
 
+```{r visualizeNewsData_2g, eval=T, warning = F, message = F, echo = F}
 corpora.tdm <- news.corpora.tdm.2g
 
 ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
@@ -512,9 +554,13 @@ ft.lf.3500 <- findFreqTerms(corpora.tdm,lowfreq = 3500)
 
 frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 2000)
 ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
-        geom_bar(stat = "identity") +xlab("Terms") + ylab("Frequency (* 1000)") + coord_flip()
-wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq)
+        geom_bar(stat = "identity", fill="#56B4E9") +xlab("Terms") + ylab("Frequency (* 1000)")+ ggtitle("Frequent 2-grams (top 30)") + coord_flip()
+wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq, colors = mypalette, scale=c(8,.3), rot.per=.15)
+```
 
+### 3-grams
+
+```{r visualizeNewsData_3g, eval=T, warning = F, message = F, echo = F}
 corpora.tdm <- news.corpora.tdm.3g
 
 ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
@@ -525,18 +571,21 @@ ft.lf.500 <- findFreqTerms(corpora.tdm,lowfreq = 500)
 
 frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 300)
 ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
-        geom_bar(stat = "identity") +xlab("Terms") + ylab("Frequency (* 1000)") + coord_flip()
-wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq)
+        geom_bar(stat = "identity", fill="#009E73") +xlab("Terms") + ylab("Frequency (* 1000)")+ ggtitle("Frequent 3-grams (top 30)") + coord_flip()
+wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq, colors = mypalette, scale=c(8,.3), rot.per=.15)
 ```
 
 ## Blogs Corpora
 
-```{r visualizeBlogsData, eval=T}
+```{r loadBlogsData, eval=T, warning = F, message = F, echo = F}
 load("./../data/processed/blogs.tdm.1g.Rdata")
 load("./../data/processed/blogs.tdm.2g.Rdata")
 load("./../data/processed/blogs.tdm.3g.Rdata")
+```
 
+### 1-grams
 
+```{r visualizeBlogsData_1g, eval=T, warning = F, message = F, echo = F}
 corpora.tdm <- blogs.corpora.tdm.1g
 
 ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
@@ -550,11 +599,14 @@ ft.lf.3500 <- findFreqTerms(corpora.tdm,lowfreq = 3500)
 ft.lf.5000 <- findFreqTerms(corpora.tdm,lowfreq = 5000)
 
 frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 5000)
-ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
-        geom_bar(stat = "identity") +xlab("Terms") + ylab("Frequency (* 1000)") + coord_flip()
-wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq)
+ggplot(frequentTermsLimited.df[c(1,2,5:30),], aes(x = reorder(term,freq), y = freq/1000)) + 
+        geom_bar(stat = "identity", fill="#E69F00") +xlab("Terms") + ylab("Frequency (* 1000)")+ ggtitle("Frequent 1-grams (top 30)") + coord_flip()
+wordcloud(words = frequentTermsLimited.df$term[-c(3,4)],freq = frequentTermsLimited.df$freq[-c(3,4)], colors = mypalette, scale=c(8,.3), rot.per=.15)
+```
 
+### 2-grams
 
+```{r visualizeBlogsData_2g, eval=T, warning = F, message = F, echo = F}
 corpora.tdm <- blogs.corpora.tdm.2g
 
 ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
@@ -568,9 +620,13 @@ ft.lf.3500 <- findFreqTerms(corpora.tdm,lowfreq = 3500)
 
 frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 2500)
 ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
-        geom_bar(stat = "identity") +xlab("Terms") + ylab("Frequency (* 1000)") + coord_flip()
-wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq)
+        geom_bar(stat = "identity", fill="#56B4E9") +xlab("Terms") + ylab("Frequency (* 1000)")+ ggtitle("Frequent 2-grams (top 30)") + coord_flip()
+wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq, colors = mypalette, scale=c(8,.3), rot.per=.15)
+```
 
+### 3-grams
+
+```{r visualizeBlogsData_3g, eval=T, warning = F, message = F, echo = F}
 corpora.tdm <- blogs.corpora.tdm.3g
 
 ft.lf.100 <- findFreqTerms(corpora.tdm,lowfreq = 100)
@@ -581,11 +637,15 @@ ft.lf.500 <- findFreqTerms(corpora.tdm,lowfreq = 500)
 
 frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 300)
 ggplot(frequentTermsLimited.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) + 
-        geom_bar(stat = "identity") +xlab("Terms") + ylab("Frequency (* 1000)") + coord_flip()
-wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq)
+        geom_bar(stat = "identity", fill="#009E73") +xlab("Terms") + ylab("Frequency (* 1000)")+ ggtitle("Frequent 3-grams (top 30)") + coord_flip()
+wordcloud(words = frequentTermsLimited.df$term,freq = frequentTermsLimited.df$freq, colors = mypalette, scale=c(8,.3), rot.per=.15)
 ```
 
-```{r visualizeData, eval=F}
+# Next Steps
+
+TbD
+
+```{r visualizeData, eval=F, echo = F}
 #load("./../data/processed/datasets_sample.Rdata")
 
 # require(tm)
