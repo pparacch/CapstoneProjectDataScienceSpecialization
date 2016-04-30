@@ -334,7 +334,7 @@ Exploration of the corpora is done using __natural language processing technique
 * add a `<s> ` marker at the beginning of each entry (tweet, news, blog)
 * add a ` </s>` marker at the end of each entry (tweet, news, blog) 
 
-`Wordclouds` and `barplots` are used to visualize the most frequent words/ tokens for the different n-grams. When plotting the 'barplots' only the first most frequent terms are shown. __Note:__ For 2-grams and 3-grams a token like `<s> at the` refers to `at the` at the beginning of the entry (tweet, news or blog), while `the top </s>` refers to `the top` at the end of the entry (tweet, news or blog).
+`Wordclouds` and `barplots` are used to visualize the most frequent words/ tokens for the different n-grams. When plotting the 'barplots' only the first most frequent terms (top 30) are shown and max 200 terms in the wordclouds. __Note:__ For 2-grams and 3-grams a token like `<s> at the` refers to `at the` at the beginning of the entry (tweet, news or blog), while `the top </s>` refers to `the top` at the end of the entry (tweet, news or blog).
 
 ```{r libraries, include = F}
 #load("./../data/processed/step2_afterSampling.Rdata")
@@ -403,8 +403,6 @@ getTermFrequencyInformationOrderedByTermFrequency <- function(aTdm, lowFrequency
     aTdm.l.termFreq.df[with(aTdm.l.termFreq.df, order(-aTdm.l.termFreq.df$freq)), ]
 }
 
-mypalette <- brewer.pal(8,"Dark2")
-
 visualizeBarPlot <- function(ftm.df, colorBars = "grey40", titleBarPlot = ""){
     
     ggplot(ftm.df[1:30,], aes(x = reorder(term,freq), y = freq/1000)) +
@@ -464,6 +462,122 @@ save(blogs.corpora.tdm.3g, file = "./../data/processed/blogs.tdm.3g.Rdata")
 rm(blogs.corpora.tdm.3g)
 ```
 
+```{r generateAllTermsFrequency, eval=T, echo = F}
+getAllTermsFrequencyInCorpora.as.df <- function(corpora.tdm, chunck = 2000){
+    
+    print(corpora.tdm)
+    
+    isFinished <- F
+    i <- 0
+    
+    result <- NULL
+    
+    while (!isFinished){
+        
+        i.next <- i + 1
+        start <- 1
+        end <- chunck
+        
+        if(i != 0){
+            start <- i * chunck + 1
+            end <- i.next * chunck
+            if((i.next * chunck) > dim(corpora.tdm)[1]){
+                end <- dim(corpora.tdm)[1]
+                isFinished <- T
+            }
+        }
+        
+        range <- start : end
+        
+        print(paste("Processing Chunck:", start, end))
+        x <- corpora.tdm[range,]
+        x.asMatrix <- as.matrix(x)
+        
+        result <- c(result, rowSums(x.asMatrix))
+        
+        i <- i + 1
+    }
+    
+    allTermsFrequencies.df <- data.frame(freq = result)
+}
+
+
+##Twitter Corpora
+load("./../data/processed/twitter.tdm.1g.Rdata")
+load("./../data/processed/twitter.tdm.2g.Rdata")
+load("./../data/processed/twitter.tdm.3g.Rdata")
+
+corpora.allTermsFrequency <- NULL
+corpora.tdm <- twitter.corpora.tdm.1g
+corpora.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df(corpora.tdm = corpora.tdm, chunck = 2000)
+save(corpora.allTermsFrequency, file = "./../data/processed/twitter.allTermsFrequency.1g.Rdata")
+
+corpora.allTermsFrequency <- NULL
+corpora.tdm <- twitter.corpora.tdm.2g
+corpora.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df(corpora.tdm = corpora.tdm, chunck = 2000)
+save(corpora.allTermsFrequency, file = "./../data/processed/twitter.allTermsFrequency.2g.Rdata")
+
+corpora.allTermsFrequency <- NULL
+corpora.tdm <- twitter.corpora.tdm.3g
+corpora.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df(corpora.tdm = corpora.tdm, chunck = 2000)
+save(corpora.allTermsFrequency, file = "./../data/processed/twitter.allTermsFrequency.3g.Rdata")
+
+corpora.allTermsFrequency <- NULL
+corpora.tdm <- NULL
+rm(twitter.corpora.tdm.1g, twitter.corpora.tdm.2g, twitter.corpora.tdm.3g)
+
+## NEWS
+
+load("./../data/processed/news.tdm.1g.Rdata")
+load("./../data/processed/news.tdm.2g.Rdata")
+load("./../data/processed/news.tdm.3g.Rdata")
+
+corpora.allTermsFrequency <- NULL
+corpora.tdm <- news.corpora.tdm.1g
+corpora.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df(corpora.tdm = corpora.tdm, chunck = 2000)
+save(corpora.allTermsFrequency, file = "./../data/processed/news.allTermsFrequency.1g.Rdata")
+
+corpora.allTermsFrequency <- NULL
+corpora.tdm <- news.corpora.tdm.2g
+corpora.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df(corpora.tdm = corpora.tdm, chunck = 2000)
+save(corpora.allTermsFrequency, file = "./../data/processed/news.allTermsFrequency.2g.Rdata")
+
+corpora.allTermsFrequency <- NULL
+corpora.tdm <- news.corpora.tdm.3g
+corpora.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df(corpora.tdm = corpora.tdm, chunck = 2000)
+save(corpora.allTermsFrequency, file = "./../data/processed/news.allTermsFrequency.3g.Rdata")
+
+corpora.allTermsFrequency <- NULL
+corpora.tdm <- NULL
+rm(news.corpora.tdm.1g, news.corpora.tdm.2g, news.corpora.tdm.3g)
+
+## Blogs
+
+load("./../data/processed/blogs.tdm.1g.Rdata")
+load("./../data/processed/blogs.tdm.2g.Rdata")
+load("./../data/processed/blogs.tdm.3g.Rdata")
+
+corpora.allTermsFrequency <- NULL
+corpora.tdm <- blogs.corpora.tdm.1g
+corpora.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df(corpora.tdm = corpora.tdm, chunck = 2000)
+save(corpora.allTermsFrequency, file = "./../data/processed/blogs.allTermsFrequency.1g.Rdata")
+
+corpora.allTermsFrequency <- NULL
+corpora.tdm <- blogs.corpora.tdm.2g
+corpora.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df(corpora.tdm = corpora.tdm, chunck = 2000)
+save(corpora.allTermsFrequency, file = "./../data/processed/blogs.allTermsFrequency.2g.Rdata")
+
+corpora.allTermsFrequency <- NULL
+corpora.tdm <- blogs.corpora.tdm.3g
+corpora.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df(corpora.tdm = corpora.tdm, chunck = 2000)
+save(corpora.allTermsFrequency, file = "./../data/processed/blogs.allTermsFrequency.3g.Rdata")
+
+corpora.allTermsFrequency <- NULL
+corpora.tdm <- NULL
+rm(blogs.corpora.tdm.1g, blogs.corpora.tdm.2g, blogs.corpora.tdm.3g)
+
+```
+
 ## Twitter Corpora
 
 ```{r loadTwitterData, eval=T, echo = F}
@@ -471,6 +585,18 @@ load("./../data/processed/twitter.tdm.1g.Rdata")
 load("./../data/processed/twitter.tdm.2g.Rdata")
 load("./../data/processed/twitter.tdm.3g.Rdata")
 ```
+
+```{r, eval = T, echo = F}
+load("./../data/processed/twitter.allTermsFrequency.1g.Rdata")
+twitter.allTerms.1g <- corpora.allTermsFrequency
+
+load("./../data/processed/twitter.allTermsFrequency.2g.Rdata")
+twitter.allTerms.2g <- corpora.allTermsFrequency
+
+load("./../data/processed/twitter.allTermsFrequency.3g.Rdata")
+twitter.allTerms.3g <- corpora.allTermsFrequency
+```
+
 
 ### 1-grams
 
@@ -483,7 +609,22 @@ frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(cor
 
 visualizeBarPlot(ftm.df = frequentTermsLimited.df[-c(1,2),], titleBarPlot = "Frequent 1-grams")
 visualizeWordcloud(ftm.df = frequentTermsLimited.df[-c(1,2),])
+
+idx <- order(twitter.allTerms.1g$freq, decreasing = T)
+terms.term <- rownames(twitter.allTerms.1g)[idx][-c(1,2)]
+terms.freq <- twitter.allTerms.1g$freq[idx][-c(1,2)]
+
+terms.count <- sum(terms.freq)
+terms.unique <- length(unique(terms.term))
+terms.cumulativeCoverage <- (cumsum(terms.freq)/ terms.count) * 100
+
+plot(terms.cumulativeCoverage, type = "l", xlab = "Number Of Words", main = "Cumulative % (1-grams)")
+abline(v = which(terms.cumulativeCoverage >= 50)[1], col = "orange", lwd = 3)
+abline(v = which(terms.cumulativeCoverage >= 90)[1], col = "red", lwd = 3)
+legend(x = "topright", lty=c(1,1), lwd=c(3,3), col=c("orange", "red"), legend = c("50% coverage", "90% coverage")) 
 ```
+
+
 
 ### 2-grams
 
