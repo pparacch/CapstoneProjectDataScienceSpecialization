@@ -22,4 +22,5 @@ vignettes/*.pdf
 data/
 scripts/*_cache/
 scripts/*_files/
+scripts/rsconnect/
 .Rproj.user

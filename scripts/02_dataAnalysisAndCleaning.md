@@ -163,7 +163,9 @@ Exploration of the corpora is done using __natural language processing technique
 * add a `<s> ` marker at the beginning of each entry (tweet, news, blog)
 * add a ` </s>` marker at the end of each entry (tweet, news, blog) 
 
-`Wordclouds` and `barplots` are used to visualize the most frequent words/ tokens for the different n-grams. When plotting the 'barplots' only the first most frequent terms are shown. __Note:__ For 2-grams and 3-grams a token like `<s> at the` refers to `at the` at the beginning of the entry (tweet, news or blog), while `the top </s>` refers to `the top` at the end of the entry (tweet, news or blog).
+`Wordclouds` and `barplots` are used to visualize the most frequent words/ tokens for the different n-grams. When plotting the 'barplots' only the first most frequent terms (top 30) are shown and max 200 terms in the wordclouds. __Note:__ For 2-grams and 3-grams a token like `<s> at the` refers to `at the` at the beginning of the entry (tweet, news or blog), while `the top </s>` refers to `the top` at the end of the entry (tweet, news or blog).
+
+
 
 
 
@@ -173,17 +175,45 @@ Exploration of the corpora is done using __natural language processing technique
 
 
 
+
 ### 1-grams
 
 ![](02_dataAnalysisAndCleaning_files/figure-html/visualizeTwitterData_1g-1.png)![](02_dataAnalysisAndCleaning_files/figure-html/visualizeTwitterData_1g-2.png)
+
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| 1103869 | 59091 | 211 | 6772 |
+
+
+![](02_dataAnalysisAndCleaning_files/figure-html/unnamed-chunk-1-1.png)
 
 ### 2-grams
 
 ![](02_dataAnalysisAndCleaning_files/figure-html/visualizeTwitterData_2g-1.png)![](02_dataAnalysisAndCleaning_files/figure-html/visualizeTwitterData_2g-2.png)
 
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| 1533686 | 544485 | 16697 | 391117 |
+
+
+![](02_dataAnalysisAndCleaning_files/figure-html/unnamed-chunk-2-1.png)
+
 ### 3-grams
 
 ![](02_dataAnalysisAndCleaning_files/figure-html/visualizeTwitterData_3g-1.png)![](02_dataAnalysisAndCleaning_files/figure-html/visualizeTwitterData_3g-2.png)
+
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| 1426576 | 1061053 | 347765 | 918396 |
+
+
+![](02_dataAnalysisAndCleaning_files/figure-html/unnamed-chunk-3-1.png)
 
 ## News Corpora
 
@@ -193,13 +223,39 @@ Exploration of the corpora is done using __natural language processing technique
 
 ![](02_dataAnalysisAndCleaning_files/figure-html/visualizeNewsData_1g-1.png)![](02_dataAnalysisAndCleaning_files/figure-html/visualizeNewsData_1g-2.png)
 
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| 2731479 | 88107 | 395 | 9581 |
+
+![](02_dataAnalysisAndCleaning_files/figure-html/unnamed-chunk-4-1.png)
+
 ### 2-grams
 
 ![](02_dataAnalysisAndCleaning_files/figure-html/visualizeNewsData_2g-1.png)![](02_dataAnalysisAndCleaning_files/figure-html/visualizeNewsData_2g-2.png)
 
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| 3445777 | 1170126 | 39386 | 825549 |
+
+
+![](02_dataAnalysisAndCleaning_files/figure-html/unnamed-chunk-5-1.png)
+
 ### 3-grams
 
 ![](02_dataAnalysisAndCleaning_files/figure-html/visualizeNewsData_3g-1.png)![](02_dataAnalysisAndCleaning_files/figure-html/visualizeNewsData_3g-2.png)
+
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| 3348002 | 2508621 | 834620 | 2173821 |
+
+
+![](02_dataAnalysisAndCleaning_files/figure-html/unnamed-chunk-6-1.png)
 
 ## Blogs Corpora
 
@@ -209,17 +265,44 @@ Exploration of the corpora is done using __natural language processing technique
 
 ![](02_dataAnalysisAndCleaning_files/figure-html/visualizeBlogsData_1g-1.png)![](02_dataAnalysisAndCleaning_files/figure-html/visualizeBlogsData_1g-2.png)
 
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| 2863955 | 91345 | 237 | 8284 |
+
+
+![](02_dataAnalysisAndCleaning_files/figure-html/unnamed-chunk-7-1.png)
+
 ### 2-grams
 
 ![](02_dataAnalysisAndCleaning_files/figure-html/visualizeBlogsData_2g-1.png)![](02_dataAnalysisAndCleaning_files/figure-html/visualizeBlogsData_2g-2.png)
+
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| 3750369 | 1154501 | 25933 | 779465 |
+
+
+![](02_dataAnalysisAndCleaning_files/figure-html/unnamed-chunk-8-1.png)
 
 ### 3-grams
 
 ![](02_dataAnalysisAndCleaning_files/figure-html/visualizeBlogsData_3g-1.png)![](02_dataAnalysisAndCleaning_files/figure-html/visualizeBlogsData_3g-2.png)
 
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| 3668201 | 2632369 | 798269 | 2265549 |
+
+
+![](02_dataAnalysisAndCleaning_files/figure-html/unnamed-chunk-9-1.png)
+
 # Next Steps
 
-TbD
-
-
-
+* Investigate the possibility to increase sampling of the different Corpora (twitter, news, blogs)
+* Identify a common vocabulary between the different Corpora (twitter, news, blogs)
+* Create language models using 1-grams, 2-grams and 3-grams
+* Think on how ot use the product/ define a simple GUI
