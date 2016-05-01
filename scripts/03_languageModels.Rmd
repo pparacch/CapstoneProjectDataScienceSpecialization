@@ -1,0 +1,225 @@
+---
+title: "Language Models"
+author: "Pier Lorenzo Paracchini"
+date: "1 mai 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#Required Libraries
+require(knitr)
+
+# WINDOWS LOCALE SETTING
+Sys.setlocale(category = "LC_ALL",locale = "English_United States.1252")
+
+getOption("encoding")
+Sys.getlocale("LC_CTYPE")
+localeToCharset()
+
+```
+
+## Language Modeld Notes
+
+```{r unigramModel, collapse = T}
+rm(list = ls())
+source("./model.R")
+
+require(profr)
+
+Rprof(tmp <- tempfile())
+
+twitter.1g.list <- load.twitter.1g.data("./../data/processed/")
+u.terms <- rownames(twitter.1g.list$allTermsCounters)
+u.counters <- twitter.1g.list$allTermsCounters$freq
+u.N <- sum(u.counters)
+Rprof(NULL)
+summaryRprof(tmp)
+
+
+format(object.size(u.terms), "auto")
+format(object.size(u.counters), "auto")
+format(object.size(twitter.1g.list$allTermsCounters), "auto")
+
+unigramModel.probabilityForWord <- function(word){
+    print("--- UNIGRAM-Model ---")
+    
+    idx <- which(u.terms == word)
+    print(paste("Term:", word))
+    if(length(idx) != 0){
+        print(paste("  idx:", idx))
+        print(paste("  count:", u.counters[idx]))
+        print(paste("  N:", u.N))
+        print(paste("  probability:", 100 * (u.counters[which(u.terms == word)]/ u.N), "%"))
+    }else{
+        print("    Not Found")
+    }
+    
+    print("---------------------")
+}
+
+
+
+Rprof(tmp <- tempfile())
+unigramModel.probabilityForWord("<s>")
+Rprof(NULL)
+summaryRprof(tmp)
+
+
+Rprof(tmp <- tempfile())
+unigramModel.probabilityForWord("i'm")
+Rprof(NULL)
+summaryRprof(tmp)
+
+Rprof(tmp <- tempfile())
+unigramModel.probabilityForWord("sentimental")
+Rprof(NULL)
+summaryRprof(tmp)
+
+Rprof(tmp <- tempfile())
+unigramModel.probabilityForWord("ciaooo")
+Rprof(NULL)
+summaryRprof(tmp)
+
+```
+
+```{r biGramsModel, collapse = T}
+Rprof(tmp <- tempfile())
+
+twitter.2g.list <- load.twitter.2g.data("./../data/processed/")
+b.terms <- rownames(twitter.2g.list$allTermsCounters)
+b.counters <- twitter.2g.list$allTermsCounters$freq
+b.N <- sum(b.counters)
+b.V <- length(unique(b.terms))
+
+Rprof(NULL)
+summaryRprof(tmp)
+
+
+format(object.size(b.terms), "auto")
+format(object.size(b.counters), "auto")
+format(object.size(twitter.2g.list$allTermsCounters), "auto")
+
+ngramTokenize <- function(y, ng) RWeka::NGramTokenizer(y, RWeka::Weka_control(min = ng, max = ng, delimiters = " \\r\\n\\t.,;:\"()?!")) 
+  
+
+unigramModel.counterForTerm <- function(word){
+    idx <- which(u.terms == word)
+    print(paste("      Term:", word))
+    if(length(idx) != 0){
+        print(paste("        idx:", idx))
+        print(paste("        count:", u.counters[idx]))
+        print(paste("        N:", u.N))
+        u.counters[idx]
+    }else{
+        print("        Not Found")
+        0
+    }
+}
+
+bigramsModel.probabilityFor <- function(word.i.minus.1, word.i){
+    print("---  BIGRAM-Model ---")
+    
+    term <- paste(word.i.minus.1, word.i)
+    idx <- which(b.terms == term)
+    
+    print(paste("Term:", term))
+    print(paste("  Words: (i) '", word.i, ", (i-1)'", word.i.minus.1, "'", sep = ""))
+    
+    if(length(idx) != 0){
+        w.previous <- word.i.minus.1
+        w.previous.count <- unigramModel.counterForTerm(w.previous)
+        
+        print(paste("  idx:", idx))
+        print(paste("  count:", b.counters[idx]))
+        print(paste("  wi-1:", w.previous))
+        print(paste("  count wi-1:", w.previous.count))
+        print(paste("  probability:",100 * (b.counters[which(b.terms == term)]/ w.previous.count), "%"))
+    }else{
+        print("  Not Found")
+    }
+    
+    print("---------------------")
+}
+
+
+Rprof(tmp <- tempfile())
+ngramTokenize("<s> i'm", ng = 1)
+Rprof(NULL)
+summaryRprof(tmp)
+
+Rprof(tmp <- tempfile())
+unigramModel.counterForTerm("<s>")
+Rprof(NULL)
+summaryRprof(tmp)
+
+Rprof(tmp <- tempfile())
+bigramsModel.probabilityFor("<s>", "i'm")
+Rprof(NULL)
+summaryRprof(tmp)
+
+bigramsModel.probabilityFor("for", "the")
+```
+
+```{r triGramsModel, collapse = T}
+Rprof(tmp <- tempfile())
+twitter.3g.list <- load.twitter.3g.data("./../data/processed/")
+t.terms <- rownames(twitter.3g.list$allTermsCounters)
+t.counters <- twitter.3g.list$allTermsCounters$freq
+t.N <- sum(t.counters)
+t.V <- length(unique(t.terms))
+Rprof(NULL)
+summaryRprof(tmp)
+
+
+format(object.size(t.terms), "auto")
+format(object.size(t.counters), "auto")
+format(object.size(twitter.3g.list$allTermsCounters), "auto")
+
+bigramModel.counterForTerm <- function(word){
+    idx <- which(b.terms == word)
+    print(paste("      Term:", word))
+    if(length(idx) != 0){
+        print(paste("        idx:", idx))
+        print(paste("        count:", b.counters[idx]))
+        print(paste("        N:", b.N))
+        b.counters[idx]
+    }else{
+        print("        Not Found")
+        0
+    }
+}
+
+trigramsModel.probabilityFor <- function(word.i.minus.2, word.i.minus.1, word.i){
+    print("---  TRIGRAM-Model ---")
+    term <- paste(word.i.minus.2, word.i.minus.1, word.i)
+    idx <- which(t.terms == term)
+    
+    print(paste("Term:", term))
+
+    if(length(idx) != 0){
+        w.previous.bigram <- paste(word.i.minus.2, word.i.minus.1)
+        w.previous.bigram.count <- bigramModel.counterForTerm(w.previous.bigram)
+        
+        print(paste("  idx:", idx))
+        print(paste("  count:", b.counters[idx]))
+        print(paste("  wi-1:", w.previous.bigram))
+        print(paste("  count wi-1:", w.previous.bigram.count))
+        print(paste("  probability:",100 * (t.counters[which(t.terms == term)]/ w.previous.bigram.count), "%"))
+    }else{
+        print("  Not Found")
+    }
+    
+    print("----------------------")
+}
+
+Rprof(tmp <- tempfile())
+trigramsModel.probabilityFor("<s>", "thanks", "for")
+Rprof(NULL)
+summaryRprof(tmp)
+
+
+trigramsModel.probabilityFor("i", "love", "you")
+
+```
