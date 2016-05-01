@@ -236,7 +236,7 @@ Profanity words will be removed from the Corpora (as stopwords). An external [re
 * remove __links__ (e.g. "https://www.coursera.org/" or "http://www.coursera.org/")
 * remove __"RT"__ (only for the twitter corpora)
 
-```{r othersRemoval, echo = F, cache = T}
+```{r othersRemoval, echo = F, cache = F}
 replaceContraction <- function(texts, contraction, replaceWith, ignoreCase = F){
     gsub(pattern = contraction, replacement = replaceWith, x = texts, ignore.case = ignoreCase)
 }
@@ -289,14 +289,15 @@ data.twitter.all <- remove_contractions(theTexts = data.twitter.all)
 data.news.all <- remove_contractions(theTexts = data.news.all)
 data.blogs.all <- remove_contractions(theTexts = data.blogs.all)
 
-save(stopwords.profanityWords, data.twitter.all, data.news.all, data.blogs.all, file = "./../data/processed/step1_afterCleaning.Rdata")
+save(stopwords.profanityWords, data.twitter.all, data.news.all, data.blogs.all, file = "./datasetDumps/step1_afterCleaning.Rdata")
 ```
 
 
 ## Sampling of the Corpora
 
 ```{r dataReductionForExploration, collapse=T, echo = F}
-#load("./../data/processed/step1_afterCleaning.Rdata")
+#Use datasetDumps in order to not repeat previous steps
+#load("./datasetDumps/step1_afterCleaning.Rdata")
 
 set.seed(19711004)
 coin.biased.outcome <- rbinom(length(data.twitter.all), 1, 0.05)
@@ -313,8 +314,8 @@ coin.biased.outcome <- rbinom(length(data.blogs.all), 1, 0.10)
 #table(coin.biased.outcome)
 data.blogs.sample <- data.blogs.all[coin.biased.outcome == 1]
 
-save(stopwords.profanityWords, data.twitter.sample, data.news.sample, data.blogs.sample, file = "./../data/processed/step2_afterSampling.Rdata")
-rm(data.twitter.all, data.news.all, data.blogs.all)
+save(stopwords.profanityWords, data.twitter.sample, data.news.sample, data.blogs.sample, file = "./datasetDumps/step2_afterSampling.Rdata")
+rm(data.twitter.all, data.news.all, data.blogs.all, coin.biased.outcome)
 ```
 
 For this analysis it is not needed use all of the data. Often relatively few randomly selected rows or chunks need to be included to get an accurate approximation to results that would be obtained using all the data. A "biased coin" approach has been used to select the tweets, news and blogs to be included in the analysis based on the following percentages
@@ -337,7 +338,8 @@ Exploration of the corpora is done using __natural language processing technique
 `Wordclouds` and `barplots` are used to visualize the most frequent words/ tokens for the different n-grams. When plotting the 'barplots' only the first most frequent terms (top 30) are shown and max 200 terms in the wordclouds. __Note:__ For 2-grams and 3-grams a token like `<s> at the` refers to `at the` at the beginning of the entry (tweet, news or blog), while `the top </s>` refers to `the top` at the end of the entry (tweet, news or blog).
 
 ```{r libraries, include = F, echo = F}
-#load("./../data/processed/step2_afterSampling.Rdata")
+#Use datasetDumps in order to not repeat previous steps
+#load("./datasetDumps/step2_afterSampling.Rdata")
 
 require(tm)
 require(wordcloud)
@@ -465,46 +467,52 @@ getSomeInfoABoutCorpora <- function(allFtm.df, title, filter = NULL){
 ```
 
 ```{r generateTermDocumentMatrix, eval = F, cache = T, echo = F}
+################################################
+##### ATTENTION RESOURCE INTENSIVE #############
+################################################
 twitter.corpora.tdm.1g <- tdm.generate.ng(data.twitter.sample)
-save(twitter.corpora.tdm.1g, file = "./../data/processed/twitter.tdm.1g.Rdata")
+save(twitter.corpora.tdm.1g, file = "./datasetDumps/twitter.tdm.1g.Rdata")
 rm(twitter.corpora.tdm.1g)
 
 news.corpora.tdm.1g <- tdm.generate.ng(data.news.sample)
-save(news.corpora.tdm.1g, file = "./../data/processed/news.tdm.1g.Rdata")
+save(news.corpora.tdm.1g, file = "./datasetDumps/news.tdm.1g.Rdata")
 rm(news.corpora.tdm.1g)
 
 blogs.corpora.tdm.1g <- tdm.generate.ng(data.blogs.sample)
-save(blogs.corpora.tdm.1g, file = "./../data/processed/blogs.tdm.1g.Rdata")
+save(blogs.corpora.tdm.1g, file = "./datasetDumps/blogs.tdm.1g.Rdata")
 rm(blogs.corpora.tdm.1g)
 
 ## Bi-grams
 twitter.corpora.tdm.2g <- tdm.generate.ng(x = data.twitter.sample,ng = 2)
-save(twitter.corpora.tdm.2g, file = "./../data/processed/twitter.tdm.2g.Rdata")
+save(twitter.corpora.tdm.2g, file = "./datasetDumps/twitter.tdm.2g.Rdata")
 rm(twitter.corpora.tdm.2g)
 
 news.corpora.tdm.2g <- tdm.generate.ng(x = data.news.sample, ng = 2)
-save(news.corpora.tdm.2g, file = "./../data/processed/news.tdm.2g.Rdata")
+save(news.corpora.tdm.2g, file = "./datasetDumps/news.tdm.2g.Rdata")
 rm(news.corpora.tdm.2g)
 
 blogs.corpora.tdm.2g <- tdm.generate.ng(x = data.blogs.sample, ng = 2)
-save(blogs.corpora.tdm.2g, file = "./../data/processed/blogs.tdm.2g.Rdata")
+save(blogs.corpora.tdm.2g, file = "./datasetDumps/blogs.tdm.2g.Rdata")
 rm(blogs.corpora.tdm.2g)
 
 ## Tri-grams
 twitter.corpora.tdm.3g <- tdm.generate.ng(x = data.twitter.sample,ng = 3)
-save(twitter.corpora.tdm.3g, file = "./../data/processed/twitter.tdm.3g.Rdata")
+save(twitter.corpora.tdm.3g, file = "./datasetDumps/twitter.tdm.3g.Rdata")
 rm(twitter.corpora.tdm.3g)
 
 news.corpora.tdm.3g <- tdm.generate.ng(x = data.news.sample, ng = 3)
-save(news.corpora.tdm.3g, file = "./../data/processed/news.tdm.3g.Rdata")
+save(news.corpora.tdm.3g, file = "./datasetDumps/news.tdm.3g.Rdata")
 rm(news.corpora.tdm.3g)
 
 blogs.corpora.tdm.3g <- tdm.generate.ng(x = data.blogs.sample, ng = 3)
-save(blogs.corpora.tdm.3g, file = "./../data/processed/blogs.tdm.3g.Rdata")
+save(blogs.corpora.tdm.3g, file = "./datasetDumps/blogs.tdm.3g.Rdata")
 rm(blogs.corpora.tdm.3g)
 ```
 
 ```{r generateAllTermsFrequency, eval=F, echo = F}
+################################################
+##### ATTENTION RESOURCE INTENSIVE #############
+################################################
 getAllTermsFrequencyInCorpora.as.df <- function(corpora.tdm, chunck = 2000){
     
     print(corpora.tdm)
@@ -545,24 +553,24 @@ getAllTermsFrequencyInCorpora.as.df <- function(corpora.tdm, chunck = 2000){
 
 
 ##Twitter Corpora
-load("./../data/processed/twitter.tdm.1g.Rdata")
-load("./../data/processed/twitter.tdm.2g.Rdata")
-load("./../data/processed/twitter.tdm.3g.Rdata")
+load("./datasetDumps/twitter.tdm.1g.Rdata")
+load("./datasetDumps/twitter.tdm.2g.Rdata")
+load("./datasetDumps/twitter.tdm.3g.Rdata")
 
 corpora.allTermsFrequency <- NULL
 corpora.tdm <- twitter.corpora.tdm.1g
 corpora.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df(corpora.tdm = corpora.tdm, chunck = 2000)
-save(corpora.allTermsFrequency, file = "./../data/processed/twitter.allTermsFrequency.1g.Rdata")
+save(corpora.allTermsFrequency, file = "./datasetDumps/twitter.allTermsFrequency.1g.Rdata")
 
 corpora.allTermsFrequency <- NULL
 corpora.tdm <- twitter.corpora.tdm.2g
 corpora.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df(corpora.tdm = corpora.tdm, chunck = 2000)
-save(corpora.allTermsFrequency, file = "./../data/processed/twitter.allTermsFrequency.2g.Rdata")
+save(corpora.allTermsFrequency, file = "./datasetDumps/twitter.allTermsFrequency.2g.Rdata")
 
 corpora.allTermsFrequency <- NULL
 corpora.tdm <- twitter.corpora.tdm.3g
 corpora.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df(corpora.tdm = corpora.tdm, chunck = 2000)
-save(corpora.allTermsFrequency, file = "./../data/processed/twitter.allTermsFrequency.3g.Rdata")
+save(corpora.allTermsFrequency, file = "./datasetDumps/twitter.allTermsFrequency.3g.Rdata")
 
 corpora.allTermsFrequency <- NULL
 corpora.tdm <- NULL
@@ -570,24 +578,24 @@ rm(twitter.corpora.tdm.1g, twitter.corpora.tdm.2g, twitter.corpora.tdm.3g)
 
 ## NEWS
 
-load("./../data/processed/news.tdm.1g.Rdata")
-load("./../data/processed/news.tdm.2g.Rdata")
-load("./../data/processed/news.tdm.3g.Rdata")
+load("./datasetDumps/news.tdm.1g.Rdata")
+load("./datasetDumps/news.tdm.2g.Rdata")
+load("./datasetDumps/news.tdm.3g.Rdata")
 
 corpora.allTermsFrequency <- NULL
 corpora.tdm <- news.corpora.tdm.1g
 corpora.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df(corpora.tdm = corpora.tdm, chunck = 2000)
-save(corpora.allTermsFrequency, file = "./../data/processed/news.allTermsFrequency.1g.Rdata")
+save(corpora.allTermsFrequency, file = "./datasetDumps/news.allTermsFrequency.1g.Rdata")
 
 corpora.allTermsFrequency <- NULL
 corpora.tdm <- news.corpora.tdm.2g
 corpora.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df(corpora.tdm = corpora.tdm, chunck = 2000)
-save(corpora.allTermsFrequency, file = "./../data/processed/news.allTermsFrequency.2g.Rdata")
+save(corpora.allTermsFrequency, file = "./datasetDumps/news.allTermsFrequency.2g.Rdata")
 
 corpora.allTermsFrequency <- NULL
 corpora.tdm <- news.corpora.tdm.3g
 corpora.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df(corpora.tdm = corpora.tdm, chunck = 2000)
-save(corpora.allTermsFrequency, file = "./../data/processed/news.allTermsFrequency.3g.Rdata")
+save(corpora.allTermsFrequency, file = "./datasetDumps/news.allTermsFrequency.3g.Rdata")
 
 corpora.allTermsFrequency <- NULL
 corpora.tdm <- NULL
@@ -595,24 +603,24 @@ rm(news.corpora.tdm.1g, news.corpora.tdm.2g, news.corpora.tdm.3g)
 
 ## Blogs
 
-load("./../data/processed/blogs.tdm.1g.Rdata")
-load("./../data/processed/blogs.tdm.2g.Rdata")
-load("./../data/processed/blogs.tdm.3g.Rdata")
+load("./datasetDumps/blogs.tdm.1g.Rdata")
+load("./datasetDumps/blogs.tdm.2g.Rdata")
+load("./datasetDumps/blogs.tdm.3g.Rdata")
 
 corpora.allTermsFrequency <- NULL
 corpora.tdm <- blogs.corpora.tdm.1g
 corpora.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df(corpora.tdm = corpora.tdm, chunck = 2000)
-save(corpora.allTermsFrequency, file = "./../data/processed/blogs.allTermsFrequency.1g.Rdata")
+save(corpora.allTermsFrequency, file = "./datasetDumps/blogs.allTermsFrequency.1g.Rdata")
 
 corpora.allTermsFrequency <- NULL
 corpora.tdm <- blogs.corpora.tdm.2g
 corpora.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df(corpora.tdm = corpora.tdm, chunck = 2000)
-save(corpora.allTermsFrequency, file = "./../data/processed/blogs.allTermsFrequency.2g.Rdata")
+save(corpora.allTermsFrequency, file = "./datasetDumps/blogs.allTermsFrequency.2g.Rdata")
 
 corpora.allTermsFrequency <- NULL
 corpora.tdm <- blogs.corpora.tdm.3g
 corpora.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df(corpora.tdm = corpora.tdm, chunck = 2000)
-save(corpora.allTermsFrequency, file = "./../data/processed/blogs.allTermsFrequency.3g.Rdata")
+save(corpora.allTermsFrequency, file = "./datasetDumps/blogs.allTermsFrequency.3g.Rdata")
 
 corpora.allTermsFrequency <- NULL
 corpora.tdm <- NULL
@@ -623,18 +631,20 @@ rm(blogs.corpora.tdm.1g, blogs.corpora.tdm.2g, blogs.corpora.tdm.3g)
 ## Twitter Corpora
 
 ```{r loadTwitterData, eval=T, echo = F}
-load("./../data/processed/twitter.tdm.1g.Rdata")
-load("./../data/processed/twitter.tdm.2g.Rdata")
-load("./../data/processed/twitter.tdm.3g.Rdata")
+load("./datasetDumps/twitter.tdm.1g.Rdata")
+load("./datasetDumps/twitter.tdm.2g.Rdata")
+load("./datasetDumps/twitter.tdm.3g.Rdata")
 
-load("./../data/processed/twitter.allTermsFrequency.1g.Rdata")
+load("./datasetDumps/twitter.allTermsFrequency.1g.Rdata")
 twitter.allTerms.1g <- corpora.allTermsFrequency
 
-load("./../data/processed/twitter.allTermsFrequency.2g.Rdata")
+load("./datasetDumps/twitter.allTermsFrequency.2g.Rdata")
 twitter.allTerms.2g <- corpora.allTermsFrequency
 
-load("./../data/processed/twitter.allTermsFrequency.3g.Rdata")
+load("./datasetDumps/twitter.allTermsFrequency.3g.Rdata")
 twitter.allTerms.3g <- corpora.allTermsFrequency
+
+corpora.allTermsFrequency <- NULL
 ```
 
 
@@ -716,18 +726,19 @@ visualizeCumuluativeCoverage(allFtm.df = twitter.allTerms.3g, title = "% Coverag
 ## News Corpora
 
 ```{r loadNewsData, eval=T, echo = F}
-load("./../data/processed/news.tdm.1g.Rdata")
-load("./../data/processed/news.tdm.2g.Rdata")
-load("./../data/processed/news.tdm.3g.Rdata")
+load("./datasetDumps/news.tdm.1g.Rdata")
+load("./datasetDumps/news.tdm.2g.Rdata")
+load("./datasetDumps/news.tdm.3g.Rdata")
 
-load("./../data/processed/news.allTermsFrequency.1g.Rdata")
+load("./datasetDumps/news.allTermsFrequency.1g.Rdata")
 news.allTerms.1g <- corpora.allTermsFrequency
 
-load("./../data/processed/news.allTermsFrequency.2g.Rdata")
+load("./datasetDumps/news.allTermsFrequency.2g.Rdata")
 news.allTerms.2g <- corpora.allTermsFrequency
 
-load("./../data/processed/news.allTermsFrequency.3g.Rdata")
+load("./datasetDumps/news.allTermsFrequency.3g.Rdata")
 news.allTerms.3g <- corpora.allTermsFrequency
+corpora.allTermsFrequency <- NULL
 ```
 
 ### 1-grams
@@ -806,18 +817,19 @@ visualizeCumuluativeCoverage(allFtm.df = news.allTerms.3g, title = "% Coverage B
 ## Blogs Corpora
 
 ```{r loadBlogsData, eval=T, warning = F, message = F, echo = F}
-load("./../data/processed/blogs.tdm.1g.Rdata")
-load("./../data/processed/blogs.tdm.2g.Rdata")
-load("./../data/processed/blogs.tdm.3g.Rdata")
+load("./datasetDumps/blogs.tdm.1g.Rdata")
+load("./datasetDumps/blogs.tdm.2g.Rdata")
+load("./datasetDumps/blogs.tdm.3g.Rdata")
 
-load("./../data/processed/blogs.allTermsFrequency.1g.Rdata")
+load("./datasetDumps/blogs.allTermsFrequency.1g.Rdata")
 blogs.allTerms.1g <- corpora.allTermsFrequency
 
-load("./../data/processed/blogs.allTermsFrequency.2g.Rdata")
+load("./datasetDumps/blogs.allTermsFrequency.2g.Rdata")
 blogs.allTerms.2g <- corpora.allTermsFrequency
 
-load("./../data/processed/blogs.allTermsFrequency.3g.Rdata")
+load("./datasetDumps/blogs.allTermsFrequency.3g.Rdata")
 blogs.allTerms.3g <- corpora.allTermsFrequency
+corpora.allTermsFrequency <- NULL
 ```
 
 ### 1-grams

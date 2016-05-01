@@ -23,4 +23,9 @@ data/
 scripts/*_cache/
 scripts/*_files/
 scripts/rsconnect/
+
+reports/*_cache/
+reports/*_files/
+reports/rsconnect/
+reports/datasetDumps/
 .Rproj.user
