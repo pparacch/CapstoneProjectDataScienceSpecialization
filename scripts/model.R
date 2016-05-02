@@ -33,10 +33,21 @@ load.twitter.3g.data <- function(folder){
 }
 
 
+unigrams.countForWord <- function(word, u.words, u.counters){
+    idx <- which(u.words == word)
+    result <- -1
+    if(length(idx) == 1){
+        result <- u.counters[which(u.words == word)]
+    }else{
+        stop(paste("unigrams.countForWord function::", word, "::not found", sep = ""))
+    }
+    result
+}
+
 unigrams.probabilityForWord <- function(word, u.words, u.counters){
     idx <- which(u.words == word)
     result <- -1
-    if(length(idx) != 0){
+    if(length(idx) == 1){
         result <- u.counters[which(u.words == word)]/ sum(u.counters)
     }else{
         stop(paste("unigrams.probabilityForWord function::", word, "::not found", sep = ""))
@@ -44,6 +55,12 @@ unigrams.probabilityForWord <- function(word, u.words, u.counters){
     result
 }
 
+
+# Create the Unigram model as a list
+# $u.words -> the list of unigrams
+# $u.probability -> the list of probabilities
+#
+# $u.probability[i] (probability) is related to $u.words[i] (unigram)
 unigrams.model <- function(u.words, u.counters){
     size <- length(u.words)
     result.words <- character(size)

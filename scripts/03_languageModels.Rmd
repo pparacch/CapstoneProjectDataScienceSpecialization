@@ -323,9 +323,35 @@ format(object.size(data.prob), "auto")
 load(file = "./../data/processed/model.twitter.trigrams.Rdata")
 
 #Case 1
-index <- which(data.bigrams == "a case")
+# The guy in front of me just bought a pound of bacon, a bouquet, and a case of
+index <- which(data.bigrams == "case of")
 data.nextWord[index]
 data.prob[index]
+
+#Case 2
+#You're the reason why I smile everyday. Can you follow me please? It would mean the
+index <- which(data.bigrams == "mean the")
+data.nextWord[index]
+data.prob[index]
+
+#Case 3
+# Hey sunshine, can you follow me and make me the
+index <- which(data.bigrams == "me the")
+data.nextWord[index]
+data.prob[index]
+
+#Case 4
+# Very early observations on the Bills game: Offense still struggling but the
+index <- which(data.bigrams == "but the")
+data.nextWord[index]
+data.prob[index]
+
+#Case 5
+# Go on a romantic date at the
+index <- which(data.bigrams == "at the")
+data.nextWord[index]
+data.prob[index]
+data.nextWord[index][order(data.prob[index], decreasing = T)]
 
 # format(object.size(data_h), "auto")
 # Rprof(tmp <- tempfile())
