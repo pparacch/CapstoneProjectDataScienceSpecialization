@@ -23,7 +23,7 @@ localeToCharset()
 ## Language Modeld Notes
 
 ```{r unigramModel, collapse = T}
-rm(list = ls())
+# rm(list = ls())
 source("./model.R")
 
 require(profr)
@@ -101,9 +101,6 @@ format(object.size(b.terms), "auto")
 format(object.size(b.counters), "auto")
 format(object.size(twitter.2g.list$allTermsCounters), "auto")
 
-ngramTokenize <- function(y, ng) RWeka::NGramTokenizer(y, RWeka::Weka_control(min = ng, max = ng, delimiters = " \\r\\n\\t.,;:\"()?!")) 
-  
-
 unigramModel.counterForTerm <- function(word){
     idx <- which(u.terms == word)
     print(paste("      Term:", word))
@@ -179,39 +176,41 @@ format(object.size(twitter.3g.list$allTermsCounters), "auto")
 
 bigramModel.counterForTerm <- function(word){
     idx <- which(b.terms == word)
-    print(paste("      Term:", word))
+    # print(paste("      Term:", word))
     if(length(idx) != 0){
-        print(paste("        idx:", idx))
-        print(paste("        count:", b.counters[idx]))
-        print(paste("        N:", b.N))
+        # print(paste("        idx:", idx))
+        # print(paste("        count:", b.counters[idx]))
+        # print(paste("        N:", b.N))
         b.counters[idx]
     }else{
-        print("        Not Found")
-        0
+        stop("bigramModel.counterForTerm", word, "not found")
     }
 }
 
 trigramsModel.probabilityFor <- function(word.i.minus.2, word.i.minus.1, word.i){
-    print("---  TRIGRAM-Model ---")
+    #print("---  TRIGRAM-Model ---")
     term <- paste(word.i.minus.2, word.i.minus.1, word.i)
     idx <- which(t.terms == term)
+    probability <- -1
     
-    print(paste("Term:", term))
+    #print(paste("Term:", term))
 
     if(length(idx) != 0){
         w.previous.bigram <- paste(word.i.minus.2, word.i.minus.1)
         w.previous.bigram.count <- bigramModel.counterForTerm(w.previous.bigram)
         
-        print(paste("  idx:", idx))
-        print(paste("  count:", b.counters[idx]))
-        print(paste("  wi-1:", w.previous.bigram))
-        print(paste("  count wi-1:", w.previous.bigram.count))
-        print(paste("  probability:",100 * (t.counters[which(t.terms == term)]/ w.previous.bigram.count), "%"))
+        #print(paste("  idx:", idx))
+        #print(paste("  count:", t.counters[idx]))
+        #print(paste("  wi-1:", w.previous.bigram))
+        #print(paste("  count wi-1:", w.previous.bigram.count))
+        probability <- (t.counters[which(t.terms == term)]/ w.previous.bigram.count)
+        #print(paste("  probability:",100 * probability, "%"))
     }else{
-        print("  Not Found")
+        stop("trigramsModel.probabilityFor", term, "not found")
     }
     
-    print("----------------------")
+    #print("----------------------")
+    probability
 }
 
 Rprof(tmp <- tempfile())
@@ -223,3 +222,116 @@ summaryRprof(tmp)
 trigramsModel.probabilityFor("i", "love", "you")
 
 ```
+
+
+## Investigating the usage of hash table to store the language models
+
+
+```{r hashTableInvestigate}
+require(profr)
+
+data <- rnorm(1E6)
+data_ls <- as.list(data)
+names(data_ls) <- paste("V", c(1:1E6), sep="")
+format(object.size(data_ls), "auto")
+
+
+index_rand <- sample(1:1E6, size=1000, replace=T)
+index <- paste("V", index_rand, sep="")
+
+Rprof(tmp <- tempfile())
+list_found <- sapply(index, FUN=function(x){data_ls[[x]]})
+Rprof(NULL)
+summaryRprof(tmp)
+
+library(hash)
+data_h <- hash(names(data_ls), data)
+format(object.size(data_h), "auto")
+
+Rprof(tmp <- tempfile())
+hash_found <- sapply(index, FUN=function(x){data_h[[x]]})
+Rprof(NULL)
+summaryRprof(tmp)
+
+```
+
+## Trigrams
+
+
+```{r TrigramsInvestigate}
+
+require(profr)
+require(hash)
+
+
+#Order trigrams in decrescent order
+idx <- order(t.counters, decreasing = T)
+t.counters <- t.counters[idx]
+t.terms <- t.terms[idx]
+t.N <- sum(t.counters)
+t.V <- length(unique(t.terms))
+
+#Lets limit the trigrams to the ones with at least 3 occurences - the other are filtered out
+#50000 can be still a significant number (Note to self)
+
+sum(t.counters >= 3) #circa 50000
+
+t.counters.atLeast3 <- (t.counters >= 3)
+t.terms <- t.terms[t.counters.atLeast3]
+t.counters <- t.counters[t.counters.atLeast3]
+t.N <- sum(t.counters)
+t.V <- length(unique(t.terms))
+
+size <- length(t.terms)
+
+data.bigrams <- character(size)
+data.nextWord <- character(size)
+data.prob <- integer(size)
+
+
+getTrigramModel.forTrigram <- function(i){
+    elem <- t.terms[i]
+    elem.1grams <- ngramTokenize(y = elem, ng = 1)
+    elem.bigram <- paste(elem.1grams[1], elem.1grams[2])
+    elem.nextWord <- elem.1grams[3]
+    elem.prob <- trigramsModel.probabilityFor(elem.1grams[1], elem.1grams[2], elem.1grams[3])
+    
+    #print(elem.bigram)
+    #print(elem.nextWord)
+    #print(elem.prob)
+    
+    data.bigrams[i] <<- elem.bigram
+    data.nextWord[i] <<- elem.nextWord
+    data.prob[i] <<- elem.prob
+}
+
+getTrigramModel.forTrigram(1)
+getTrigramModel.forTrigram(2)
+getTrigramModel.forTrigram(3)
+
+for(i in 1:size){
+    if(i %% 1000 == 0) print(paste("Processing", i, "of", size))
+    getTrigramModel.forTrigram(i)
+}
+
+
+save(t.terms, t.counters, t.N, t.V, data.bigrams, data.nextWord, data.prob, file = "./../data/processed/model.twitter.trigrams.Rdata")
+format(object.size(data.bigrams), "auto")
+format(object.size(data.nextWord), "auto")
+format(object.size(data.prob), "auto")
+
+load(file = "./../data/processed/model.twitter.trigrams.Rdata")
+
+#Case 1
+index <- which(data.bigrams == "a case")
+data.nextWord[index]
+data.prob[index]
+
+# format(object.size(data_h), "auto")
+# Rprof(tmp <- tempfile())
+# hash_found <- sapply(index, FUN=function(x){data_h[[x]]})
+# Rprof(NULL)
+# summaryRprof(tmp)
+
+```
+

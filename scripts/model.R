@@ -1,27 +1,13 @@
 
+Sys.setlocale(category = "LC_ALL",locale = "English_United States.1252")
+
 # Load the Term Document Matrix created for the Sample Corpora 
 # Twitter, News, Blogs
 
-# folder <- "./datasetDumps/"
-# 
-# load(paste(folder, "twitter.tdm.1g.Rdata", sep = ""))
-# load(paste(folder, "twitter.tdm.2g.Rdata", sep = ""))
-# load(paste(folder, "twitter.tdm.3g.Rdata", sep = ""))
-# 
-# load(paste(folder, "twitter.allTermsFrequency.1g.Rdata", sep = ""))
-# twitter.allTerms.1g <- corpora.allTermsFrequency
-# load(paste(folder, "twitter.allTermsFrequency.2g.Rdata", sep = ""))
-# twitter.allTerms.2g <- corpora.allTermsFrequency
-# load(paste(folder, "twitter.allTermsFrequency.3g.Rdata", sep = ""))
-# twitter.allTerms.3g <- corpora.allTermsFrequency
-# 
-# corpora.allTermsFrequency <- NULL
-# 
-# #Size of allTerms frequency by Ngrams
-# utils:::format.object_size(object.size(twitter.allTerms.1g), "auto")
-# utils:::format.object_size(object.size(twitter.allTerms.2g), "auto")
-# utils:::format.object_size(object.size(twitter.allTerms.3g), "auto")
-# 
+folder <- "./datasetDumps/"
+
+ngramTokenize <- function(y, ng) RWeka::NGramTokenizer(y, RWeka::Weka_control(min = ng, max = ng, delimiters = " \\r\\n\\t.,;:\"()?!"))
+
 load.twitter.1g.data <- function(folder){
     load(paste(folder, "twitter.allTermsFrequency.1g.Rdata", sep = ""))
     twitter.allTerms.1g <- corpora.allTermsFrequency
@@ -47,10 +33,28 @@ load.twitter.3g.data <- function(folder){
 }
 
 
+unigrams.probabilityForWord <- function(word, u.words, u.counters){
+    idx <- which(u.words == word)
+    result <- -1
+    if(length(idx) != 0){
+        result <- u.counters[which(u.words == word)]/ sum(u.counters)
+    }else{
+        stop(paste("unigrams.probabilityForWord function::", word, "::not found", sep = ""))
+    }
+    result
+}
 
-## Start to investigate items with certain frequency
-# a.terms <- rownames(twitter.allTerms.1g)
-# a.counters <- twitter.allTerms.1g$freq
-# a.N <- sum(twitter.allTerms.1g$freq)
-# a.V <- length(unique(rownames(twitter.allTerms.1g)))
-# hist(twitter.allTerms.1g$freq)
+unigrams.model <- function(u.words, u.counters){
+    size <- length(u.words)
+    result.words <- character(size)
+    result.prob <- numeric(size)
+    
+    for(i in 1:size){
+        tmp <- u.words[i]
+        result.words[i] <- tmp
+        result.prob[i] <- unigrams.probabilityForWord(word = tmp, u.words = u.words, u.counters = u.counters)
+    }
+    
+    result_ls <- list(u.words = result.words, u.probability = result.prob)
+}
+
