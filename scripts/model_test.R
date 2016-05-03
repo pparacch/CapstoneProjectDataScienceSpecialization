@@ -273,3 +273,4 @@ print(paste(test.name, "::trigrams.model::", (check1 & check2 & check3), sep = "
 if(!test.passed) stop()
 
 print("##########################################")
+rm(list = ls())
