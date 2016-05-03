@@ -1,0 +1,130 @@
+---
+title: "Language Models"
+author: "Pier Lorenzo Paracchini"
+date: "3 mai 2016"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# WINDOWS LOCALE SETTING
+Sys.setlocale(category = "LC_ALL",locale = "English_United States.1252")
+
+require(profr)
+require(hash)
+```
+
+# Language Model Creation - some Notes
+
+## Unigram Language Model
+
+```{r unigramModelCreate, collapse = T, eval = T}
+rm(list = ls())
+source("./model.R")
+
+tw.1g.list <- load.twitter.1g.data("./../data/processed/")
+
+tw.1g.terms <- rownames(tw.1g.list$allTermsCounters)
+tw.1g.counters <- tw.1g.list$allTermsCounters$freq
+tw.1g.N <- sum(tw.1g.counters)
+tw.1g.V <- length(unique(tw.1g.terms))
+
+#Order by frequency (decreasing)
+idx <- order(tw.1g.counters, decreasing = T)
+tw.1g.counters <- tw.1g.counters[idx]
+tw.1g.terms <- tw.1g.terms[idx]
+tw.1g.cumulativeCoverage <- (cumsum(tw.1g.counters)/ tw.1g.N) * 100
+idx <- NULL
+
+idx <- which(tw.1g.counters > 1)
+length(idx) #25997 words 
+
+plot(tw.1g.cumulativeCoverage)
+idx <- which(tw.1g.cumulativeCoverage <= 90)
+length(idx) #5248 words 
+
+##Simplification: consider the words in order to have a max cumulative coverage of 
+# idx <- which(tw.1g.cumulativeCoverage <= 99.5)
+# tw.1g.counters <- tw.1g.counters[idx]
+# tw.1g.terms <- tw.1g.terms[idx]
+# tw.1g.cumulativeCoverage <- (cumsum(tw.1g.counters)/ tw.1g.N) * 100
+# plot(tw.1g.cumulativeCoverage)
+
+
+##Create the twitter unigram model
+Rprof(tmp <- tempfile())
+tw.1g.model <- unigrams.model(u.words = tw.1g.terms, u.counters = tw.1g.counters)
+Rprof(NULL)
+summaryRprof(tmp)
+
+save(tw.1g.terms, tw.1g.counters, tw.1g.V, tw.1g.N, tw.1g.cumulativeCoverage, tw.1g.model,
+     file = "./../data/processed/model.twitter.1g.Rdata")
+
+
+Rprof(tmp <- tempfile())
+unigramModel.probabilityForWord(u.model = tw.1g.model, word = "<s>")
+Rprof(NULL)
+summaryRprof(tmp)
+
+
+Rprof(tmp <- tempfile())
+unigramModel.probabilityForWord(u.model = tw.1g.model, word = "i'm")
+Rprof(NULL)
+summaryRprof(tmp)
+
+Rprof(tmp <- tempfile())
+unigramModel.probabilityForWord(u.model = tw.1g.model, word = "sentimental")
+Rprof(NULL)
+summaryRprof(tmp)
+```
+
+```{r bigramModelCreate, collapse = T}
+rm(list = ls())
+source("./model.R")
+load(file = "./../data/processed/model.twitter.1g.Rdata")
+
+tw.2g.list <- load.twitter.2g.data("./../data/processed/")
+
+tw.2g.terms <- rownames(tw.2g.list$allTermsCounters)
+tw.2g.counters <- tw.2g.list$allTermsCounters$freq
+tw.2g.N <- sum(tw.2g.counters)
+tw.2g.V <- length(unique(tw.2g.terms))
+
+#Order by frequency (decreasing)
+idx <- order(tw.2g.counters, decreasing = T)
+tw.2g.counters <- tw.2g.counters[idx]
+tw.2g.terms <- tw.2g.terms[idx]
+tw.2g.cumulativeCoverage <- (cumsum(tw.2g.counters)/ tw.2g.N) * 100
+idx <- NULL
+
+plot(tw.2g.cumulativeCoverage)
+
+idx <- which(tw.2g.counters > 1)
+length(idx) 
+
+idx <- which(tw.2g.counters > 5)
+length(idx) 
+
+idx <- which(tw.2g.cumulativeCoverage <= 50)
+length(idx) 
+
+##Simplification: consider the bigrams in order to have a max cumulative coverage of%
+idx <- which(tw.2g.cumulativeCoverage <= 50)
+tw.2g.counters <- tw.2g.counters[idx]
+tw.2g.terms <- tw.2g.terms[idx]
+tw.2g.cumulativeCoverage <- (cumsum(tw.2g.counters)/ tw.2g.N) * 100
+plot(tw.2g.cumulativeCoverage)
+
+
+##Create the twitter bigram model
+Rprof(tmp <- tempfile())
+tw.2g.model <- bigrams.model(b.terms = tw.2g.terms, b.counters = tw.2g.counters, 
+                             u.words = tw.1g.terms, u.counters = tw.1g.counters)
+Rprof(NULL)
+summaryRprof(tmp)
+
+save(tw.2g.terms, tw.2g.counters, tw.2g.V, tw.2g.N, tw.2g.cumulativeCoverage, tw.2g.model,
+     file = "./../data/processed/model.twitter.2g.Rdata")

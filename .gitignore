@@ -23,6 +23,7 @@ data/
 scripts/*_cache/
 scripts/*_files/
 scripts/rsconnect/
+scripts/tmp/
 
 reports/*_cache/
 reports/*_files/

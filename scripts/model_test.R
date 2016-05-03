@@ -25,7 +25,7 @@ test.result = tryCatch({
     unigrams.countForWord(word = u.test.input.words, u.words = u.test.words, u.counters = u.test.counter)
     print(paste(test.name, "::unigrams.countForWord::", u.test.input.words, "::", FALSE, sep = ""))
     is.error <- F
-}, error = function(e) {
+}, warning = function(e) {
     print(paste(test.name, "::unigrams.countForWord::", u.test.input.words, "::", TRUE, sep = ""))
 })
 if(!is.error) stop()
@@ -107,7 +107,7 @@ test.result = tryCatch({
                          b.terms = b.test.words, b.counters = b.test.counter)
     print(paste(test.name, "::bigrams.countForTerm::", b.test.input.words, "::", FALSE, sep = ""))
     is.error <- F
-}, error = function(e) {
+}, warning = function(e) {
     print(paste(test.name, "::bigrams.counterForTerm::", b.test.input.words, "::", TRUE, sep = ""))
 })
 

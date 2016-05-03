@@ -43,7 +43,7 @@ unigrams.countForWord <- function(word, u.words, u.counters){
     if(length(idx) == 1){
         result <- u.counters[which(u.words == word)]
     }else{
-        stop(paste("unigrams.countForWord function::", word, "::not found", sep = ""))
+        warning(paste("unigrams.countForWord function::", word, "::not found", sep = ""))
     }
     result
 }
@@ -74,10 +74,23 @@ unigrams.model <- function(u.words, u.counters){
         tmp <- u.words[i]
         result.words[i] <- tmp
         result.prob[i] <- unigrams.probabilityForWord(word = tmp, u.words = u.words, u.counters = u.counters)
+        if(i %% 1000 == 0) print(paste("unigrams.model::processed", i, "of", size))
     }
     
     result_ls <- list(u.words = result.words, u.probability = result.prob)
 }
+
+unigramModel.probabilityForWord <- function(u.model, word){
+    result <- NULL
+    idx <- which(u.model$u.words == word)
+    if(length(idx) == 1){
+        result <- u.model$u.probability[idx]
+    }else{
+        stop(paste("unigramModel.probabilityForWord::", word, "::not found"))
+    }
+    result
+}
+
 
 #######################
 ####### BIGRAMS #######
@@ -89,7 +102,7 @@ bigrams.countForTerm <- function(term, b.terms, b.counters){
     if(length(idx) == 1){
         result <- b.counters[idx]
     }else{
-        stop(paste("bigrams.countForTerm function::", term, "::not found", sep = ""))
+        warning(paste("bigrams.countForTerm function::", term, "::not found", sep = ""))
     }
     result
 }
@@ -114,7 +127,11 @@ bigrams.probabilityForTerm <- function(term, b.terms, b.counters, u.words, u.cou
     if(length(idx) != 0){
         w.previous <- term.words[1]
         w.previous.count <- unigrams.countForWord(word = w.previous, u.words = u.words, u.counters = u.counters)
-        result <- b.counters[which(b.terms == term)]/ w.previous.count
+        if(w.previous.count > 0){
+            result <- b.counters[which(b.terms == term)]/ w.previous.count   
+        }else{
+            print(paste("WARNING::bigrams.probabilityForTerm function::'", term, "'::skipped cause::'", w.previous, "'::missing from unigram list.", sep = ""))
+        }
     }else{
         stop(paste("bigrams.probabilityForTerm function::", term, "::not found", sep = ""))
     }
@@ -143,6 +160,7 @@ bigrams.model <- function(b.terms, b.counters, u.words, u.counters){
         result.prob[i] <- bigrams.probabilityForTerm(term = tmp, 
                                                     b.terms = b.terms, b.counters = b.counters,
                                                     u.words = u.words, u.counters = u.counters)
+        if(i %% 1000 == 0) print(paste("bigrams.model::processed", i, "of", size))
     }
     
     result_ls <- list(b.word = result.word, b.nextWord = result.nextWord,  b.probability = result.prob)

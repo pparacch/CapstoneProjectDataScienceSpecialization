@@ -8,16 +8,8 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-#Required Libraries
-require(knitr)
-
 # WINDOWS LOCALE SETTING
 Sys.setlocale(category = "LC_ALL",locale = "English_United States.1252")
-
-getOption("encoding")
-Sys.getlocale("LC_CTYPE")
-localeToCharset()
-
 ```
 
 ## Language Modeld Notes
