@@ -483,7 +483,9 @@ visualizeCumuluativeCoverage(allFtm.df = twitter.allTerms.3g, title = "% Coverag
 ## Explore Issues
 
 ```{r generateTermDocumentMatrixAndSummaryHeavyProcessing2, cache = T, eval = F}
+rm(list = ls())
 load(file = "./tmp/twitter_step2_sample.1.Rdata")
+load(file = "./tmp/twitter.sample1.allTermsFrequency.1g.Rdata")
 
 twitters.contains.in <- grepl("[[:space:]]in[[:space:]]", data.twitter.sample, ignore.case = F)
 idx.in <- which(twitters.contains.in)
@@ -493,42 +495,44 @@ twitters.contains.in_the <- grepl("[[:space:]]in the[[:space:]]", data.twitter.s
 idx.in_the <- which(twitters.contains.in_the)
 data.twitter.sample[idx.in_the]
 
-##In order to keep contractions like I'm or I'll ....
-removePunctuations.exceptApostrophe <- function(texts){
-    gsub(pattern = "[^'[:^punct:]]", replacement = " ", x = texts, perl = T)
-}
 
-test <- "I like %$@to*&, chew;: gum, but don't like|}{[] bubble@#^)( gum!? in the"
-test.expected <- "I like    to    chew   gum  but don't like      bubble      gum   in the"
-result <- removePunctuations.exceptApostrophe(texts = test)
-test.expected == result
-result
 
-##Add start sentence (<s>) and end sentence (</s>) markers in the sentences
-addStartEndMarkers <- function(texts){
-    paste("<s>", texts, "</s>")
-}
-
-## Removal of Profanity Words
-con <- file("./../data/original/bad-words.txt", "r") 
-stopwords.profanityWords <- readLines(con, skipNul = T)
-close(con)
-
-corpora.transform <- function(x){
-  corpus <- Corpus(VectorSource(x))
-  corpus <- tm_map(corpus, content_transformer(tolower))
-  # corpus <- tm_map(corpus, removeWords, stopwords.profanityWords)
-  corpus <- tm_map(corpus, removeNumbers) 
-  corpus <- tm_map(corpus, content_transformer(removePunctuations.exceptApostrophe))
-  corpus <- tm_map(corpus, content_transformer(addStartEndMarkers))
-  corpus <- tm_map(corpus, stripWhitespace)
-  corpus
-}
-
-tdm.generate.ng <- function(corpus){
-  TermDocumentMatrix(corpus) # create tdm from n-grams
-}
-
+# ##In order to keep contractions like I'm or I'll ....
+# removePunctuations.exceptApostrophe <- function(texts){
+#     gsub(pattern = "[^'[:^punct:]]", replacement = " ", x = texts, perl = T)
+# }
+# 
+# test <- "I like %$@to*&, chew;: gum, but don't like|}{[] bubble@#^)( gum!? in the"
+# test.expected <- "I like    to    chew   gum  but don't like      bubble      gum   in the"
+# result <- removePunctuations.exceptApostrophe(texts = test)
+# test.expected == result
+# result
+# 
+# ##Add start sentence (<s>) and end sentence (</s>) markers in the sentences
+# addStartEndMarkers <- function(texts){
+#     paste("<s>", texts, "</s>")
+# }
+# 
+# ## Removal of Profanity Words
+# con <- file("./../data/original/bad-words.txt", "r") 
+# stopwords.profanityWords <- readLines(con, skipNul = T)
+# close(con)
+# 
+# corpora.transform <- function(x){
+#   corpus <- Corpus(VectorSource(x))
+#   corpus <- tm_map(corpus, content_transformer(tolower))
+#   # corpus <- tm_map(corpus, removeWords, stopwords.profanityWords)
+#   corpus <- tm_map(corpus, removeNumbers) 
+#   corpus <- tm_map(corpus, content_transformer(removePunctuations.exceptApostrophe))
+#   corpus <- tm_map(corpus, content_transformer(addStartEndMarkers))
+#   corpus <- tm_map(corpus, stripWhitespace)
+#   corpus
+# }
+# 
+# tdm.generate.ng <- function(corpus){
+#   TermDocumentMatrix(corpus) # create tdm from n-grams
+# }
+# 
 require(tm)
 y <- TermDocumentMatrix(Corpus(VectorSource("i am in the process of giving up")))
 y

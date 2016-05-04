@@ -1,28 +1,8 @@
----
-title: "Twitter Corpora Creation Sample 2"
-author: "Pier Lorenzo Paracchini"
-date: "4 mai 2016"
-output: 
-  html_document: 
-    keep_md: yes
----
+# Twitter Corpora Creation Sample 2
+Pier Lorenzo Paracchini  
+4 mai 2016  
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
 
-#Required Libraries
-require(knitr)
-require(tm)
-require(wordcloud)
-require(RWeka)
-require(ggplot2)
-require(RColorBrewer)
-
-# WINDOWS LOCALE SETTING
-Sys.setlocale(category = "LC_ALL",locale = "English_United States.1252")
-Sys.getlocale("LC_CTYPE")
-localeToCharset()
-```
 
 ## Twitter Corpora Sample 2
 
@@ -39,7 +19,8 @@ Exploration of the corpora is done using __natural language processing technique
 
 `Wordclouds` and `barplots` are used to visualize the most frequent words/ tokens for the different n-grams. When plotting the 'barplots' only the first most frequent terms (top 30) are shown and max 200 terms in the wordclouds. __Note:__ For 2-grams and 3-grams a token like `<s> at the` refers to `at the` at the beginning of the entry (tweet, news or blog), while `the top </s>` refers to `the top` at the end of the entry (tweet, news or blog).
 
-```{r libraries, include = T, echo = T, eval = F}
+
+```r
 rm(list = ls())
 
 ##In order to keep contractions like I'm or I'll ....
@@ -90,10 +71,10 @@ tdm.generate.ng <- function(corpus, ng = 1){
   tdm <- TermDocumentMatrix(corpus, control = list(tokenize = ngramTokenizer, wordLengths = c(1, Inf)))
   tdm
 }
-
 ```
 
-```{r generateTermDocumentMatrixAnd SummaryHeavyProcessing, cache = T, echo = T, eval = F}
+
+```r
 load(file = "./tmp/twitter_step2_sample.2.Rdata")
 
 
@@ -126,77 +107,12 @@ rm(twitter.corpora.tdm.3g)
 rm(list = ls())
 ```
 
-```{r calculateTermFrequency, cache = T, echo = F, eval = F}
 
-getAllTermsFrequencyInCorpora.as.df <- function(corpora.tdm, chunck = 2000){
-    
-    print(corpora.tdm)
-
-    isFinished <- F
-    i <- 0
-    
-    result <- NULL
-    
-    while (!isFinished){
-        
-        i.next <- i + 1
-        start <- 1
-        end <- chunck
-        
-        if(i != 0){
-            start <- i * chunck + 1
-            end <- i.next * chunck
-            if((i.next * chunck) > dim(corpora.tdm)[1]){
-                end <- dim(corpora.tdm)[1]
-                isFinished <- T
-            }
-        }
-        
-        range <- start : end
-        
-        print(paste("Processing Chunck:", start, end))
-        x <- corpora.tdm[range,]
-        x.asMatrix <- as.matrix(x)
-        
-        result <- c(result, rowSums(x.asMatrix))
-        
-        i <- i + 1
-    }
-    
-    allTermsFrequencies.df <- data.frame(freq = result)
-}
-
-
-##Twitter Corpora
-load("./tmp/twitter.sample2.tdm.1g.Rdata")
-corpora.allTermsFrequency <- NULL
-corpora.tdm <- twitter.corpora.tdm.1g
-corpora.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df(corpora.tdm = corpora.tdm, chunck = 2000)
-save(corpora.allTermsFrequency, file = "./tmp/twitter.sample2.allTermsFrequency.1g.Rdata")
-rm(twitter.corpora.tdm.1g)
-
-load("./tmp/twitter.sample2.tdm.2g.Rdata")
-corpora.allTermsFrequency <- NULL
-corpora.tdm <- twitter.corpora.tdm.2g
-corpora.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df(corpora.tdm = corpora.tdm, chunck = 2000)
-save(corpora.allTermsFrequency, file = "./tmp/twitter.sample2.allTermsFrequency.2g.Rdata")
-rm(twitter.corpora.tdm.2g)
-
-load("./tmp/twitter.sample2.tdm.3g.Rdata")
-corpora.allTermsFrequency <- NULL
-corpora.tdm <- twitter.corpora.tdm.3g
-corpora.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df(corpora.tdm = corpora.tdm, chunck = 2000)
-save(corpora.allTermsFrequency, file = "./tmp/twitter.sample2.allTermsFrequency.3g.Rdata")
-rm(twitter.corpora.tdm.3g)
-
-corpora.allTermsFrequency <- NULL
-corpora.tdm <- NULL
-
-```
 
 ## Twitter Corpora
 
-```{r loadTwitterData, echo = T}
+
+```r
 rm(list = ls())
 load("./tmp/twitter.sample2.tdm.1g.Rdata")
 load("./tmp/twitter.sample2.tdm.2g.Rdata")
@@ -218,7 +134,8 @@ corpora.allTermsFrequency <- NULL
 
 ### 1-grams
 
-```{r visualizeTwitterData_1g, warning = F, message = F}
+
+```r
 require(tm)
 require(wordcloud)
 require(RWeka)
@@ -305,7 +222,17 @@ ft.lf.1500 <- findFreqTerms(corpora.tdm,lowfreq = 1500)
 frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 1500)
 
 visualizeBarPlot(ftm.df = frequentTermsLimited.df[-c(1,2),], titleBarPlot = "Frequent 1-grams")
+```
+
+![](02_01_TwittersCorporaSample_2_files/figure-html/visualizeTwitterData_1g-1.png)<!-- -->
+
+```r
 visualizeWordcloud(ftm.df = frequentTermsLimited.df[-c(1,2),])
+```
+
+![](02_01_TwittersCorporaSample_2_files/figure-html/visualizeTwitterData_1g-2.png)<!-- -->
+
+```r
 a <- getSomeInfoABoutCorpora(allFtm.df = twitter.allTerms.1g, filter = c(1:2))
 ```
 
@@ -313,16 +240,20 @@ __How many unique words do you need in a frequency sorted dictionary to cover 50
 
 | N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
 | ------------- |:-------------:| -----:|-----:|-----:|
-| `r format(a$N, digits = 12, nsmall = 0)` | `r a$V` | `r a$C50` | `r a$C90` |
+| 1430395 | 60256 | 121 | 4996 |
 
 
-```{r}
+
+```r
 visualizeCumuluativeCoverage(allFtm.df = twitter.allTerms.1g, title = "% Coverage By no of Unique Words (1-grams)", filter = c(1:2))
 ```
 
+![](02_01_TwittersCorporaSample_2_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
+
 ### 2-grams
 
-```{r visualizeTwitterData_2g, warning = F, message = F}
+
+```r
 corpora.tdm <- twitter.corpora.tdm.2g
 
 ft.lf.1000 <- findFreqTerms(corpora.tdm,lowfreq = 1000)
@@ -330,7 +261,17 @@ ft.lf.1000 <- findFreqTerms(corpora.tdm,lowfreq = 1000)
 frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 1000)
 
 visualizeBarPlot(ftm.df = frequentTermsLimited.df,titleBarPlot = "Frequent 2-grams")
+```
+
+![](02_01_TwittersCorporaSample_2_files/figure-html/visualizeTwitterData_2g-1.png)<!-- -->
+
+```r
 visualizeWordcloud(ftm.df = frequentTermsLimited.df)
+```
+
+![](02_01_TwittersCorporaSample_2_files/figure-html/visualizeTwitterData_2g-2.png)<!-- -->
+
+```r
 a <- getSomeInfoABoutCorpora(allFtm.df = twitter.allTerms.2g)
 ```
 
@@ -338,16 +279,20 @@ __How many unique words do you need in a frequency sorted dictionary to cover 50
 
 | N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
 | ------------- |:-------------:| -----:|-----:|-----:|
-| `r format(a$N, digits = 12, nsmall = 0)` | `r a$V` | `r a$C50` | `r a$C90` |
+| 1537798 | 547201 | 16860 | 393422 |
 
 
-```{r}
+
+```r
 visualizeCumuluativeCoverage(allFtm.df = twitter.allTerms.2g, title = "% Coverage By no of Unique Words (2-grams)")
 ```
 
+![](02_01_TwittersCorporaSample_2_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+
 ### 3-grams
 
-```{r visualizeTwitterData_3g, warning = F, message = F}
+
+```r
 corpora.tdm <- twitter.corpora.tdm.3g
 
 ft.lf.150 <- findFreqTerms(corpora.tdm,lowfreq = 150)
@@ -355,7 +300,17 @@ ft.lf.150 <- findFreqTerms(corpora.tdm,lowfreq = 150)
 frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 150)
 
 visualizeBarPlot(ftm.df = frequentTermsLimited.df,titleBarPlot = "Frequent 3-grams")
+```
+
+![](02_01_TwittersCorporaSample_2_files/figure-html/visualizeTwitterData_3g-1.png)<!-- -->
+
+```r
 visualizeWordcloud(ftm.df = frequentTermsLimited.df)
+```
+
+![](02_01_TwittersCorporaSample_2_files/figure-html/visualizeTwitterData_3g-2.png)<!-- -->
+
+```r
 a <- getSomeInfoABoutCorpora(allFtm.df = twitter.allTerms.3g)
 ```
 
@@ -363,9 +318,12 @@ __How many unique words do you need in a frequency sorted dictionary to cover 50
 
 | N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
 | ------------- |:-------------:| -----:|-----:|-----:|
-| `r format(a$N, digits = 12, nsmall = 0)` | `r a$V` | `r a$C50` | `r a$C90` |
+| 1430395 | 1064700 | 349503 | 921661 |
 
 
-```{r}
+
+```r
 visualizeCumuluativeCoverage(allFtm.df = twitter.allTerms.3g, title = "% Coverage By no of Unique Words (3-grams)")
 ```
+
+![](02_01_TwittersCorporaSample_2_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
