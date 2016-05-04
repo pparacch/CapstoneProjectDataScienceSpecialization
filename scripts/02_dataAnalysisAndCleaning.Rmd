@@ -387,7 +387,8 @@ tdm.generate.ng <- function(x, ng = 1){
   #options(mc.cores=1) 
   ngramTokenizer <- function(y) NGramTokenizer(y, Weka_control(min = ng, max = ng, delimiters = " \\r\\n\\t.,;:\"()?!")) 
   # create n-grams
-  tdm <- TermDocumentMatrix(corpus, control = list(tokenize = ngramTokenizer)) # create tdm from n-grams
+  tdm <- TermDocumentMatrix(corpus, control = list(tokenize = ngramTokenizer, control = list(wordLengths = c(1, Inf)))) 
+  # create tdm from n-grams
   tdm
 }
 
