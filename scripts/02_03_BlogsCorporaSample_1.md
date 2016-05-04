@@ -113,13 +113,13 @@ frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(cor
 visualizeBarPlot(ftm.df = frequentTermsLimited.df[-c(3,4),],titleBarPlot = "Frequent 1-grams")
 ```
 
-![](02_01_BlogsCorporaSample_1_files/figure-html/visualizeBlogsData_1g-1.png)<!-- -->
+![](02_03_BlogsCorporaSample_1_files/figure-html/visualizeBlogsData_1g-1.png)<!-- -->
 
 ```r
 visualizeWordcloud(ftm.df = frequentTermsLimited.df[-c(3,4),])
 ```
 
-![](02_01_BlogsCorporaSample_1_files/figure-html/visualizeBlogsData_1g-2.png)<!-- -->
+![](02_03_BlogsCorporaSample_1_files/figure-html/visualizeBlogsData_1g-2.png)<!-- -->
 
 ```r
 a <- getSomeInfoABoutCorpora(allFtm.df = blogs.allTerms.1g, filter = c(3,4))
@@ -137,7 +137,7 @@ __How many unique words do you need in a frequency sorted dictionary to cover 50
 visualizeCumuluativeCoverage(allFtm.df = blogs.allTerms.1g, title = "% Coverage By no of Unique Words (1-grams)", filter = c(3,4))
 ```
 
-![](02_01_BlogsCorporaSample_1_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
+![](02_03_BlogsCorporaSample_1_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
 
 ### 2-grams
 
@@ -152,13 +152,13 @@ frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(cor
 visualizeBarPlot(ftm.df = frequentTermsLimited.df,titleBarPlot = "Frequent 2-grams")
 ```
 
-![](02_01_BlogsCorporaSample_1_files/figure-html/visualizeBlogsData_2g-1.png)<!-- -->
+![](02_03_BlogsCorporaSample_1_files/figure-html/visualizeBlogsData_2g-1.png)<!-- -->
 
 ```r
 visualizeWordcloud(ftm.df = frequentTermsLimited.df)
 ```
 
-![](02_01_BlogsCorporaSample_1_files/figure-html/visualizeBlogsData_2g-2.png)<!-- -->
+![](02_03_BlogsCorporaSample_1_files/figure-html/visualizeBlogsData_2g-2.png)<!-- -->
 
 ```r
 a <- getSomeInfoABoutCorpora(allFtm.df = blogs.allTerms.2g)
@@ -176,7 +176,7 @@ __How many unique words do you need in a frequency sorted dictionary to cover 50
 visualizeCumuluativeCoverage(allFtm.df = blogs.allTerms.2g, title = "% Coverage By no of Unique Words (2-grams)")
 ```
 
-![](02_01_BlogsCorporaSample_1_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+![](02_03_BlogsCorporaSample_1_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
 
 ### 3-grams
 
@@ -191,13 +191,13 @@ frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(cor
 visualizeBarPlot(ftm.df = frequentTermsLimited.df,titleBarPlot = "Frequent 3-grams")
 ```
 
-![](02_01_BlogsCorporaSample_1_files/figure-html/visualizeBlogsData_3g-1.png)<!-- -->
+![](02_03_BlogsCorporaSample_1_files/figure-html/visualizeBlogsData_3g-1.png)<!-- -->
 
 ```r
 visualizeWordcloud(ftm.df = frequentTermsLimited.df)
 ```
 
-![](02_01_BlogsCorporaSample_1_files/figure-html/visualizeBlogsData_3g-2.png)<!-- -->
+![](02_03_BlogsCorporaSample_1_files/figure-html/visualizeBlogsData_3g-2.png)<!-- -->
 
 ```r
 a <- getSomeInfoABoutCorpora(allFtm.df = blogs.allTerms.3g)
@@ -215,4 +215,4 @@ __How many unique words do you need in a frequency sorted dictionary to cover 50
 visualizeCumuluativeCoverage(allFtm.df = blogs.allTerms.3g, title = "% Coverage By no of Unique Words (3-grams)")
 ```
 
-![](02_01_BlogsCorporaSample_1_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+![](02_03_BlogsCorporaSample_1_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
