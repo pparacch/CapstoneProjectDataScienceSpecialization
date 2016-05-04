@@ -21,7 +21,8 @@ require(hash)
 
 ## Unigram Language Model
 
-```{r unigramModelCreate, collapse = T, eval = T}
+```{r unigramModelCreate, collapse = T, eval = F}
+## TO BE REVIEWED & REFACTORED
 rm(list = ls())
 source("./model.R")
 
@@ -81,7 +82,10 @@ Rprof(NULL)
 summaryRprof(tmp)
 ```
 
-```{r bigramModelCreate, collapse = T}
+## Bigram Model
+
+```{r bigramModelCreate, collapse = T, eval = F}
+## TO BE REFACTORED & REVIEWED
 rm(list = ls())
 source("./model.R")
 load(file = "./../data/processed/model.twitter.1g.Rdata")
@@ -128,3 +132,248 @@ summaryRprof(tmp)
 
 save(tw.2g.terms, tw.2g.counters, tw.2g.V, tw.2g.N, tw.2g.cumulativeCoverage, tw.2g.model,
      file = "./../data/processed/model.twitter.2g.Rdata")
+```
+
+## Trigram Models
+
+```{r trigramModelTwitter}
+rm(list = ls())
+source("./model.R")
+
+tw.3g <- load.twitter.3g.data(file_url_allTermsFrequency = "./tmp/twitter.sample1.allTermsFrequency.3g.Rdata",
+                              file_url_tdm = "./tmp/twitter.sample1.tdm.3g.Rdata")
+
+tw.2g <- load.twitter.2g.data(file_url_allTermsFrequency = "./tmp/twitter.sample1.allTermsFrequency.2g.Rdata",
+                              file_url_tdm = "./tmp/twitter.sample1.tdm.2g.Rdata")
+##Trigrams info
+tw.3g.tc.info <- orderElementsByFrequency(tcv = tw.3g, decreasing = T)
+tw.3g.tc.info$terms[1:10]
+tw.3g.tc.info$counters[1:10]
+
+##Bigrams info
+tw.2g.tc.info <- orderElementsByFrequency(tcv = tw.2g, decreasing = T)
+tw.2g.tc.info$terms[1:10]
+tw.2g.tc.info$counters[1:10]
+
+tw.3g.model <- trigrams.model(t.terms = tw.3g.tc.info$terms[1:10000], t.counters = tw.3g.tc.info$counters[1:10000],
+                              b.terms = tw.2g.tc.info$terms, b.counters = tw.2g.tc.info$counters)
+
+tw.3g.model.df <- data.frame(tw.3g.model$t.bigram, tw.3g.model$t.nextWord, tw.3g.model$t.probability)
+
+save(tw.3g.model, tw.3g.model.df, file = "./tmp/models/twitter.3g.model_10000topTerms.Rdata")
+rm(list = ls())
+```
+
+```{r trigramModelNews}
+rm(list = ls())
+source("./model.R")
+
+tw.3g <- load.news.3g.data(file_url_allTermsFrequency = "./tmp/news.sample.allTermsFrequency.3g.Rdata",
+                              file_url_tdm = "./tmp/news.sample.tdm.3g.Rdata")
+
+tw.2g <- load.news.2g.data(file_url_allTermsFrequency = "./tmp/news.sample.allTermsFrequency.2g.Rdata",
+                              file_url_tdm = "./tmp/news.sample.tdm.2g.Rdata")
+##Trigrams info
+tw.3g.tc.info <- orderElementsByFrequency(tcv = tw.3g, decreasing = T)
+tw.3g.tc.info$terms[1:10]
+tw.3g.tc.info$counters[1:10]
+
+##Bigrams info
+tw.2g.tc.info <- orderElementsByFrequency(tcv = tw.2g, decreasing = T)
+tw.2g.tc.info$terms[1:10]
+tw.2g.tc.info$counters[1:10]
+
+tw.3g.model <- trigrams.model(t.terms = tw.3g.tc.info$terms[1:15000], t.counters = tw.3g.tc.info$counters[1:15000],
+                              b.terms = tw.2g.tc.info$terms, b.counters = tw.2g.tc.info$counters)
+
+tw.3g.model.df <- data.frame(tw.3g.model$t.bigram, tw.3g.model$t.nextWord, tw.3g.model$t.probability)
+
+n.3g.model <- tw.3g.model
+n.3g.model.df <- tw.3g.model.df
+
+save(n.3g.model, n.3g.model.df, file = "./tmp/models/news.3g.model_10000topTerms.Rdata")
+rm(list = ls())
+```
+
+```{r trigramModelBlogs}
+rm(list = ls())
+source("./model.R")
+
+tw.3g <- load.blogs.3g.data(file_url_allTermsFrequency = "./tmp/blogs.sample.allTermsFrequency.3g.Rdata",
+                              file_url_tdm = "./tmp/blogs.sample.tdm.3g.Rdata")
+
+tw.2g <- load.blogs.2g.data(file_url_allTermsFrequency = "./tmp/blogs.sample.allTermsFrequency.2g.Rdata",
+                              file_url_tdm = "./tmp/blogs.sample.tdm.2g.Rdata")
+##Trigrams info
+tw.3g.tc.info <- orderElementsByFrequency(tcv = tw.3g, decreasing = T)
+tw.3g.tc.info$terms[1:10]
+tw.3g.tc.info$counters[1:10]
+
+##Bigrams info
+tw.2g.tc.info <- orderElementsByFrequency(tcv = tw.2g, decreasing = T)
+tw.2g.tc.info$terms[1:10]
+tw.2g.tc.info$counters[1:10]
+
+tw.3g.tc.info$terms[14980:15000]
+tw.3g.tc.info$counters[14980:15000]
+
+tw.3g.model <- trigrams.model(t.terms = tw.3g.tc.info$terms[1:15000], t.counters = tw.3g.tc.info$counters[1:15000],
+                              b.terms = tw.2g.tc.info$terms, b.counters = tw.2g.tc.info$counters)
+
+tw.3g.model.df <- data.frame(tw.3g.model$t.bigram, tw.3g.model$t.nextWord, tw.3g.model$t.probability)
+
+b.3g.model <- tw.3g.model
+b.3g.model.df <- tw.3g.model.df
+
+save(b.3g.model, b.3g.model.df, file = "./tmp/models/blogs.3g.model_10000topTerms.Rdata")
+rm(list = ls())
+```
+
+```{r useModels}
+rm(list = ls())
+source("model.R")
+#save(b.3g.model, b.3g.model.df, file = "./tmp/models/blogs.3g.model_10000topTerms.Rdata")
+load(file = "./tmp/models/blogs.3g.model_10000topTerms.Rdata")
+
+# save(n.3g.model, n.3g.model.df, file = "./tmp/models/news.3g.model_10000topTerms.Rdata")
+load(file = "./tmp/models/news.3g.model_10000topTerms.Rdata")
+
+# save(tw.3g.model, tw.3g.model.df, file = "./tmp/models/twitter.3g.model_10000topTerms.Rdata")
+load(file = "./tmp/models/twitter.3g.model_10000topTerms.Rdata")
+
+bigram <- "<s> thanks"
+tw.3g.model.df[which(tw.3g.model.df$tw.3g.model.t.bigram == bigram),]
+n.3g.model.df[which(n.3g.model.df$tw.3g.model.t.bigram == bigram),]
+b.3g.model.df[which(b.3g.model.df$tw.3g.model.t.bigram == bigram),]
+
+#The guy in front of me just bought a pound of bacon, a bouquet, and a case of
+# beer(g)
+bigram <- "case of"
+tw.3g.model.df[which(tw.3g.model.df$tw.3g.model.t.bigram == bigram),]
+n.3g.model.df[which(n.3g.model.df$tw.3g.model.t.bigram == bigram),]
+b.3g.model.df[which(b.3g.model.df$tw.3g.model.t.bigram == bigram),]
+
+# You're the reason why I smile everyday. Can you follow me please? It would mean the
+# world
+bigram <- "mean the"
+tw.3g.model.df[which(tw.3g.model.df$tw.3g.model.t.bigram == bigram),]
+n.3g.model.df[which(n.3g.model.df$tw.3g.model.t.bigram == bigram),]
+b.3g.model.df[which(b.3g.model.df$tw.3g.model.t.bigram == bigram),]
+
+# Hey sunshine, can you follow me and make me the
+# Happiest(g)
+bigram <- "me the"
+tw.3g.model.df[which(tw.3g.model.df$tw.3g.model.t.bigram == bigram),]
+n.3g.model.df[which(n.3g.model.df$tw.3g.model.t.bigram == bigram),]
+b.3g.model.df[which(b.3g.model.df$tw.3g.model.t.bigram == bigram),]
+
+# Very early observations on the Bills game: Offense still struggling but the
+# defense(g)
+bigram <- "but the"
+tw.3g.model.df[which(tw.3g.model.df$tw.3g.model.t.bigram == bigram),]
+n.3g.model.df[which(n.3g.model.df$tw.3g.model.t.bigram == bigram),]
+b.3g.model.df[which(b.3g.model.df$tw.3g.model.t.bigram == bigram),]
+
+# Go on a romantic date at the
+# beach(g)
+bigram <- "at the"
+tw.3g.model.df[which(tw.3g.model.df$tw.3g.model.t.bigram == bigram),]
+n.3g.model.df[which(n.3g.model.df$tw.3g.model.t.bigram == bigram),]
+b.3g.model.df[which(b.3g.model.df$tw.3g.model.t.bigram == bigram),]
+
+# Well I'm pretty sure my granny has some old bagpipes in her garage I'll dust them off and be on my
+# way(g)
+bigram <- "on my"
+tw.3g.model.df[which(tw.3g.model.df$tw.3g.model.t.bigram == bigram),]
+n.3g.model.df[which(n.3g.model.df$tw.3g.model.t.bigram == bigram),]
+b.3g.model.df[which(b.3g.model.df$tw.3g.model.t.bigram == bigram),]
+
+# Ohhhhh #PointBreak is on tomorrow. Love that film and haven't seen it in quite some
+# time
+bigram <- "quite some"
+tw.3g.model.df[which(tw.3g.model.df$tw.3g.model.t.bigram == bigram),]
+n.3g.model.df[which(n.3g.model.df$tw.3g.model.t.bigram == bigram),]
+b.3g.model.df[which(b.3g.model.df$tw.3g.model.t.bigram == bigram),]
+
+
+# After the ice bucket challenge Louis will push his long wet hair out of his eyes with his little
+# fingers(g)
+bigram <- "his little"
+tw.3g.model.df[which(tw.3g.model.df$tw.3g.model.t.bigram == bigram),]
+n.3g.model.df[which(n.3g.model.df$tw.3g.model.t.bigram == bigram),]
+b.3g.model.df[which(b.3g.model.df$tw.3g.model.t.bigram == bigram),]
+
+
+# Be grateful for the good times and keep the faith during the
+# bad(g)
+bigram <- "during the"
+tw.3g.model.df[which(tw.3g.model.df$tw.3g.model.t.bigram == bigram),]
+n.3g.model.df[which(n.3g.model.df$tw.3g.model.t.bigram == bigram),]
+b.3g.model.df[which(b.3g.model.df$tw.3g.model.t.bigram == bigram),]
+
+
+# If this isn't the cutest thing you've ever seen, then you must be
+# insane(g)
+bigram <- "must be"
+tw.3g.model.df[which(tw.3g.model.df$tw.3g.model.t.bigram == bigram),]
+n.3g.model.df[which(n.3g.model.df$tw.3g.model.t.bigram == bigram),]
+b.3g.model.df[which(b.3g.model.df$tw.3g.model.t.bigram == bigram),]
+
+
+
+sentenceProbability <- function(model.df, trigrams){
+    result <- 1
+    for(i in 1:length(trigrams)){
+        el.words <- ngramTokenize(trigrams[i],1)
+        el.b <- paste(el.words[1], el.words[2])
+        el.nw <- el.words[3]
+        el.p <- model.df$tw.3g.model.t.probability[
+            which(model.df$tw.3g.model.t.bigram == el.b & model.df$tw.3g.model.t.nextWord == el.nw)]
+        print(paste(el.b,"::", el.nw, "::", el.p, sep = ""))
+        result <- result * el.p
+    }
+    result
+}
+
+#haven't seen it in quite some time
+x <- c("haven't seen it", "seen it in", "it in quite", "in quite some", "quite some time")
+sentenceProbability(model.df = tw.3g.model.df, trigrams = x)
+sentenceProbability(model.df = n.3g.model.df, trigrams = x)
+sentenceProbability(model.df = b.3g.model.df, trigrams = x)
+
+bigram <- "haven't seen"
+tw.3g.model.df[which(tw.3g.model.df$tw.3g.model.t.bigram == bigram),]
+n.3g.model.df[which(n.3g.model.df$tw.3g.model.t.bigram == bigram),]
+b.3g.model.df[which(b.3g.model.df$tw.3g.model.t.bigram == bigram),]
+
+
+stupidBackoff <- function(trigrams, t.terms, t.counters, b.terms, b.counters, u.terms, u.counters){
+    result <- NULL
+    
+    for(i in 1:length(trigrams)){
+        el.t <- trigrams[i]
+        el.words <- ngramTokenize(trigrams[i],1)
+        el.b <- paste(el.words[2], el.words[3])
+        el.u <- el.words[3]
+        print(paste(el.t,"::", el.b, "::", el.u, sep = ""))
+        
+        el.t.c <- tryCatch({
+            trigrams.countForTerm(term = el.t, t.terms = t.terms, t.counters = t.counters)
+        }, error = function(e) {
+            0
+        })
+        
+        print(paste("bigrams.counterForTerm function::term::'", el.t, "'::count::", el.t.c, sep = ""))
+        el.b.c <- bigrams.countForTerm(term = el.b, b.terms = b.terms, b.counters = b.counters)
+        
+        if(el.t.c != 0){
+            
+        }
+        el.t.c <- trigrams.countForTerm(term = el.t, t.terms = t.terms, t.counters = t.counters)
+        
+    }
+    result
+}
+
+```
+

@@ -4,32 +4,77 @@ Sys.setlocale(category = "LC_ALL",locale = "English_United States.1252")
 # Load the Term Document Matrix created for the Sample Corpora 
 # Twitter, News, Blogs
 
-folder <- "./datasetDumps/"
-
 ngramTokenize <- function(y, ng) RWeka::NGramTokenizer(y, RWeka::Weka_control(min = ng, max = ng, delimiters = " \\r\\n\\t.,;:\"()?!"))
 
-load.twitter.1g.data <- function(folder){
-    load(paste(folder, "twitter.allTermsFrequency.1g.Rdata", sep = ""))
-    twitter.allTerms.1g <- corpora.allTermsFrequency
-    load(paste(folder, "twitter.tdm.1g.Rdata", sep = ""))
+# load.twitter.1g.data <- function(folder){
+#     load(paste(folder, "twitter.allTermsFrequency.1g.Rdata", sep = ""))
+#     twitter.allTerms.1g <- corpora.allTermsFrequency
+#     load(paste(folder, "twitter.tdm.1g.Rdata", sep = ""))
+#     
+#     list(tdm = twitter.corpora.tdm.1g, allTermsCounters = twitter.allTerms.1g)
+# }
+# 
+
+
+
+load.twitter.2g.data <- function(file_url_allTermsFrequency, file_url_tdm){
+    load(file_url_allTermsFrequency)
+    allTerms.2g <- corpora.allTermsFrequency
+    load(file_url_tdm)
     
-    list(tdm = twitter.corpora.tdm.1g, allTermsCounters = twitter.allTerms.1g)
+    list(tdm = twitter.corpora.tdm.2g, tcv = allTerms.2g)
 }
 
-load.twitter.2g.data <- function(folder){
-    load(paste(folder, "twitter.allTermsFrequency.2g.Rdata", sep = ""))
-    twitter.allTerms.2g <- corpora.allTermsFrequency
-    load(paste(folder, "twitter.tdm.2g.Rdata", sep = ""))
+load.twitter.3g.data <- function(file_url_allTermsFrequency, file_url_tdm){
+    load(file_url_allTermsFrequency)
+    allTerms.3g <- corpora.allTermsFrequency
+    load(file_url_tdm)
     
-    list(tdm = twitter.corpora.tdm.2g, allTermsCounters = twitter.allTerms.2g)
+    list(tdm = twitter.corpora.tdm.3g, tcv = allTerms.3g)
 }
 
-load.twitter.3g.data <- function(folder){
-    load(paste(folder, "twitter.allTermsFrequency.3g.Rdata", sep = ""))
-    twitter.allTerms.3g <- corpora.allTermsFrequency
-    load(paste(folder, "twitter.tdm.3g.Rdata", sep = ""))
+load.news.2g.data <- function(file_url_allTermsFrequency, file_url_tdm){
+    load(file_url_allTermsFrequency)
+    allTerms.2g <- corpora.allTermsFrequency
+    load(file_url_tdm)
     
-    list(tdm = twitter.corpora.tdm.3g, allTermsCounters = twitter.allTerms.3g)
+    list(tdm = news.corpora.tdm.2g, tcv = allTerms.2g)
+}
+
+load.news.3g.data <- function(file_url_allTermsFrequency, file_url_tdm){
+    load(file_url_allTermsFrequency)
+    allTerms.3g <- corpora.allTermsFrequency
+    load(file_url_tdm)
+    
+    list(tdm = news.corpora.tdm.3g, tcv = allTerms.3g)
+}
+
+load.blogs.2g.data <- function(file_url_allTermsFrequency, file_url_tdm){
+    load(file_url_allTermsFrequency)
+    allTerms.2g <- corpora.allTermsFrequency
+    load(file_url_tdm)
+    
+    list(tdm = blogs.corpora.tdm.2g, tcv = allTerms.2g)
+}
+
+load.blogs.3g.data <- function(file_url_allTermsFrequency, file_url_tdm){
+    load(file_url_allTermsFrequency)
+    allTerms.3g <- corpora.allTermsFrequency
+    load(file_url_tdm)
+    
+    list(tdm = blogs.corpora.tdm.3g, tcv = allTerms.3g)
+}
+
+
+orderElementsByFrequency <- function(tcv, decreasing = F){
+    tmp.terms <- rownames(tcv$tcv)
+    tmp.counters <- tcv$tcv$freq
+    
+    #Order by frequency (decreasing)
+    idx <- order(tmp.counters, decreasing = decreasing)
+    
+    list(terms = tmp.terms[idx], counters = tmp.counters[idx])
+
 }
 
 ########################
@@ -102,7 +147,7 @@ bigrams.countForTerm <- function(term, b.terms, b.counters){
     if(length(idx) == 1){
         result <- b.counters[idx]
     }else{
-        warning(paste("bigrams.countForTerm function::", term, "::not found", sep = ""))
+        stop(paste("bigrams.countForTerm function::", term, "::not found", sep = ""))
     }
     result
 }
@@ -130,7 +175,7 @@ bigrams.probabilityForTerm <- function(term, b.terms, b.counters, u.words, u.cou
         if(w.previous.count > 0){
             result <- b.counters[which(b.terms == term)]/ w.previous.count   
         }else{
-            print(paste("WARNING::bigrams.probabilityForTerm function::'", term, "'::skipped cause::'", w.previous, "'::missing from unigram list.", sep = ""))
+            stop(paste("WARNING::bigrams.probabilityForTerm function::'", term, "'::skipped cause::'", w.previous, "'::missing from unigram list.", sep = ""))
         }
     }else{
         stop(paste("bigrams.probabilityForTerm function::", term, "::not found", sep = ""))
@@ -225,6 +270,8 @@ trigrams.model <- function(t.terms, t.counters, b.terms, b.counters){
     result.nextWord <- character(size)
     result.prob <- numeric(size)
     
+    print(paste("trigrams.model::process::starting::", size))
+    
     for(i in 1:size){
         tmp <- t.terms[i]
         tmp.words <- ngramTokenize(y = tmp, ng = 1)
@@ -233,7 +280,10 @@ trigrams.model <- function(t.terms, t.counters, b.terms, b.counters){
         result.prob[i] <- trigrams.probabilityForTerm(term = tmp, 
                                                      t.terms = t.terms, t.counters = t.counters,
                                                      b.terms = b.terms, b.counters = b.counters)
+        if(i %% 100 == 0) print(paste("trigrams.model::processed", i, "of", size))
     }
     
     result_ls <- list(t.bigram = result.bigram, t.nextWord = result.nextWord,  t.probability = result.prob)
 }
+
+

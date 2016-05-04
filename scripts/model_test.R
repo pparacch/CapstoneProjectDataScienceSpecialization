@@ -107,7 +107,7 @@ test.result = tryCatch({
                          b.terms = b.test.words, b.counters = b.test.counter)
     print(paste(test.name, "::bigrams.countForTerm::", b.test.input.words, "::", FALSE, sep = ""))
     is.error <- F
-}, warning = function(e) {
+}, error = function(e) {
     print(paste(test.name, "::bigrams.counterForTerm::", b.test.input.words, "::", TRUE, sep = ""))
 })
 
