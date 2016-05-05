@@ -6,16 +6,13 @@ Sys.setlocale(category = "LC_ALL",locale = "English_United States.1252")
 
 ngramTokenize <- function(y, ng) RWeka::NGramTokenizer(y, RWeka::Weka_control(min = ng, max = ng, delimiters = " \\r\\n\\t.,;:\"()?!"))
 
-# load.twitter.1g.data <- function(folder){
-#     load(paste(folder, "twitter.allTermsFrequency.1g.Rdata", sep = ""))
-#     twitter.allTerms.1g <- corpora.allTermsFrequency
-#     load(paste(folder, "twitter.tdm.1g.Rdata", sep = ""))
-#     
-#     list(tdm = twitter.corpora.tdm.1g, allTermsCounters = twitter.allTerms.1g)
-# }
-# 
-
-
+load.twitter.1g.data <- function(file_url_allTermsFrequency, file_url_tdm){
+    load(file_url_allTermsFrequency)
+    allTerms.1g <- corpora.allTermsFrequency
+    load(file_url_tdm)
+    
+    list(tdm = twitter.corpora.tdm.1g, tcv = allTerms.1g)
+}
 
 load.twitter.2g.data <- function(file_url_allTermsFrequency, file_url_tdm){
     load(file_url_allTermsFrequency)
@@ -274,22 +271,25 @@ trigrams.model <- function(t.terms, t.counters, b.terms, b.counters){
     size <- length(t.terms)
     result.bigram <- character(size)
     result.nextWord <- character(size)
+    result.count <- integer(size)
     result.prob <- numeric(size)
     
-    print(paste("trigrams.model::process::starting::", size))
+    
+    print(paste("trigrams.model::process::starting::size::", size))
     
     for(i in 1:size){
         tmp <- t.terms[i]
         tmp.words <- ngramTokenize(y = tmp, ng = 1)
         result.bigram[i] <- paste(tmp.words[1], tmp.words[2])
         result.nextWord[i] <- tmp.words[3]
+        result.count[i] <- t.counters[i]
         result.prob[i] <- trigrams.probabilityForTerm(term = tmp, 
                                                      t.terms = t.terms, t.counters = t.counters,
                                                      b.terms = b.terms, b.counters = b.counters)
         if(i %% 100 == 0) print(paste("trigrams.model::processed", i, "of", size))
     }
     
-    result_ls <- list(t.bigram = result.bigram, t.nextWord = result.nextWord,  t.probability = result.prob)
+    result_ls <- list(t.bigram = result.bigram, t.nextWord = result.nextWord, t.count = result.count,  t.probability = result.prob)
 }
 
 # Implementation of the stupid backoff algorithm
@@ -297,7 +297,7 @@ trigrams.model <- function(t.terms, t.counters, b.terms, b.counters){
 sb_factor <- 0.4
 
 stupidBackoff.trigrams <- function(word_i, bigramBeforeWord_i, t.terms, t.counters, b.terms, b.counters, u.words, u.counters){
-    #print(paste("sb_support.tri::word_i '", word_i, "', bi_i-1 '",bigramBeforeWord_i, "'", sep = ""))
+    print(paste("##sb_support.tri::word_i '", word_i, "', bi_i-1 '",bigramBeforeWord_i, "'", sep = ""))
     el.t.p <- sb_support.tri(word_i = word_i, bigramBeforeWord_1 = bigramBeforeWord_i,
                              t.terms = t.terms, t.counters = t.counters,
                              b.terms = b.terms, b.counters = b.counters)
@@ -306,7 +306,7 @@ stupidBackoff.trigrams <- function(word_i, bigramBeforeWord_i, t.terms, t.counte
     }
     
     bigramBeforeWord_i.words <- ngramTokenize(y = bigramBeforeWord_i, ng = 1)
-    # print(paste("sb_support.bi::word_i '", word_i, "', word_i-1 '",bigramBeforeWord_i.words[2], "'", sep = ""))
+    print(paste("##sb_support.bi::word_i '", word_i, "', word_i-1 '",bigramBeforeWord_i.words[2], "'", sep = ""))
     el.b <- paste(bigramBeforeWord_i.words[2], word_i)
     el.b.p <- sb_support.bi(word_i = word_i, word_i_m1 = bigramBeforeWord_i.words[2],
                             b.terms = b.terms, b.counters = b.counters,
@@ -315,33 +315,94 @@ stupidBackoff.trigrams <- function(word_i, bigramBeforeWord_i, t.terms, t.counte
         return(el.b.p)
     }
     
-    # print(paste("sb_support.uni::word_i '", word_i, "'", sep = ""))
+    print(paste("##sb_support.uni::word_i '", word_i, "'", sep = ""))
     el.u.p <- sb_support.uni(word_i = word_i, 
                             u.words = u.words, u.counters = u.counters)
     if(el.u.p > 0){
         return(el.u.p)
     }
     
+    #TO DO IMPLEMENT A SMOOTHING tecnique
     stop()
 }
 
 sb_support.tri <- function(word_i, bigramBeforeWord_1, t.terms, t.counters, b.terms, b.counters){
-    el.t <- paste(bigramBeforeWord_1, word_i)
-    el.t.c <- trigrams.countForTerm(term = el.t, t.terms = t.terms, t.counters = t.counters, errorIfTermMissing = F)
-    bigramBeforeWord_1.c <- bigrams.countForTerm(term = bigramBeforeWord_1, b.terms = b.terms, b.counters = b.counters)
-    (el.t.c/ bigramBeforeWord_1.c)
+    prob.w_i.given.bigram(word_i = word_i, bigramBeforeWord_1 = bigramBeforeWord_1,
+                          t.terms = t.terms, t.counters = t.counters,
+                          b.terms = b.terms, b.counters = b.counters)
 }
 
 sb_support.bi <- function(word_i, word_i_m1, b.terms, b.counters, u.words, u.counters){
-    el.b <- paste(word_i_m1, word_i)
-    el.b.c <- bigrams.countForTerm(term = el.b, b.terms = b.terms, b.counters = b.counters, errorIfTermMissing = F)
-    word_i_m1.c <- unigrams.countForWord(word = word_i_m1, u.words = u.words, u.counters = u.counters)
-    sb_factor * (el.b.c/ word_i_m1.c)
+    sb_factor * prob.w_i.given.word(word_i = word_i, word_i_m1 = word_i_m1,
+                                      b.terms = b.terms, b.counters,
+                                      u.words = u.words, u.counters = u.counters)
 }
 
 sb_support.uni <- function(word_i, u.words, u.counters){
-    word_i.c <- unigrams.countForWord(word = word_i,u.words = u.words, u.counters = u.counters, errorIfWordMissing = F)
-    sb_factor * (word_i.c/ sum(u.counters))
+    sb_factor * prob.w_i(word_i = word_i, u.words = u.words, u.counters = u.counters)
 }
 
+prob.w_i.given.bigram <- function(word_i, bigramBeforeWord_1, t.terms, t.counters, b.terms, b.counters){
+    el.t <- paste(bigramBeforeWord_1, word_i)
+    el.t.c <- trigrams.countForTerm(term = el.t, t.terms = t.terms, t.counters = t.counters, errorIfTermMissing = F)
+    if(el.t.c != 0){
+        #if it find the trigram, then look for the bigram
+        bigramBeforeWord_1.c <- bigrams.countForTerm(term = bigramBeforeWord_1, b.terms = b.terms, b.counters = b.counters)
+        (el.t.c/ bigramBeforeWord_1.c)
+    }else{
+        #if it does not find the trigram then return 0
+        0
+    }
+}
+
+prob.w_i.given.word <- function(word_i, word_i_m1, b.terms, b.counters, u.words, u.counters){
+    el.b <- paste(word_i_m1, word_i)
+    el.b.c <- bigrams.countForTerm(term = el.b, b.terms = b.terms, b.counters = b.counters, errorIfTermMissing = F)
+    if(el.b.c != 0){
+        #If it finds the bigram
+        word_i_m1.c <- unigrams.countForWord(word = word_i_m1, u.words = u.words, u.counters = u.counters)
+        (el.b.c/ word_i_m1.c)
+    }else{
+        #if it does not find the bigram then return 0
+        0
+    }
+}
+
+prob.w_i <- function(word_i, u.words, u.counters){
+    word_i.c <- unigrams.countForWord(word = word_i,u.words = u.words, u.counters = u.counters, errorIfWordMissing = F)
+    (word_i.c/ sum(u.counters))
+}
+
+##############################################################
+# Probability Calculation for a sentence using the ChainRule #
+# Trigram Language Model Aprroximation                       #
+# log(Proability) = log(p1) + log(p2) + .. + log(pn)
+##############################################################
+
+# sentence -> normalized sentence, e.g. <s> and </s> added, toLowerCase, remove punctuations and numbers
+sentenceProbability <- function(s, t.terms, t.counters, b.terms, b.counters, u.words, u.counters){
+    print(paste("#sentenceProbability"))
+    print(paste("#    sentence:", s))
+    
+    result <- 0
+    s.words <- ngramTokenize(y = s, ng = 3)
+    
+    for(i in 1:length(s.words)){
+        d.t <- s.words[i]
+        d.t.ws <- ngramTokenize(d.t,1)
+        d.t.w_i <- d.t.ws[3]
+        d.t.b <- paste(d.t.ws[1], d.t.ws[2])
+        
+        print(paste("#         word_i:", d.t.w_i))
+        print(paste("#     bigram_i-1:", d.t.b))
+        
+        result <- result + log(stupidBackoff.trigrams(word_i = d.t.w_i, bigramBeforeWord_i = d.t.b,
+                               t.terms = t.terms, t.counters = t.counters,
+                               b.terms = b.terms, b.counters = b.counters,
+                               u.words = u.words, u.counters = u.counters), base = 2)
+        print(paste("#    result(log):", result))
+    }
+    
+    result
+}
 

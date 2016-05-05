@@ -18,6 +18,11 @@ require(hash)
 ```
 
 # Language Model Creation - some Notes
+AN idea
+Optimized Version ... previousTerm, nextTem, count, probability
+#Trigrams done
+#Bigrams -> to be refactored
+#Unigrams -> to be refactored
 
 ## Unigram Language Model
 
@@ -136,7 +141,7 @@ save(tw.2g.terms, tw.2g.counters, tw.2g.V, tw.2g.N, tw.2g.cumulativeCoverage, tw
 
 ## Trigram Models
 
-```{r trigramModelTwitter}
+```{r trigramModelTwitter, eval = F}
 rm(list = ls())
 source("./model.R")
 
@@ -155,16 +160,21 @@ tw.2g.tc.info <- orderElementsByFrequency(tcv = tw.2g, decreasing = T)
 tw.2g.tc.info$terms[1:10]
 tw.2g.tc.info$counters[1:10]
 
-tw.3g.model <- trigrams.model(t.terms = tw.3g.tc.info$terms[1:10000], t.counters = tw.3g.tc.info$counters[1:10000],
+# noElements <- 10000
+noElements <- 100000
+filename <- paste("./tmp/models/twitter.3g.model_", Sys.Date(), "_topTerms.Rdata", sep = "")
+
+tw.3g.model <- trigrams.model(t.terms = tw.3g.tc.info$terms[1:noElements], t.counters = tw.3g.tc.info$counters[1:noElements],
                               b.terms = tw.2g.tc.info$terms, b.counters = tw.2g.tc.info$counters)
 
 tw.3g.model.df <- data.frame(tw.3g.model$t.bigram, tw.3g.model$t.nextWord, tw.3g.model$t.probability)
 
-save(tw.3g.model, tw.3g.model.df, file = "./tmp/models/twitter.3g.model_10000topTerms.Rdata")
+# save(tw.3g.model, tw.3g.model.df, file = "./tmp/xodels/twitter.3g.model_100000topTerms.Rdata")
+save(tw.3g.model, tw.3g.model.df, file = filename)
 rm(list = ls())
 ```
 
-```{r trigramModelNews}
+```{r trigramModelNews, eval = F}
 rm(list = ls())
 source("./model.R")
 
@@ -183,7 +193,11 @@ tw.2g.tc.info <- orderElementsByFrequency(tcv = tw.2g, decreasing = T)
 tw.2g.tc.info$terms[1:10]
 tw.2g.tc.info$counters[1:10]
 
-tw.3g.model <- trigrams.model(t.terms = tw.3g.tc.info$terms[1:15000], t.counters = tw.3g.tc.info$counters[1:15000],
+# noElements <- 15000
+noElements <- 100000
+filename <- paste("./tmp/models/news.3g.model_", Sys.Date(), "_topTerms.Rdata", sep = "")
+
+tw.3g.model <- trigrams.model(t.terms = tw.3g.tc.info$terms[1:noElements], t.counters = tw.3g.tc.info$counters[1:noElements],
                               b.terms = tw.2g.tc.info$terms, b.counters = tw.2g.tc.info$counters)
 
 tw.3g.model.df <- data.frame(tw.3g.model$t.bigram, tw.3g.model$t.nextWord, tw.3g.model$t.probability)
@@ -191,11 +205,11 @@ tw.3g.model.df <- data.frame(tw.3g.model$t.bigram, tw.3g.model$t.nextWord, tw.3g
 n.3g.model <- tw.3g.model
 n.3g.model.df <- tw.3g.model.df
 
-save(n.3g.model, n.3g.model.df, file = "./tmp/models/news.3g.model_10000topTerms.Rdata")
+save(n.3g.model, n.3g.model.df, file = filename)
 rm(list = ls())
 ```
 
-```{r trigramModelBlogs}
+```{r trigramModelBlogs, eval = F}
 rm(list = ls())
 source("./model.R")
 
@@ -217,7 +231,15 @@ tw.2g.tc.info$counters[1:10]
 tw.3g.tc.info$terms[14980:15000]
 tw.3g.tc.info$counters[14980:15000]
 
-tw.3g.model <- trigrams.model(t.terms = tw.3g.tc.info$terms[1:15000], t.counters = tw.3g.tc.info$counters[1:15000],
+tw.3g.tc.info$terms[100000]
+tw.3g.tc.info$counters[100000]
+
+# noElements <- 15000
+noElements <- 100000
+filename <- paste("./tmp/models/blogs.3g.model_", Sys.Date(), "_topTerms.Rdata", sep = "")
+
+
+tw.3g.model <- trigrams.model(t.terms = tw.3g.tc.info$terms[1:noElements], t.counters = tw.3g.tc.info$counters[1:noElements],
                               b.terms = tw.2g.tc.info$terms, b.counters = tw.2g.tc.info$counters)
 
 tw.3g.model.df <- data.frame(tw.3g.model$t.bigram, tw.3g.model$t.nextWord, tw.3g.model$t.probability)
@@ -225,20 +247,22 @@ tw.3g.model.df <- data.frame(tw.3g.model$t.bigram, tw.3g.model$t.nextWord, tw.3g
 b.3g.model <- tw.3g.model
 b.3g.model.df <- tw.3g.model.df
 
-save(b.3g.model, b.3g.model.df, file = "./tmp/models/blogs.3g.model_10000topTerms.Rdata")
+save(b.3g.model, b.3g.model.df, file = filename)
 rm(list = ls())
 ```
+
+# MOdel Optimized
 
 ```{r useModels}
 rm(list = ls())
 source("model.R")
-#save(b.3g.model, b.3g.model.df, file = "./tmp/models/blogs.3g.model_10000topTerms.Rdata")
+#(b.3g.model, b.3g.model.df, file = "./tmp/models/blogs.3g.model_10000topTerms.Rdata")
 load(file = "./tmp/models/blogs.3g.model_10000topTerms.Rdata")
 
-# save(n.3g.model, n.3g.model.df, file = "./tmp/models/news.3g.model_10000topTerms.Rdata")
+#(n.3g.model, n.3g.model.df, file = "./tmp/models/news.3g.model_10000topTerms.Rdata")
 load(file = "./tmp/models/news.3g.model_10000topTerms.Rdata")
 
-# save(tw.3g.model, tw.3g.model.df, file = "./tmp/models/twitter.3g.model_10000topTerms.Rdata")
+# (tw.3g.model, tw.3g.model.df, file = "./tmp/models/twitter.3g.model_10000topTerms.Rdata")
 load(file = "./tmp/models/twitter.3g.model_10000topTerms.Rdata")
 
 bigram <- "<s> thanks"
@@ -322,8 +346,9 @@ b.3g.model.df[which(b.3g.model.df$tw.3g.model.t.bigram == bigram),]
 
 
 sentenceProbability <- function(model.df, trigrams){
-    result <- 1
-    for(i in 1:length(trigrams)){
+    size <- length(trigrams)
+    result <- 0
+    for(i in 1:size){
         el.words <- ngramTokenize(trigrams[i],1)
         el.b <- paste(el.words[1], el.words[2])
         el.nw <- el.words[3]
@@ -346,34 +371,88 @@ tw.3g.model.df[which(tw.3g.model.df$tw.3g.model.t.bigram == bigram),]
 n.3g.model.df[which(n.3g.model.df$tw.3g.model.t.bigram == bigram),]
 b.3g.model.df[which(b.3g.model.df$tw.3g.model.t.bigram == bigram),]
 
+bigram <- "quite some"
+tw.3g.model.df[which(tw.3g.model.df$tw.3g.model.t.bigram == bigram),]
+n.3g.model.df[which(n.3g.model.df$tw.3g.model.t.bigram == bigram),]
+b.3g.model.df[which(b.3g.model.df$tw.3g.model.t.bigram == bigram),]
 
-stupidBackoff <- function(trigrams, t.terms, t.counters, b.terms, b.counters, u.terms, u.counters){
-    result <- NULL
-    
-    for(i in 1:length(trigrams)){
-        el.t <- trigrams[i]
-        el.words <- ngramTokenize(trigrams[i],1)
-        el.b <- paste(el.words[2], el.words[3])
-        el.u <- el.words[3]
-        print(paste(el.t,"::", el.b, "::", el.u, sep = ""))
-        
-        el.t.c <- tryCatch({
-            trigrams.countForTerm(term = el.t, t.terms = t.terms, t.counters = t.counters)
-        }, error = function(e) {
-            0
-        })
-        
-        print(paste("bigrams.counterForTerm function::term::'", el.t, "'::count::", el.t.c, sep = ""))
-        el.b.c <- bigrams.countForTerm(term = el.b, b.terms = b.terms, b.counters = b.counters)
-        
-        if(el.t.c != 0){
-            
-        }
-        el.t.c <- trigrams.countForTerm(term = el.t, t.terms = t.terms, t.counters = t.counters)
-        
-    }
-    result
-}
+
+```
+
+# Using the terms/ counters vector directly
+
+## StupidBAckoff model
+
+Challenges 
+__merging of the different terms/counters vector for twitter/ news/ blogs__for
+
+unigrams
+bigrams
+trigrams
+
+## SImple experiment using only twitter data using the stupid backoff algorithm
+
+```{r}
+rm(list = ls())
+source("model.R")
+require(hash)
+tw.3g <- load.twitter.3g.data(file_url_allTermsFrequency = "./tmp/twitter.sample1.allTermsFrequency.3g.Rdata",
+                              file_url_tdm = "./tmp/twitter.sample1.tdm.3g.Rdata")
+
+tw.2g <- load.twitter.2g.data(file_url_allTermsFrequency = "./tmp/twitter.sample1.allTermsFrequency.2g.Rdata",
+                              file_url_tdm = "./tmp/twitter.sample1.tdm.2g.Rdata")
+
+tw.1g <- load.twitter.1g.data(file_url_allTermsFrequency = "./tmp/twitter.sample1.allTermsFrequency.1g.Rdata",
+                              file_url_tdm = "./tmp/twitter.sample1.tdm.1g.Rdata")
+##Ordering
+tw.3g.tc.info <- orderElementsByFrequency(tcv = tw.3g, decreasing = T)
+tw.2g.tc.info <- orderElementsByFrequency(tcv = tw.2g, decreasing = T)
+tw.1g.tc.info <- orderElementsByFrequency(tcv = tw.1g, decreasing = T)
+
+format(object.size(tw.3g.tc.info$terms), "auto")
+format(object.size(tw.3g.tc.info$counters), "auto")
+
+#Something to investigate teh use of hash for memory reduction
+tw.3g.h <- hash(tw.3g.tc.info$terms, tw.3g.tc.info$counters)
+format(object.size(tw.3g.h), "auto")
+
+tw.3g.h[tw.3g.tc.info$terms[1:10]]
+tw.3g.tc.info$terms[1:10]
+tw.3g.tc.info$counters[1:10]
+
+
+format(object.size(tw.2g.tc.info$terms), "auto")
+format(object.size(tw.2g.tc.info$counters), "auto")
+format(object.size(tw.1g.tc.info$terms), "auto")
+format(object.size(tw.1g.tc.info$counters), "auto")
+
+
+tw.2g.tc.info$terms[1:10]
+tw.2g.tc.info$counters[1:10]
+
+tw.1g.tc.info$terms[1:10]
+tw.1g.tc.info$counters[1:10]
+
+load(file = "./tmp/twitter_step2_sample.1.Rdata")
+# data.twitter.sample[10:20]
+
+
+s <- "<s> you will absolutely love it after the"
+
+Rprof(tmp <- tempfile())
+sentenceProbability(s = s, t.terms = tw.3g.tc.info$terms, t.counters = tw.3g.tc.info$counters,
+                    b.terms = tw.2g.tc.info$terms, tw.2g.tc.info$counters,
+                    u.words = tw.1g.tc.info$terms, u.counters = tw.1g.tc.info$counters)
+Rprof(NULL)
+summaryRprof(tmp)
+
+s <- "if this isn't the cutest thing you've ever seen then you must be insane"
+Rprof(tmp <- tempfile())
+sentenceProbability(s = s, t.terms = tw.3g.tc.info$terms, t.counters = tw.3g.tc.info$counters,
+                    b.terms = tw.2g.tc.info$terms, tw.2g.tc.info$counters,
+                    u.words = tw.1g.tc.info$terms, u.counters = tw.1g.tc.info$counters)
+Rprof(NULL)
+summaryRprof(tmp)
 
 ```
 

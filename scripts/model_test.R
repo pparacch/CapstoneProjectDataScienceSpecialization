@@ -319,7 +319,11 @@ test.result = tryCatch({
 
 if(!is.error) stop()
 
-print("##########################################")
+cat("\n")
+print("#######################################################################")
+print("#Test - Trigram Model Creation - Probability = c(t)/c(b)               #")
+print("# t = 'w.i-2 w.i-1 w.i', b = 'w.i-2 w.i-1'                            #")
+print("#######################################################################")
 rm(list = ls())
 source("model.R")
 
@@ -328,19 +332,21 @@ b.test.counter <- c(1, 4, 3, 20)
 
 t.test.words <- c("the time of", "time of love", "of love </s>")
 t.test.counter <- c(10, 20, 21)
-t.test.expected.prob <- c(10, 5, 7)
 
 t.expected.bigram <- c("the time", "time of", "of love")
 t.expected.nextWord <- c("of", "love", "</s>")
+t.expected.count <- c(10, 20, 21)
+t.expected.prob <- c(10, 5, 7)
 
 test.name <- "Test"
 test.result <- trigrams.model(t.terms = t.test.words, t.counters = t.test.counter,
                              b.terms = b.test.words, b.counters = b.test.counter)
 check1 <- !is.null(test.result$t.bigram) & all(test.result$t.bigram == t.expected.bigram)
 check2 <- !is.null(test.result$t.nextWord) & all(test.result$t.nextWord == t.expected.nextWord)
-check3 <- !is.null(test.result$t.probability) & all(test.result$t.probability == t.test.expected.prob)
-test.passed <- check1 & check2 & check3
-print(paste(test.name, "::trigrams.model::", (check1 & check2 & check3), sep = ""))
+check3 <- !is.null(test.result$t.probability) & all(test.result$t.probability == t.expected.prob)
+check4 <- !is.null(test.result$t.count) & all(test.result$t.count == t.expected.count)
+test.passed <- check1 & check2 & check3 & check4
+print(paste(test.name, "::trigrams.model::", test.passed, sep = ""))
 
 if(!test.passed) stop()
 
@@ -474,4 +480,14 @@ for(i in c(1,3,5,7,9)){
     if(!test.passed)stop("Actual Value different from expected Value")
     j <- j + 1
 } 
+print("###############################################################")
+
+cat("\n")
+print("###############################################################")
+print("# Test - Sentence Probability                                 #")
+print("# Trigram Model - Stupid BackOff                              #")
+print("###############################################################")
+rm(list = ls())
+source("model.R")
+# TODO
 print("###############################################################")
