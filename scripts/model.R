@@ -82,13 +82,15 @@ orderElementsByFrequency <- function(tcv, decreasing = F){
 ########################
 
 
-unigrams.countForWord <- function(word, u.words, u.counters){
+unigrams.countForWord <- function(word, u.words, u.counters, errorIfWordMissing = T){
     idx <- which(u.words == word)
     result <- 0
     if(length(idx) == 1){
         result <- u.counters[which(u.words == word)]
     }else{
-        warning(paste("unigrams.countForWord function::", word, "::not found", sep = ""))
+        if(errorIfWordMissing){
+            stop(paste("unigrams.countForWord function::", word, "::not found", sep = ""))   
+        }
     }
     result
 }
@@ -141,13 +143,15 @@ unigramModel.probabilityForWord <- function(u.model, word){
 ####### BIGRAMS #######
 #######################
 
-bigrams.countForTerm <- function(term, b.terms, b.counters){
+bigrams.countForTerm <- function(term, b.terms, b.counters, errorIfTermMissing = T){
     idx <- which(b.terms == term)
     result <- 0
     if(length(idx) == 1){
         result <- b.counters[idx]
     }else{
-        stop(paste("bigrams.countForTerm function::", term, "::not found", sep = ""))
+        if(errorIfTermMissing){
+            stop(paste("bigrams.countForTerm function::", term, "::not found", sep = ""))    
+        }
     }
     result
 }
@@ -215,13 +219,15 @@ bigrams.model <- function(b.terms, b.counters, u.words, u.counters){
 ####### TRIGRAMS #######
 ########################
 
-trigrams.countForTerm <- function(term, t.terms, t.counters){
+trigrams.countForTerm <- function(term, t.terms, t.counters, errorIfTermMissing = T){
     idx <- which(t.terms == term)
     result <- 0
     if(length(idx) == 1){
         result <- t.counters[idx]
     }else{
-        stop(paste("trigrams.countForTerm function::", term, "::not found", sep = ""))
+        if(errorIfTermMissing){
+            stop(paste("trigrams.countForTerm function::", term, "::not found", sep = ""))   
+        }
     }
     result
 }
@@ -284,6 +290,58 @@ trigrams.model <- function(t.terms, t.counters, b.terms, b.counters){
     }
     
     result_ls <- list(t.bigram = result.bigram, t.nextWord = result.nextWord,  t.probability = result.prob)
+}
+
+# Implementation of the stupid backoff algorithm
+# No discount just use relative frequencies
+sb_factor <- 0.4
+
+stupidBackoff.trigrams <- function(word_i, bigramBeforeWord_i, t.terms, t.counters, b.terms, b.counters, u.words, u.counters){
+    #print(paste("sb_support.tri::word_i '", word_i, "', bi_i-1 '",bigramBeforeWord_i, "'", sep = ""))
+    el.t.p <- sb_support.tri(word_i = word_i, bigramBeforeWord_1 = bigramBeforeWord_i,
+                             t.terms = t.terms, t.counters = t.counters,
+                             b.terms = b.terms, b.counters = b.counters)
+    if(el.t.p > 0){
+        return(el.t.p)
+    }
+    
+    bigramBeforeWord_i.words <- ngramTokenize(y = bigramBeforeWord_i, ng = 1)
+    # print(paste("sb_support.bi::word_i '", word_i, "', word_i-1 '",bigramBeforeWord_i.words[2], "'", sep = ""))
+    el.b <- paste(bigramBeforeWord_i.words[2], word_i)
+    el.b.p <- sb_support.bi(word_i = word_i, word_i_m1 = bigramBeforeWord_i.words[2],
+                            b.terms = b.terms, b.counters = b.counters,
+                            u.words = u.words, u.counters = u.counters)
+    if(el.b.p > 0){
+        return(el.b.p)
+    }
+    
+    # print(paste("sb_support.uni::word_i '", word_i, "'", sep = ""))
+    el.u.p <- sb_support.uni(word_i = word_i, 
+                            u.words = u.words, u.counters = u.counters)
+    if(el.u.p > 0){
+        return(el.u.p)
+    }
+    
+    stop()
+}
+
+sb_support.tri <- function(word_i, bigramBeforeWord_1, t.terms, t.counters, b.terms, b.counters){
+    el.t <- paste(bigramBeforeWord_1, word_i)
+    el.t.c <- trigrams.countForTerm(term = el.t, t.terms = t.terms, t.counters = t.counters, errorIfTermMissing = F)
+    bigramBeforeWord_1.c <- bigrams.countForTerm(term = bigramBeforeWord_1, b.terms = b.terms, b.counters = b.counters)
+    (el.t.c/ bigramBeforeWord_1.c)
+}
+
+sb_support.bi <- function(word_i, word_i_m1, b.terms, b.counters, u.words, u.counters){
+    el.b <- paste(word_i_m1, word_i)
+    el.b.c <- bigrams.countForTerm(term = el.b, b.terms = b.terms, b.counters = b.counters, errorIfTermMissing = F)
+    word_i_m1.c <- unigrams.countForWord(word = word_i_m1, u.words = u.words, u.counters = u.counters)
+    sb_factor * (el.b.c/ word_i_m1.c)
+}
+
+sb_support.uni <- function(word_i, u.words, u.counters){
+    word_i.c <- unigrams.countForWord(word = word_i,u.words = u.words, u.counters = u.counters, errorIfWordMissing = F)
+    sb_factor * (word_i.c/ sum(u.counters))
 }
 
 
