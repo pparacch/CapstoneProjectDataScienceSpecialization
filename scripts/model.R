@@ -30,6 +30,14 @@ load.twitter.3g.data <- function(file_url_allTermsFrequency, file_url_tdm){
     list(tdm = twitter.corpora.tdm.3g, tcv = allTerms.3g)
 }
 
+load.news.1g.data <- function(file_url_allTermsFrequency, file_url_tdm){
+    load(file_url_allTermsFrequency)
+    allTerms.1g <- corpora.allTermsFrequency
+    load(file_url_tdm)
+    
+    list(tdm = news.corpora.tdm.1g, tcv = allTerms.1g)
+}
+
 load.news.2g.data <- function(file_url_allTermsFrequency, file_url_tdm){
     load(file_url_allTermsFrequency)
     allTerms.2g <- corpora.allTermsFrequency
@@ -44,6 +52,14 @@ load.news.3g.data <- function(file_url_allTermsFrequency, file_url_tdm){
     load(file_url_tdm)
     
     list(tdm = news.corpora.tdm.3g, tcv = allTerms.3g)
+}
+
+load.blogs.1g.data <- function(file_url_allTermsFrequency, file_url_tdm){
+    load(file_url_allTermsFrequency)
+    allTerms.1g <- corpora.allTermsFrequency
+    load(file_url_tdm)
+    
+    list(tdm = blogs.corpora.tdm.1g, tcv = allTerms.1g)
 }
 
 load.blogs.2g.data <- function(file_url_allTermsFrequency, file_url_tdm){
@@ -404,5 +420,23 @@ sentenceProbability <- function(s, t.terms, t.counters, b.terms, b.counters, u.w
     }
     
     result
+}
+
+# Merge the list of available n-grams
+collapseToOneList <- function(d1.terms, d1.counters, d2.terms, d2.counters){
+    r.terms <- d1.terms
+    r.counters <- d1.counters
+    size <- length(d2.terms)
+    for(i in 1: size){
+        idx <- which(r.terms == d2.terms[i])
+        if(length(idx) == 1){
+            r.counters[idx] <- r.counters[idx]+ d2.counters[i]
+        }else{
+            r.terms <- c(r.terms, d2.terms[i])
+            r.counters <- c(r.counters, d2.counters[i])
+        }
+        if(i %% 1000 == 0) print(paste("collapseToOneList::processed", i, "of", size))
+    }
+    list(terms = r.terms, counters = r.counters)
 }
 

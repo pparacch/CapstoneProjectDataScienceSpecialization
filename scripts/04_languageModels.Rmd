@@ -379,6 +379,114 @@ b.3g.model.df[which(b.3g.model.df$tw.3g.model.t.bigram == bigram),]
 
 ```
 
+# Collapsing the ngrams data into a signle list for uni, bi and tri 
+A single set of list for all of the Corpora
+
+Work In progress
+
+```{r collapse, eval=F}
+rm(list = ls())
+source("model.R")
+tw.3g <- load.twitter.3g.data(file_url_allTermsFrequency = "./tmp/twitter.sample1.allTermsFrequency.3g.Rdata",
+                              file_url_tdm = "./tmp/twitter.sample1.tdm.3g.Rdata")
+
+n.3g <- load.news.3g.data(file_url_allTermsFrequency = "./tmp/news.sample.allTermsFrequency.3g.Rdata",
+                              file_url_tdm = "./tmp/news.sample.tdm.3g.Rdata")
+
+b.3g <- load.blogs.3g.data(file_url_allTermsFrequency = "./tmp/blogs.sample.allTermsFrequency.3g.Rdata",
+                              file_url_tdm = "./tmp/blogs.sample.tdm.3g.Rdata")
+
+##Ordering
+tw.3g.tc.info <- orderElementsByFrequency(tcv = tw.3g, decreasing = T)
+n.3g.tc.info <- orderElementsByFrequency(tcv = n.3g, decreasing = T)
+b.3g.tc.info <- orderElementsByFrequency(tcv = b.3g, decreasing = T)
+
+
+d1.df <- data.frame(terms = tw.3g.tc.info$terms, counters = tw.3g.tc.info$counters, stringsAsFactors = F)
+d2.df <- data.frame(terms = n.3g.tc.info$terms, counters = n.3g.tc.info$counters,stringsAsFactors = F)
+d3.df <- data.frame(terms = b.3g.tc.info$terms, counters = b.3g.tc.info$counters, stringsAsFactors = F)
+d.3g.df <- merge(d1.df, d2.df, by = "terms", all = T)
+d.3g.df <- merge(d.3g.df, d3.df, by = "terms", all = T)
+
+d.3g.df$counters.x[is.na(d.3g.df$counters.x)] = 0
+d.3g.df$counters.y[is.na(d.3g.df$counters.y)] = 0
+d.3g.df$counters[is.na(d.3g.df$counters)] = 0
+d.3g.df$total = d.3g.df$counters.x + d.3g.df$counters.y + d.3g.df$counters
+
+#x <- d.3g.df$terms[grep("'{2,}", d.3g.df$terms)]
+
+save(d.3g.df, file = "./tmp/aggregated_allTermsFrequency.3g.Rdata")
+
+
+rm(list = ls())
+source("model.R")
+
+tw.2g <- load.twitter.2g.data(file_url_allTermsFrequency = "./tmp/twitter.sample1.allTermsFrequency.2g.Rdata",
+                              file_url_tdm = "./tmp/twitter.sample1.tdm.2g.Rdata")
+
+n.2g <- load.news.2g.data(file_url_allTermsFrequency = "./tmp/news.sample.allTermsFrequency.2g.Rdata",
+                              file_url_tdm = "./tmp/news.sample.tdm.2g.Rdata")
+
+b.2g <- load.blogs.2g.data(file_url_allTermsFrequency = "./tmp/blogs.sample.allTermsFrequency.2g.Rdata",
+                              file_url_tdm = "./tmp/blogs.sample.tdm.2g.Rdata")
+
+##Ordering
+tw.2g.tc.info <- orderElementsByFrequency(tcv = tw.2g, decreasing = T)
+n.2g.tc.info <- orderElementsByFrequency(tcv = n.2g, decreasing = T)
+b.2g.tc.info <- orderElementsByFrequency(tcv = b.2g, decreasing = T)
+
+
+d1.df <- data.frame(terms = tw.2g.tc.info$terms, counters = tw.2g.tc.info$counters, stringsAsFactors = F)
+d2.df <- data.frame(terms = n.2g.tc.info$terms, counters = n.2g.tc.info$counters,stringsAsFactors = F)
+d3.df <- data.frame(terms = b.2g.tc.info$terms, counters = b.2g.tc.info$counters, stringsAsFactors = F)
+d.2g.df <- merge(d1.df, d2.df, by = "terms", all = T)
+d.2g.df <- merge(d.2g.df, d3.df, by = "terms", all = T)
+
+d.2g.df$counters.x[is.na(d.2g.df$counters.x)] = 0
+d.2g.df$counters.y[is.na(d.2g.df$counters.y)] = 0
+d.2g.df$counters[is.na(d.2g.df$counters)] = 0
+d.2g.df$total = d.2g.df$counters.x + d.2g.df$counters.y + d.2g.df$counters
+
+#x <- d.2g.df$terms[grep("'{2,}", d.2g.df$terms)]
+
+save(d.2g.df, file = "./tmp/aggregated_allTermsFrequency.2g.Rdata")
+
+rm(list = ls())
+source("model.R")
+
+tw.1g <- load.twitter.1g.data(file_url_allTermsFrequency = "./tmp/twitter.sample1.allTermsFrequency.1g.Rdata",
+                              file_url_tdm = "./tmp/twitter.sample1.tdm.1g.Rdata")
+
+n.1g <- load.news.1g.data(file_url_allTermsFrequency = "./tmp/news.sample.allTermsFrequency.1g.Rdata",
+                              file_url_tdm = "./tmp/news.sample.tdm.1g.Rdata")
+
+b.1g <- load.blogs.1g.data(file_url_allTermsFrequency = "./tmp/blogs.sample.allTermsFrequency.1g.Rdata",
+                              file_url_tdm = "./tmp/blogs.sample.tdm.1g.Rdata")
+
+##Ordering
+tw.1g.tc.info <- orderElementsByFrequency(tcv = tw.1g, decreasing = T)
+n.1g.tc.info <- orderElementsByFrequency(tcv = n.1g, decreasing = T)
+b.1g.tc.info <- orderElementsByFrequency(tcv = b.1g, decreasing = T)
+
+
+d1.df <- data.frame(terms = tw.1g.tc.info$terms, counters = tw.1g.tc.info$counters, stringsAsFactors = F)
+d2.df <- data.frame(terms = n.1g.tc.info$terms, counters = n.1g.tc.info$counters,stringsAsFactors = F)
+d3.df <- data.frame(terms = b.1g.tc.info$terms, counters = b.1g.tc.info$counters, stringsAsFactors = F)
+d.1g.df <- merge(d1.df, d2.df, by = "terms", all = T)
+d.1g.df <- merge(d.1g.df, d3.df, by = "terms", all = T)
+
+d.1g.df$counters.x[is.na(d.1g.df$counters.x)] = 0
+d.1g.df$counters.y[is.na(d.1g.df$counters.y)] = 0
+d.1g.df$counters[is.na(d.1g.df$counters)] = 0
+d.1g.df$total = d.1g.df$counters.x + d.1g.df$counters.y + d.1g.df$counters
+
+#x <- d.1g.df$terms[grep("'{2,}", d.1g.df$terms)]
+
+save(d.1g.df, file = "./tmp/aggregated_allTermsFrequency.1g.Rdata")
+```
+
+
+
 # Using the terms/ counters vector directly
 
 ## StupidBAckoff model
