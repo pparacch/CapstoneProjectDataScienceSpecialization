@@ -12,7 +12,9 @@ knitr::opts_chunk$set(echo = TRUE)
 Sys.setlocale(category = "LC_ALL",locale = "English_United States.1252")
 ```
 
-## Language Modeld Notes
+## Language Modeld Notes & Playgrounds
+
+See 04_languageModels.Rmd for actual implementation.
 
 ```{r unigramModel, collapse = T}
 # rm(list = ls())

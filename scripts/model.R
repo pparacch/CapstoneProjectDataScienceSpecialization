@@ -277,6 +277,7 @@ trigrams.probabilityForTerm <- function(term, t.terms, t.counters, b.terms, b.co
 # Create the Trigram model as a list
 # $t.bigram -> the list of bigrams ("w_i-2 w_i-1")
 # $t.nextWord -> the list of word (w_i)
+# $t.count -> the count of c(w_i-2, w_i-1, w_i)
 # $t.probability -> the list of probabilities that the bigram is followed by that next word
 #
 # Note!! $t.probability[i] (probability) is related to "$t.bigram[i] $b.nextWord[i]"(bigram/ nextWord)
@@ -422,21 +423,29 @@ sentenceProbability <- function(s, t.terms, t.counters, b.terms, b.counters, u.w
     result
 }
 
-# Merge the list of available n-grams
-collapseToOneList <- function(d1.terms, d1.counters, d2.terms, d2.counters){
-    r.terms <- d1.terms
-    r.counters <- d1.counters
-    size <- length(d2.terms)
-    for(i in 1: size){
-        idx <- which(r.terms == d2.terms[i])
-        if(length(idx) == 1){
-            r.counters[idx] <- r.counters[idx]+ d2.counters[i]
-        }else{
-            r.terms <- c(r.terms, d2.terms[i])
-            r.counters <- c(r.counters, d2.counters[i])
-        }
-        if(i %% 1000 == 0) print(paste("collapseToOneList::processed", i, "of", size))
-    }
-    list(terms = r.terms, counters = r.counters)
+# Merge the list of available n-grams for the different corpora
+collapseToOneList <- function(twitter.ng, news.dg, blogs.ng, ng){
+    t.3g.termCounters <- orderElementsByFrequency(tcv = twitter.ng, decreasing = T)
+    n.3g.termCounters <- orderElementsByFrequency(tcv = news.dg, decreasing = T)
+    b.3g.termCounters <- orderElementsByFrequency(tcv = blogs.ng, decreasing = T)
+    
+    
+    d1.df <- data.frame(terms = t.3g.termCounters$terms, counters = t.3g.termCounters$counters, stringsAsFactors = F)
+    d2.df <- data.frame(terms = n.3g.termCounters$terms, counters = n.3g.termCounters$counters,stringsAsFactors = F)
+    d3.df <- data.frame(terms = b.3g.termCounters$terms, counters = b.3g.termCounters$counters, stringsAsFactors = F)
+    
+    d.ng.df <- merge(d1.df, d2.df, by = "terms", all = T)
+    d.ng.df <- merge(d.ng.df, d3.df, by = "terms", all = T)
+    
+    names(d.ng.df) <- c("terms", "twitter.count", "news.count", "blogs.count")
+    
+    d.ng.df$twitter.count[is.na(d.ng.df$twitter.count)] = 0
+    d.ng.df$news.count[is.na(d.ng.df$news.count)] = 0
+    d.ng.df$blogs.count[is.na(d.ng.df$blogs.count)] = 0
+    d.ng.df$total = d.ng.df$twitter.count + d.ng.df$news.count + d.ng.df$blogs.count
+    
+    filename <- paste("./../data/processed/allCorpora_aggregated_allTermsFrequency.", ng, "g.rdata", sep = "")
+    save(d.ng.df, file = filename)
+    filename
 }
 

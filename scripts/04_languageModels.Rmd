@@ -17,243 +17,92 @@ require(profr)
 require(hash)
 ```
 
-# Language Model Creation - some Notes
-AN idea
-Optimized Version ... previousTerm, nextTem, count, probability
-#Trigrams done
-#Bigrams -> to be refactored
-#Unigrams -> to be refactored
+# Language Model Creation - some Notes & The Process
 
-## Unigram Language Model
+# 1st Approach Trigram Models
 
-```{r unigramModelCreate, collapse = T, eval = F}
-## TO BE REVIEWED & REFACTORED
+See `./trigramModel` folder & `model_trigramLanguageModel.R` file
+
+
+Initial approach -> create a simplify data structure for the trigram model
+bigram, nextWord, counter, probability
+
+The processing time is demanding and for this reason the size of element processed has been ad-hoc selected to a certain number of element (most frequent first). Still we have three models one for each corpora - Twitter, News and Blog. The three model shoudl be collapsed into only one table.
+
+Process
+
+- generate the model (twitter, news, blogs) / need to focus ON PERFORMANCE OF THE CODE _(NOT VERY EFFICIENT)_
+- merge the models into 1 big model (TODO)
+- evaluate the model (probability/ Perplexity on a common test data set)
+
+__Note the generation of the models depends on the normalized coprpora so when re-cleaning & processing the corpora all of those steps need to be performed.__
+
+
+```{r trigramModels, eval = F}
+## Twitter
 rm(list = ls())
-source("./model.R")
+source("./model_trigramLanguageModel.R")
 
-tw.1g.list <- load.twitter.1g.data("./../data/processed/")
-
-tw.1g.terms <- rownames(tw.1g.list$allTermsCounters)
-tw.1g.counters <- tw.1g.list$allTermsCounters$freq
-tw.1g.N <- sum(tw.1g.counters)
-tw.1g.V <- length(unique(tw.1g.terms))
-
-#Order by frequency (decreasing)
-idx <- order(tw.1g.counters, decreasing = T)
-tw.1g.counters <- tw.1g.counters[idx]
-tw.1g.terms <- tw.1g.terms[idx]
-tw.1g.cumulativeCoverage <- (cumsum(tw.1g.counters)/ tw.1g.N) * 100
-idx <- NULL
-
-idx <- which(tw.1g.counters > 1)
-length(idx) #25997 words 
-
-plot(tw.1g.cumulativeCoverage)
-idx <- which(tw.1g.cumulativeCoverage <= 90)
-length(idx) #5248 words 
-
-##Simplification: consider the words in order to have a max cumulative coverage of 
-# idx <- which(tw.1g.cumulativeCoverage <= 99.5)
-# tw.1g.counters <- tw.1g.counters[idx]
-# tw.1g.terms <- tw.1g.terms[idx]
-# tw.1g.cumulativeCoverage <- (cumsum(tw.1g.counters)/ tw.1g.N) * 100
-# plot(tw.1g.cumulativeCoverage)
+noElements = 100000
+filename.3g <- generate.twitter.3gramModel(folder = "./../data/processed/",
+                            file.allTermFrequency.3g = "twitter.sample1.allTermsFrequency.3g.Rdata",
+                            file.tdm.3g = "twitter.sample1.tdm.3g.Rdata",
+                            file.allTermFrequency.2g = "twitter.sample1.allTermsFrequency.2g.Rdata",
+                            file.tdm.2g = "twitter.sample1.tdm.2g.Rdata",
+                            noElements = noElements)
 
 
-##Create the twitter unigram model
-Rprof(tmp <- tempfile())
-tw.1g.model <- unigrams.model(u.words = tw.1g.terms, u.counters = tw.1g.counters)
-Rprof(NULL)
-summaryRprof(tmp)
+# load(filename.3g)
+# data.3g.tc.info$terms[1:10]
+# data.3g.tc.info$counters[1:10]
+# data.2g.tc.info$terms[1:10]
+# data.2g.tc.info$counters[1:10]
+# data.3g.model.df[1:10,]
 
-save(tw.1g.terms, tw.1g.counters, tw.1g.V, tw.1g.N, tw.1g.cumulativeCoverage, tw.1g.model,
-     file = "./../data/processed/model.twitter.1g.Rdata")
-
-
-Rprof(tmp <- tempfile())
-unigramModel.probabilityForWord(u.model = tw.1g.model, word = "<s>")
-Rprof(NULL)
-summaryRprof(tmp)
-
-
-Rprof(tmp <- tempfile())
-unigramModel.probabilityForWord(u.model = tw.1g.model, word = "i'm")
-Rprof(NULL)
-summaryRprof(tmp)
-
-Rprof(tmp <- tempfile())
-unigramModel.probabilityForWord(u.model = tw.1g.model, word = "sentimental")
-Rprof(NULL)
-summaryRprof(tmp)
-```
-
-## Bigram Model
-
-```{r bigramModelCreate, collapse = T, eval = F}
-## TO BE REFACTORED & REVIEWED
+## NEWS Corpora
 rm(list = ls())
-source("./model.R")
-load(file = "./../data/processed/model.twitter.1g.Rdata")
+source("./model_trigramLanguageModel.R")
 
-tw.2g.list <- load.twitter.2g.data("./../data/processed/")
+noElements = 100000
+filename.3g <- generate.news.3gramModel(folder = "./../data/processed/",
+                            file.allTermFrequency.3g = "news.sample.allTermsFrequency.3g.Rdata",
+                            file.tdm.3g = "news.sample.tdm.3g.Rdata",
+                            file.allTermFrequency.2g = "news.sample.allTermsFrequency.2g.Rdata",
+                            file.tdm.2g = "news.sample.tdm.2g.Rdata",
+                            noElements = noElements)
 
-tw.2g.terms <- rownames(tw.2g.list$allTermsCounters)
-tw.2g.counters <- tw.2g.list$allTermsCounters$freq
-tw.2g.N <- sum(tw.2g.counters)
-tw.2g.V <- length(unique(tw.2g.terms))
-
-#Order by frequency (decreasing)
-idx <- order(tw.2g.counters, decreasing = T)
-tw.2g.counters <- tw.2g.counters[idx]
-tw.2g.terms <- tw.2g.terms[idx]
-tw.2g.cumulativeCoverage <- (cumsum(tw.2g.counters)/ tw.2g.N) * 100
-idx <- NULL
-
-plot(tw.2g.cumulativeCoverage)
-
-idx <- which(tw.2g.counters > 1)
-length(idx) 
-
-idx <- which(tw.2g.counters > 5)
-length(idx) 
-
-idx <- which(tw.2g.cumulativeCoverage <= 50)
-length(idx) 
-
-##Simplification: consider the bigrams in order to have a max cumulative coverage of%
-idx <- which(tw.2g.cumulativeCoverage <= 50)
-tw.2g.counters <- tw.2g.counters[idx]
-tw.2g.terms <- tw.2g.terms[idx]
-tw.2g.cumulativeCoverage <- (cumsum(tw.2g.counters)/ tw.2g.N) * 100
-plot(tw.2g.cumulativeCoverage)
+#load(filename.3g)
+# data.3g.tc.info$terms[1:10]
+# data.3g.tc.info$counters[1:10]
+# data.2g.tc.info$terms[1:10]
+# data.2g.tc.info$counters[1:10]
+# data.3g.model.df[1:10,]
 
 
-##Create the twitter bigram model
-Rprof(tmp <- tempfile())
-tw.2g.model <- bigrams.model(b.terms = tw.2g.terms, b.counters = tw.2g.counters, 
-                             u.words = tw.1g.terms, u.counters = tw.1g.counters)
-Rprof(NULL)
-summaryRprof(tmp)
-
-save(tw.2g.terms, tw.2g.counters, tw.2g.V, tw.2g.N, tw.2g.cumulativeCoverage, tw.2g.model,
-     file = "./../data/processed/model.twitter.2g.Rdata")
-```
-
-## Trigram Models
-
-```{r trigramModelTwitter, eval = F}
+## BLOGS Corpora
 rm(list = ls())
-source("./model.R")
+source("./model_trigramLanguageModel.R")
 
-tw.3g <- load.twitter.3g.data(file_url_allTermsFrequency = "./tmp/twitter.sample1.allTermsFrequency.3g.Rdata",
-                              file_url_tdm = "./tmp/twitter.sample1.tdm.3g.Rdata")
+noElements = 100000
+filename.3g <- generate.blogs.3gramModel(folder = "./../data/processed/",
+                            file.allTermFrequency.3g = "blogs.sample.allTermsFrequency.3g.Rdata",
+                            file.tdm.3g = "blogs.sample.tdm.3g.Rdata",
+                            file.allTermFrequency.2g = "blogs.sample.allTermsFrequency.2g.Rdata",
+                            file.tdm.2g = "blogs.sample.tdm.2g.Rdata",
+                            noElements = noElements)
 
-tw.2g <- load.twitter.2g.data(file_url_allTermsFrequency = "./tmp/twitter.sample1.allTermsFrequency.2g.Rdata",
-                              file_url_tdm = "./tmp/twitter.sample1.tdm.2g.Rdata")
-##Trigrams info
-tw.3g.tc.info <- orderElementsByFrequency(tcv = tw.3g, decreasing = T)
-tw.3g.tc.info$terms[1:10]
-tw.3g.tc.info$counters[1:10]
+# load(filename.3g)
+# data.3g.tc.info$terms[1:10]
+# data.3g.tc.info$counters[1:10]
+# data.2g.tc.info$terms[1:10]
+# data.2g.tc.info$counters[1:10]
+# data.3g.model.df[1:10,]
 
-##Bigrams info
-tw.2g.tc.info <- orderElementsByFrequency(tcv = tw.2g, decreasing = T)
-tw.2g.tc.info$terms[1:10]
-tw.2g.tc.info$counters[1:10]
-
-# noElements <- 10000
-noElements <- 100000
-filename <- paste("./tmp/models/twitter.3g.model_", Sys.Date(), "_topTerms.Rdata", sep = "")
-
-tw.3g.model <- trigrams.model(t.terms = tw.3g.tc.info$terms[1:noElements], t.counters = tw.3g.tc.info$counters[1:noElements],
-                              b.terms = tw.2g.tc.info$terms, b.counters = tw.2g.tc.info$counters)
-
-tw.3g.model.df <- data.frame(tw.3g.model$t.bigram, tw.3g.model$t.nextWord, tw.3g.model$t.probability)
-
-# save(tw.3g.model, tw.3g.model.df, file = "./tmp/xodels/twitter.3g.model_100000topTerms.Rdata")
-save(tw.3g.model, tw.3g.model.df, file = filename)
 rm(list = ls())
 ```
 
-```{r trigramModelNews, eval = F}
-rm(list = ls())
-source("./model.R")
 
-tw.3g <- load.news.3g.data(file_url_allTermsFrequency = "./tmp/news.sample.allTermsFrequency.3g.Rdata",
-                              file_url_tdm = "./tmp/news.sample.tdm.3g.Rdata")
-
-tw.2g <- load.news.2g.data(file_url_allTermsFrequency = "./tmp/news.sample.allTermsFrequency.2g.Rdata",
-                              file_url_tdm = "./tmp/news.sample.tdm.2g.Rdata")
-##Trigrams info
-tw.3g.tc.info <- orderElementsByFrequency(tcv = tw.3g, decreasing = T)
-tw.3g.tc.info$terms[1:10]
-tw.3g.tc.info$counters[1:10]
-
-##Bigrams info
-tw.2g.tc.info <- orderElementsByFrequency(tcv = tw.2g, decreasing = T)
-tw.2g.tc.info$terms[1:10]
-tw.2g.tc.info$counters[1:10]
-
-# noElements <- 15000
-noElements <- 100000
-filename <- paste("./tmp/models/news.3g.model_", Sys.Date(), "_topTerms.Rdata", sep = "")
-
-tw.3g.model <- trigrams.model(t.terms = tw.3g.tc.info$terms[1:noElements], t.counters = tw.3g.tc.info$counters[1:noElements],
-                              b.terms = tw.2g.tc.info$terms, b.counters = tw.2g.tc.info$counters)
-
-tw.3g.model.df <- data.frame(tw.3g.model$t.bigram, tw.3g.model$t.nextWord, tw.3g.model$t.probability)
-
-n.3g.model <- tw.3g.model
-n.3g.model.df <- tw.3g.model.df
-
-save(n.3g.model, n.3g.model.df, file = filename)
-rm(list = ls())
-```
-
-```{r trigramModelBlogs, eval = F}
-rm(list = ls())
-source("./model.R")
-
-tw.3g <- load.blogs.3g.data(file_url_allTermsFrequency = "./tmp/blogs.sample.allTermsFrequency.3g.Rdata",
-                              file_url_tdm = "./tmp/blogs.sample.tdm.3g.Rdata")
-
-tw.2g <- load.blogs.2g.data(file_url_allTermsFrequency = "./tmp/blogs.sample.allTermsFrequency.2g.Rdata",
-                              file_url_tdm = "./tmp/blogs.sample.tdm.2g.Rdata")
-##Trigrams info
-tw.3g.tc.info <- orderElementsByFrequency(tcv = tw.3g, decreasing = T)
-tw.3g.tc.info$terms[1:10]
-tw.3g.tc.info$counters[1:10]
-
-##Bigrams info
-tw.2g.tc.info <- orderElementsByFrequency(tcv = tw.2g, decreasing = T)
-tw.2g.tc.info$terms[1:10]
-tw.2g.tc.info$counters[1:10]
-
-tw.3g.tc.info$terms[14980:15000]
-tw.3g.tc.info$counters[14980:15000]
-
-tw.3g.tc.info$terms[100000]
-tw.3g.tc.info$counters[100000]
-
-# noElements <- 15000
-noElements <- 100000
-filename <- paste("./tmp/models/blogs.3g.model_", Sys.Date(), "_topTerms.Rdata", sep = "")
-
-
-tw.3g.model <- trigrams.model(t.terms = tw.3g.tc.info$terms[1:noElements], t.counters = tw.3g.tc.info$counters[1:noElements],
-                              b.terms = tw.2g.tc.info$terms, b.counters = tw.2g.tc.info$counters)
-
-tw.3g.model.df <- data.frame(tw.3g.model$t.bigram, tw.3g.model$t.nextWord, tw.3g.model$t.probability)
-
-b.3g.model <- tw.3g.model
-b.3g.model.df <- tw.3g.model.df
-
-save(b.3g.model, b.3g.model.df, file = filename)
-rm(list = ls())
-```
-
-# MOdel Optimized
-
-```{r useModels}
+```{r useModels, eval = F}
 rm(list = ls())
 source("model.R")
 #(b.3g.model, b.3g.model.df, file = "./tmp/models/blogs.3g.model_10000topTerms.Rdata")
@@ -380,123 +229,76 @@ b.3g.model.df[which(b.3g.model.df$tw.3g.model.t.bigram == bigram),]
 ```
 
 # Collapsing the ngrams data into a signle list for uni, bi and tri 
-A single set of list for all of the Corpora
+A single set of list for all of the Corpora for 
+unigrams,
+Bigrams and
+Trigrams
 
-Work In progress
+
 
 ```{r collapse, eval=F}
 rm(list = ls())
 source("model.R")
-tw.3g <- load.twitter.3g.data(file_url_allTermsFrequency = "./tmp/twitter.sample1.allTermsFrequency.3g.Rdata",
-                              file_url_tdm = "./tmp/twitter.sample1.tdm.3g.Rdata")
+tw.3g <- load.twitter.3g.data(file_url_allTermsFrequency = "./../data/processed/twitter.sample1.allTermsFrequency.3g.Rdata",
+                              file_url_tdm = "./../data/processed/twitter.sample1.tdm.3g.Rdata")
 
-n.3g <- load.news.3g.data(file_url_allTermsFrequency = "./tmp/news.sample.allTermsFrequency.3g.Rdata",
-                              file_url_tdm = "./tmp/news.sample.tdm.3g.Rdata")
+n.3g <- load.news.3g.data(file_url_allTermsFrequency = "./../data/processed/news.sample.allTermsFrequency.3g.Rdata",
+                              file_url_tdm = "./../data/processed/news.sample.tdm.3g.Rdata")
 
-b.3g <- load.blogs.3g.data(file_url_allTermsFrequency = "./tmp/blogs.sample.allTermsFrequency.3g.Rdata",
-                              file_url_tdm = "./tmp/blogs.sample.tdm.3g.Rdata")
+b.3g <- load.blogs.3g.data(file_url_allTermsFrequency = "./../data/processed/blogs.sample.allTermsFrequency.3g.Rdata",
+                              file_url_tdm = "./../data/processed/blogs.sample.tdm.3g.Rdata")
 
-##Ordering
-tw.3g.tc.info <- orderElementsByFrequency(tcv = tw.3g, decreasing = T)
-n.3g.tc.info <- orderElementsByFrequency(tcv = n.3g, decreasing = T)
-b.3g.tc.info <- orderElementsByFrequency(tcv = b.3g, decreasing = T)
+filename <- collapseToOneList(twitter.ng = tw.3g, news.dg = n.3g, blogs.ng = b.3g, ng = 3)
 
-
-d1.df <- data.frame(terms = tw.3g.tc.info$terms, counters = tw.3g.tc.info$counters, stringsAsFactors = F)
-d2.df <- data.frame(terms = n.3g.tc.info$terms, counters = n.3g.tc.info$counters,stringsAsFactors = F)
-d3.df <- data.frame(terms = b.3g.tc.info$terms, counters = b.3g.tc.info$counters, stringsAsFactors = F)
-d.3g.df <- merge(d1.df, d2.df, by = "terms", all = T)
-d.3g.df <- merge(d.3g.df, d3.df, by = "terms", all = T)
-
-d.3g.df$counters.x[is.na(d.3g.df$counters.x)] = 0
-d.3g.df$counters.y[is.na(d.3g.df$counters.y)] = 0
-d.3g.df$counters[is.na(d.3g.df$counters)] = 0
-d.3g.df$total = d.3g.df$counters.x + d.3g.df$counters.y + d.3g.df$counters
-
-#x <- d.3g.df$terms[grep("'{2,}", d.3g.df$terms)]
-
-save(d.3g.df, file = "./tmp/aggregated_allTermsFrequency.3g.Rdata")
-
+# load(filename)
+# x <- d.ng.df$terms[grep("'{2,}", d.ng.df$terms)]
+# head(x)
+# tail(x)
 
 rm(list = ls())
 source("model.R")
 
-tw.2g <- load.twitter.2g.data(file_url_allTermsFrequency = "./tmp/twitter.sample1.allTermsFrequency.2g.Rdata",
-                              file_url_tdm = "./tmp/twitter.sample1.tdm.2g.Rdata")
+tw.2g <- load.twitter.2g.data(file_url_allTermsFrequency = "./../data/processed/twitter.sample1.allTermsFrequency.2g.Rdata",
+                              file_url_tdm = "./../data/processed/twitter.sample1.tdm.2g.Rdata")
 
-n.2g <- load.news.2g.data(file_url_allTermsFrequency = "./tmp/news.sample.allTermsFrequency.2g.Rdata",
-                              file_url_tdm = "./tmp/news.sample.tdm.2g.Rdata")
+n.2g <- load.news.2g.data(file_url_allTermsFrequency = "./../data/processed/news.sample.allTermsFrequency.2g.Rdata",
+                              file_url_tdm = "./../data/processed/news.sample.tdm.2g.Rdata")
 
-b.2g <- load.blogs.2g.data(file_url_allTermsFrequency = "./tmp/blogs.sample.allTermsFrequency.2g.Rdata",
-                              file_url_tdm = "./tmp/blogs.sample.tdm.2g.Rdata")
+b.2g <- load.blogs.2g.data(file_url_allTermsFrequency = "./../data/processed/blogs.sample.allTermsFrequency.2g.Rdata",
+                              file_url_tdm = "./../data/processed/blogs.sample.tdm.2g.Rdata")
 
-##Ordering
-tw.2g.tc.info <- orderElementsByFrequency(tcv = tw.2g, decreasing = T)
-n.2g.tc.info <- orderElementsByFrequency(tcv = n.2g, decreasing = T)
-b.2g.tc.info <- orderElementsByFrequency(tcv = b.2g, decreasing = T)
+filename <- collapseToOneList(twitter.ng = tw.2g, news.dg = n.2g, blogs.ng = b.2g, ng = 2)
 
-
-d1.df <- data.frame(terms = tw.2g.tc.info$terms, counters = tw.2g.tc.info$counters, stringsAsFactors = F)
-d2.df <- data.frame(terms = n.2g.tc.info$terms, counters = n.2g.tc.info$counters,stringsAsFactors = F)
-d3.df <- data.frame(terms = b.2g.tc.info$terms, counters = b.2g.tc.info$counters, stringsAsFactors = F)
-d.2g.df <- merge(d1.df, d2.df, by = "terms", all = T)
-d.2g.df <- merge(d.2g.df, d3.df, by = "terms", all = T)
-
-d.2g.df$counters.x[is.na(d.2g.df$counters.x)] = 0
-d.2g.df$counters.y[is.na(d.2g.df$counters.y)] = 0
-d.2g.df$counters[is.na(d.2g.df$counters)] = 0
-d.2g.df$total = d.2g.df$counters.x + d.2g.df$counters.y + d.2g.df$counters
-
-#x <- d.2g.df$terms[grep("'{2,}", d.2g.df$terms)]
-
-save(d.2g.df, file = "./tmp/aggregated_allTermsFrequency.2g.Rdata")
+# load(filename)
+# x <- d.ng.df$terms[grep("'{2,}", d.ng.df$terms)]
+# head(x)
+# tail(x)
 
 rm(list = ls())
 source("model.R")
 
-tw.1g <- load.twitter.1g.data(file_url_allTermsFrequency = "./tmp/twitter.sample1.allTermsFrequency.1g.Rdata",
-                              file_url_tdm = "./tmp/twitter.sample1.tdm.1g.Rdata")
+tw.1g <- load.twitter.1g.data(file_url_allTermsFrequency = "./../data/processed/twitter.sample1.allTermsFrequency.1g.Rdata",
+                              file_url_tdm = "./../data/processed/twitter.sample1.tdm.1g.Rdata")
 
-n.1g <- load.news.1g.data(file_url_allTermsFrequency = "./tmp/news.sample.allTermsFrequency.1g.Rdata",
-                              file_url_tdm = "./tmp/news.sample.tdm.1g.Rdata")
+n.1g <- load.news.1g.data(file_url_allTermsFrequency = "./../data/processed/news.sample.allTermsFrequency.1g.Rdata",
+                              file_url_tdm = "./../data/processed/news.sample.tdm.1g.Rdata")
 
-b.1g <- load.blogs.1g.data(file_url_allTermsFrequency = "./tmp/blogs.sample.allTermsFrequency.1g.Rdata",
-                              file_url_tdm = "./tmp/blogs.sample.tdm.1g.Rdata")
+b.1g <- load.blogs.1g.data(file_url_allTermsFrequency = "./../data/processed/blogs.sample.allTermsFrequency.1g.Rdata",
+                              file_url_tdm = "./../data/processed/blogs.sample.tdm.1g.Rdata")
 
-##Ordering
-tw.1g.tc.info <- orderElementsByFrequency(tcv = tw.1g, decreasing = T)
-n.1g.tc.info <- orderElementsByFrequency(tcv = n.1g, decreasing = T)
-b.1g.tc.info <- orderElementsByFrequency(tcv = b.1g, decreasing = T)
+filename <- collapseToOneList(twitter.ng = tw.1g, news.dg = n.1g, blogs.ng = b.1g, ng = 1)
 
-
-d1.df <- data.frame(terms = tw.1g.tc.info$terms, counters = tw.1g.tc.info$counters, stringsAsFactors = F)
-d2.df <- data.frame(terms = n.1g.tc.info$terms, counters = n.1g.tc.info$counters,stringsAsFactors = F)
-d3.df <- data.frame(terms = b.1g.tc.info$terms, counters = b.1g.tc.info$counters, stringsAsFactors = F)
-d.1g.df <- merge(d1.df, d2.df, by = "terms", all = T)
-d.1g.df <- merge(d.1g.df, d3.df, by = "terms", all = T)
-
-d.1g.df$counters.x[is.na(d.1g.df$counters.x)] = 0
-d.1g.df$counters.y[is.na(d.1g.df$counters.y)] = 0
-d.1g.df$counters[is.na(d.1g.df$counters)] = 0
-d.1g.df$total = d.1g.df$counters.x + d.1g.df$counters.y + d.1g.df$counters
-
-#x <- d.1g.df$terms[grep("'{2,}", d.1g.df$terms)]
-
-save(d.1g.df, file = "./tmp/aggregated_allTermsFrequency.1g.Rdata")
+# load(filename)
+# x <- d.ng.df$terms[grep("'{2,}", d.ng.df$terms)]
+# head(x)
+# tail(x)
 ```
 
 
 
-# Using the terms/ counters vector directly
+# Another Approach for the model - Use the terms/ counters vector directly
 
-## StupidBAckoff model
-
-Challenges 
-__merging of the different terms/counters vector for twitter/ news/ blogs__for
-
-unigrams
-bigrams
-trigrams
+## StupidBackoff model
 
 ## SImple experiment using only twitter data using the stupid backoff algorithm
 
@@ -504,63 +306,83 @@ trigrams
 rm(list = ls())
 source("model.R")
 require(hash)
-tw.3g <- load.twitter.3g.data(file_url_allTermsFrequency = "./tmp/twitter.sample1.allTermsFrequency.3g.Rdata",
-                              file_url_tdm = "./tmp/twitter.sample1.tdm.3g.Rdata")
+# tw.3g <- load.twitter.3g.data(file_url_allTermsFrequency = "./tmp/twitter.sample1.allTermsFrequency.3g.Rdata",
+#                               file_url_tdm = "./tmp/twitter.sample1.tdm.3g.Rdata")
+# 
+# tw.2g <- load.twitter.2g.data(file_url_allTermsFrequency = "./tmp/twitter.sample1.allTermsFrequency.2g.Rdata",
+#                               file_url_tdm = "./tmp/twitter.sample1.tdm.2g.Rdata")
+# 
+# tw.1g <- load.twitter.1g.data(file_url_allTermsFrequency = "./tmp/twitter.sample1.allTermsFrequency.1g.Rdata",
+#                               file_url_tdm = "./tmp/twitter.sample1.tdm.1g.Rdata")
+# ##Ordering
+# tw.3g.tc.info <- orderElementsByFrequency(tcv = tw.3g, decreasing = T)
+# tw.2g.tc.info <- orderElementsByFrequency(tcv = tw.2g, decreasing = T)
+# tw.1g.tc.info <- orderElementsByFrequency(tcv = tw.1g, decreasing = T)
 
-tw.2g <- load.twitter.2g.data(file_url_allTermsFrequency = "./tmp/twitter.sample1.allTermsFrequency.2g.Rdata",
-                              file_url_tdm = "./tmp/twitter.sample1.tdm.2g.Rdata")
+load("./../data/processed/allCorpora_aggregated_allTermsFrequency.3g.rdata")
+allCorpora.3g <- d.ng.df
+d.ng.df <- NULL
 
-tw.1g <- load.twitter.1g.data(file_url_allTermsFrequency = "./tmp/twitter.sample1.allTermsFrequency.1g.Rdata",
-                              file_url_tdm = "./tmp/twitter.sample1.tdm.1g.Rdata")
-##Ordering
-tw.3g.tc.info <- orderElementsByFrequency(tcv = tw.3g, decreasing = T)
-tw.2g.tc.info <- orderElementsByFrequency(tcv = tw.2g, decreasing = T)
-tw.1g.tc.info <- orderElementsByFrequency(tcv = tw.1g, decreasing = T)
+load("./../data/processed/allCorpora_aggregated_allTermsFrequency.2g.rdata")
+allCorpora.2g <- d.ng.df
+d.ng.df <- NULL
 
-format(object.size(tw.3g.tc.info$terms), "auto")
-format(object.size(tw.3g.tc.info$counters), "auto")
+load("./../data/processed/allCorpora_aggregated_allTermsFrequency.1g.rdata")
+allCorpora.1g <- d.ng.df
+d.ng.df <- NULL
 
-#Something to investigate teh use of hash for memory reduction
-tw.3g.h <- hash(tw.3g.tc.info$terms, tw.3g.tc.info$counters)
-format(object.size(tw.3g.h), "auto")
+format(object.size(allCorpora.3g$terms), "auto")
+format(object.size(allCorpora.3g$total), "auto")
 
-tw.3g.h[tw.3g.tc.info$terms[1:10]]
-tw.3g.tc.info$terms[1:10]
-tw.3g.tc.info$counters[1:10]
+format(object.size(allCorpora.2g$terms), "auto")
+format(object.size(allCorpora.2g$total), "auto")
 
+format(object.size(allCorpora.1g$terms), "auto")
+format(object.size(allCorpora.1g$total), "auto")
 
-format(object.size(tw.2g.tc.info$terms), "auto")
-format(object.size(tw.2g.tc.info$counters), "auto")
-format(object.size(tw.1g.tc.info$terms), "auto")
-format(object.size(tw.1g.tc.info$counters), "auto")
+#Something to investigate the use of hash for memory reduction
+allCorpora.3g.h <- hash(allCorpora.3g$terms, allCorpora.3g$total)
+format(object.size(allCorpora.3g.h), "auto")
 
+allCorpora.3g.h[allCorpora.3g$terms[1:10]]
+allCorpora.3g$terms[1:10]
+allCorpora.3g$total[1:10]
 
-tw.2g.tc.info$terms[1:10]
-tw.2g.tc.info$counters[1:10]
+allCorpora.2g.h <- hash(allCorpora.2g$terms, allCorpora.2g$total)
+format(object.size(allCorpora.2g.h), "auto")
 
-tw.1g.tc.info$terms[1:10]
-tw.1g.tc.info$counters[1:10]
+allCorpora.2g.h[allCorpora.2g$terms[1:10]]
+allCorpora.2g$terms[1:10]
+allCorpora.2g$total[1:10]
+
+allCorpora.1g.h <- hash(allCorpora.1g$terms, allCorpora.1g$total)
+format(object.size(allCorpora.1g.h), "auto")
+
+allCorpora.1g.h[allCorpora.1g$terms[1:10]]
+allCorpora.1g$terms[1:10]
+allCorpora.1g$total[1:10]
 
 load(file = "./tmp/twitter_step2_sample.1.Rdata")
-# data.twitter.sample[10:20]
+data.twitter.sample[10:20]
 
 
 s <- "<s> you will absolutely love it after the"
 
 Rprof(tmp <- tempfile())
-sentenceProbability(s = s, t.terms = tw.3g.tc.info$terms, t.counters = tw.3g.tc.info$counters,
-                    b.terms = tw.2g.tc.info$terms, tw.2g.tc.info$counters,
-                    u.words = tw.1g.tc.info$terms, u.counters = tw.1g.tc.info$counters)
+sentenceProbability(s = s, t.terms = allCorpora.3g$terms, t.counters = allCorpora.3g$total,
+                    b.terms = allCorpora.2g$terms, allCorpora.2g$total,
+                    u.words = allCorpora.1g$terms, u.counters = allCorpora.1g$total)
 Rprof(NULL)
 summaryRprof(tmp)
 
 s <- "if this isn't the cutest thing you've ever seen then you must be insane"
 Rprof(tmp <- tempfile())
-sentenceProbability(s = s, t.terms = tw.3g.tc.info$terms, t.counters = tw.3g.tc.info$counters,
-                    b.terms = tw.2g.tc.info$terms, tw.2g.tc.info$counters,
-                    u.words = tw.1g.tc.info$terms, u.counters = tw.1g.tc.info$counters)
+sentenceProbability(s = s, t.terms = allCorpora.3g$terms, t.counters = allCorpora.3g$total,
+                    b.terms = allCorpora.2g$terms, allCorpora.2g$total,
+                    u.words = allCorpora.1g$terms, u.counters = allCorpora.1g$total)
 Rprof(NULL)
 summaryRprof(tmp)
+
 
 ```
 
