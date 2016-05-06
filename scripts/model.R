@@ -90,6 +90,33 @@ orderElementsByFrequency <- function(tcv, decreasing = F){
 
 }
 
+# Merge the list of available n-grams for the different corpora
+collapseToOneList <- function(twitter.ng, news.dg, blogs.ng, ng){
+    t.3g.termCounters <- orderElementsByFrequency(tcv = twitter.ng, decreasing = T)
+    n.3g.termCounters <- orderElementsByFrequency(tcv = news.dg, decreasing = T)
+    b.3g.termCounters <- orderElementsByFrequency(tcv = blogs.ng, decreasing = T)
+    
+    
+    d1.df <- data.frame(terms = t.3g.termCounters$terms, counters = t.3g.termCounters$counters, stringsAsFactors = F)
+    d2.df <- data.frame(terms = n.3g.termCounters$terms, counters = n.3g.termCounters$counters,stringsAsFactors = F)
+    d3.df <- data.frame(terms = b.3g.termCounters$terms, counters = b.3g.termCounters$counters, stringsAsFactors = F)
+    
+    d.ng.df <- merge(d1.df, d2.df, by = "terms", all = T)
+    d.ng.df <- merge(d.ng.df, d3.df, by = "terms", all = T)
+    
+    names(d.ng.df) <- c("terms", "twitter.count", "news.count", "blogs.count")
+    
+    d.ng.df$twitter.count[is.na(d.ng.df$twitter.count)] = 0
+    d.ng.df$news.count[is.na(d.ng.df$news.count)] = 0
+    d.ng.df$blogs.count[is.na(d.ng.df$blogs.count)] = 0
+    d.ng.df$total = d.ng.df$twitter.count + d.ng.df$news.count + d.ng.df$blogs.count
+    
+    filename <- paste("./../data/processed/allCorpora_aggregated_allTermsFrequency.", ng, "g.rdata", sep = "")
+    save(d.ng.df, file = filename)
+    filename
+}
+
+
 ########################
 ####### UNIGRAMS #######
 ########################
@@ -390,16 +417,22 @@ prob.w_i <- function(word_i, u.words, u.counters){
     (word_i.c/ sum(u.counters))
 }
 
-##############################################################
-# Probability Calculation for a sentence using the ChainRule #
-# Trigram Language Model Aprroximation                       #
-# log(Proability) = log(p1) + log(p2) + .. + log(pn)
-##############################################################
-
+#############################################################################
+# estimateSentenceProbabilities                                             #
+# Probability Calculation for a sentence using the ChainRule                #
+# Trigram Language Model Aprroximation                                      #
+# log(Proability) = log(p1) + log(p2) + .. + log(pn)                        #
+# Perplexity Calculation for a sentence                                     #
+# Trigram Language Model Aprroximation                                      #
+# S: sentence, N: number of words in S, PP = perplexity                     #
+# log(PP) = -1/N * log(Proability) = -1/N * log(p1) + log(p2) + .. + log(pn)#
+#############################################################################
 # sentence -> normalized sentence, e.g. <s> and </s> added, toLowerCase, remove punctuations and numbers
-sentenceProbability <- function(s, t.terms, t.counters, b.terms, b.counters, u.words, u.counters){
+estimateSentenceProbabilities <- function(s, t.terms, t.counters, b.terms, b.counters, u.words, u.counters){
+    N <- length(ngramTokenize(y = s, ng = 1))
+    
     print(paste("#sentenceProbability"))
-    print(paste("#    sentence:", s))
+    print(paste("#    sentence:", s, ", NoOfWords:", N))
     
     result <- 0
     s.words <- ngramTokenize(y = s, ng = 3)
@@ -412,40 +445,13 @@ sentenceProbability <- function(s, t.terms, t.counters, b.terms, b.counters, u.w
         
         print(paste("#         word_i:", d.t.w_i))
         print(paste("#     bigram_i-1:", d.t.b))
-        
-        result <- result + log(stupidBackoff.trigrams(word_i = d.t.w_i, bigramBeforeWord_i = d.t.b,
-                               t.terms = t.terms, t.counters = t.counters,
-                               b.terms = b.terms, b.counters = b.counters,
-                               u.words = u.words, u.counters = u.counters), base = 2)
-        print(paste("#    result(log):", result))
+        tmp <- log(stupidBackoff.trigrams(word_i = d.t.w_i, bigramBeforeWord_i = d.t.b,
+                                          t.terms = t.terms, t.counters = t.counters,
+                                          b.terms = b.terms, b.counters = b.counters,
+                                          u.words = u.words, u.counters = u.counters), base = 2)
+        result <- result + tmp
+        print(paste("#    prob(log):", tmp, ", total(log):", result))
     }
     
-    result
+    list(probability_ln <- result, perplexity_ln <- (-1/ N)* result)
 }
-
-# Merge the list of available n-grams for the different corpora
-collapseToOneList <- function(twitter.ng, news.dg, blogs.ng, ng){
-    t.3g.termCounters <- orderElementsByFrequency(tcv = twitter.ng, decreasing = T)
-    n.3g.termCounters <- orderElementsByFrequency(tcv = news.dg, decreasing = T)
-    b.3g.termCounters <- orderElementsByFrequency(tcv = blogs.ng, decreasing = T)
-    
-    
-    d1.df <- data.frame(terms = t.3g.termCounters$terms, counters = t.3g.termCounters$counters, stringsAsFactors = F)
-    d2.df <- data.frame(terms = n.3g.termCounters$terms, counters = n.3g.termCounters$counters,stringsAsFactors = F)
-    d3.df <- data.frame(terms = b.3g.termCounters$terms, counters = b.3g.termCounters$counters, stringsAsFactors = F)
-    
-    d.ng.df <- merge(d1.df, d2.df, by = "terms", all = T)
-    d.ng.df <- merge(d.ng.df, d3.df, by = "terms", all = T)
-    
-    names(d.ng.df) <- c("terms", "twitter.count", "news.count", "blogs.count")
-    
-    d.ng.df$twitter.count[is.na(d.ng.df$twitter.count)] = 0
-    d.ng.df$news.count[is.na(d.ng.df$news.count)] = 0
-    d.ng.df$blogs.count[is.na(d.ng.df$blogs.count)] = 0
-    d.ng.df$total = d.ng.df$twitter.count + d.ng.df$news.count + d.ng.df$blogs.count
-    
-    filename <- paste("./../data/processed/allCorpora_aggregated_allTermsFrequency.", ng, "g.rdata", sep = "")
-    save(d.ng.df, file = filename)
-    filename
-}
-

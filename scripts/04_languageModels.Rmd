@@ -306,18 +306,6 @@ filename <- collapseToOneList(twitter.ng = tw.1g, news.dg = n.1g, blogs.ng = b.1
 rm(list = ls())
 source("model.R")
 require(hash)
-# tw.3g <- load.twitter.3g.data(file_url_allTermsFrequency = "./tmp/twitter.sample1.allTermsFrequency.3g.Rdata",
-#                               file_url_tdm = "./tmp/twitter.sample1.tdm.3g.Rdata")
-# 
-# tw.2g <- load.twitter.2g.data(file_url_allTermsFrequency = "./tmp/twitter.sample1.allTermsFrequency.2g.Rdata",
-#                               file_url_tdm = "./tmp/twitter.sample1.tdm.2g.Rdata")
-# 
-# tw.1g <- load.twitter.1g.data(file_url_allTermsFrequency = "./tmp/twitter.sample1.allTermsFrequency.1g.Rdata",
-#                               file_url_tdm = "./tmp/twitter.sample1.tdm.1g.Rdata")
-# ##Ordering
-# tw.3g.tc.info <- orderElementsByFrequency(tcv = tw.3g, decreasing = T)
-# tw.2g.tc.info <- orderElementsByFrequency(tcv = tw.2g, decreasing = T)
-# tw.1g.tc.info <- orderElementsByFrequency(tcv = tw.1g, decreasing = T)
 
 load("./../data/processed/allCorpora_aggregated_allTermsFrequency.3g.rdata")
 allCorpora.3g <- d.ng.df
@@ -369,20 +357,28 @@ data.twitter.sample[10:20]
 s <- "<s> you will absolutely love it after the"
 
 Rprof(tmp <- tempfile())
-sentenceProbability(s = s, t.terms = allCorpora.3g$terms, t.counters = allCorpora.3g$total,
+estimateSentenceProbabilities(s = s, t.terms = allCorpora.3g$terms, t.counters = allCorpora.3g$total,
                     b.terms = allCorpora.2g$terms, allCorpora.2g$total,
                     u.words = allCorpora.1g$terms, u.counters = allCorpora.1g$total)
 Rprof(NULL)
 summaryRprof(tmp)
+
+s <- "<s> you will absolutely love it after the the"
+
+Rprof(tmp <- tempfile())
+estimateSentenceProbabilities(s = s, t.terms = allCorpora.3g$terms, t.counters = allCorpora.3g$total,
+                    b.terms = allCorpora.2g$terms, allCorpora.2g$total,
+                    u.words = allCorpora.1g$terms, u.counters = allCorpora.1g$total)
+Rprof(NULL)
+summaryRprof(tmp)
+
 
 s <- "if this isn't the cutest thing you've ever seen then you must be insane"
 Rprof(tmp <- tempfile())
-sentenceProbability(s = s, t.terms = allCorpora.3g$terms, t.counters = allCorpora.3g$total,
+estimateSentenceProbabilities(s = s, t.terms = allCorpora.3g$terms, t.counters = allCorpora.3g$total,
                     b.terms = allCorpora.2g$terms, allCorpora.2g$total,
                     u.words = allCorpora.1g$terms, u.counters = allCorpora.1g$total)
 Rprof(NULL)
 summaryRprof(tmp)
-
-
 ```
 
