@@ -429,16 +429,17 @@ prob.w_i <- function(word_i, u.words, u.counters){
 #############################################################################
 # sentence -> normalized sentence, e.g. <s> and </s> added, toLowerCase, remove punctuations and numbers
 estimateSentenceProbabilities <- function(s, t.terms, t.counters, b.terms, b.counters, u.words, u.counters){
-    N <- length(ngramTokenize(y = s, ng = 1))
+    s.words <- ngramTokenize(y = s, ng = 1)
+    N <- length(s.words)
     
     print(paste("#sentenceProbability"))
     print(paste("#    sentence:", s, ", NoOfWords:", N))
-    
+
     result <- 0
-    s.words <- ngramTokenize(y = s, ng = 3)
+    s.trigrams <- ngramTokenize(y = s, ng = 3)
     
-    for(i in 1:length(s.words)){
-        d.t <- s.words[i]
+    for(i in 1:length(s.trigrams)){
+        d.t <- s.trigrams[i]
         d.t.ws <- ngramTokenize(d.t,1)
         d.t.w_i <- d.t.ws[3]
         d.t.b <- paste(d.t.ws[1], d.t.ws[2])

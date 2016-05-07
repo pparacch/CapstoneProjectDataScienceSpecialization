@@ -20,6 +20,8 @@ vignettes/*.pdf
 
 #Data
 data/
+scripts/*.md
+scripts/*.html
 scripts/*_cache/
 scripts/*_files/
 scripts/rsconnect/
