@@ -152,9 +152,9 @@ getTermFrequencyInformationOrderedByTermFrequency <- function(aTdm, lowFrequency
     aTdm.l.termFreq.df[with(aTdm.l.termFreq.df, order(-aTdm.l.termFreq.df$freq)), ]
 }
 
-getAllTermsFrequencyInCorpora.as.df <- function(corpora.tdm, chunck = 2000){
+getAllTermsFrequencyInCorpora.as.df <- function(corpus.tdm, chunck = 2000){
     
-    print(corpora.tdm)
+    print(corpus.tdm)
     
     isFinished <- F
     i <- 0
@@ -170,8 +170,8 @@ getAllTermsFrequencyInCorpora.as.df <- function(corpora.tdm, chunck = 2000){
         if(i != 0){
             start <- i * chunck + 1
             end <- i.next * chunck
-            if((i.next * chunck) > dim(corpora.tdm)[1]){
-                end <- dim(corpora.tdm)[1]
+            if((i.next * chunck) > dim(corpus.tdm)[1]){
+                end <- dim(corpus.tdm)[1]
                 isFinished <- T
             }
         }
@@ -179,7 +179,7 @@ getAllTermsFrequencyInCorpora.as.df <- function(corpora.tdm, chunck = 2000){
         range <- start : end
         
         print(paste("Processing Chunck:", start, end))
-        x <- corpora.tdm[range,]
+        x <- corpus.tdm[range,]
         x.asMatrix <- as.matrix(x)
         
         result <- c(result, rowSums(x.asMatrix))
@@ -188,6 +188,12 @@ getAllTermsFrequencyInCorpora.as.df <- function(corpora.tdm, chunck = 2000){
     }
     
     allTermsFrequencies.df <- data.frame(freq = result)
+}
+
+
+getAllTermsFrequencyInCorpora.as.df.i <- function(corpus.tdm){
+    all.terms <- findFreqTerms(corpus.tdm) #get all of the terms
+    tm_term_score(x = corpus.tdm, terms = all.terms, FUN = slam::row_sums)
 }
 
 
