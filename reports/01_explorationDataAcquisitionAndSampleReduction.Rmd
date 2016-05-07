@@ -1,5 +1,5 @@
 ---
-title: "Data Acquisition & Cleaning"
+title: "Exploration - Data Acquisition & Sample Reduction & Data Exploration (a playground)"
 author: "Pier Lorenzo Paracchini"
 date: "18 april 2016"
 output: 
@@ -9,8 +9,10 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-Sys.setlocale("LC_ALL", "C")
+Sys.setlocale(category = "LC_ALL",locale = "English_United States.1252")
 ```
+
+The objective is to play around with the provided data, try to load it, create sample and trigger thinking on how to do this initila step. Some basic exploration of the content of the corpora is performed.
 
 ## Data Acquisition & SAmpling Exploration
 
@@ -37,7 +39,6 @@ __Loading the data in (tip & trick)__
 
 
 ```{r experimentWithTheLoadingOfOriginalData, collapse=T}
-#setwd("./scripts")
 con <- file("./../data/original/final/en_US/en_US.twitter.txt", "r") 
 readLines(con, 1) ## Read the first line of text 
 readLines(con, 1) ## Read the next line of text 
@@ -82,7 +83,7 @@ coin.biased.outcome <- rbinom(length(data.twitter.all), 1, 0.20)
 table(coin.biased.outcome)
 
 data.twitter.sample <- data.twitter.all[coin.biased.outcome == 1]
-writeLines(data.twitter.sample, "./../data/processed/en_US.twitter.sample.txt")
+writeLines(data.twitter.sample, "./../data/processed/s01_play_en_US.twitter.sample.txt")
 
 con <- file("./../data/original/final/en_US/en_US.news.txt", "r") 
 data.news.all <- readLines(con, skipNul = T)
@@ -93,7 +94,7 @@ coin.biased.outcome <- rbinom(length(data.news.all), 1, 0.20)
 table(coin.biased.outcome)
 
 data.news.sample <- data.news.all[coin.biased.outcome == 1]
-writeLines(data.news.sample, "./../data/processed/en_US.news.sample.txt")
+writeLines(data.news.sample, "./../data/processed/s01_play_en_US.news.sample.txt")
 
 con <- file("./../data/original/final/en_US/en_US.blogs.txt", "r") 
 data.blogs.all <- readLines(con, skipNul = T)
@@ -104,12 +105,12 @@ coin.biased.outcome <- rbinom(length(data.blogs.all), 1, 0.20)
 table(coin.biased.outcome)
 
 data.blogs.sample <- data.blogs.all[coin.biased.outcome == 1]
-writeLines(data.blogs.sample, "./../data/processed/en_US.blogs.sample.txt")
+writeLines(data.blogs.sample, "./../data/processed/s01_play_en_US.blogs.sample.txt")
 
 
-save(data.twitter.all, data.twitter.sample, file = "./../data/processed/en_US.twitter.Rdata")
-save(data.blogs.all, data.blogs.sample, file = "./../data/processed/en_US.blogs.Rdata")
-save(data.news.all, data.news.sample, file = "./../data/processed/en_US.news.Rdata")
+save(data.twitter.all, data.twitter.sample, file = "./../data/processed/s01_play_en_US.twitter.rdata")
+save(data.blogs.all, data.blogs.sample, file = "./../data/processed/s01_play_en_US.blogs.rdata")
+save(data.news.all, data.news.sample, file = "./../data/processed/s01_play_en_US.news.rdata")
 ```
 
 ## Some data exploration
