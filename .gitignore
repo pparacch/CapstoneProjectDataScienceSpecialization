@@ -28,8 +28,8 @@ scripts/rsconnect/
 scripts/tmp/
 scripts/trigramLanguageModel/
 
-scripts/*.md
-scripts/*.html
+reports/*.md
+reports/*.html
 reports/*_cache/
 reports/*_files/
 reports/rsconnect/
