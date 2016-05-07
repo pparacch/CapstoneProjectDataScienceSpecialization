@@ -1,33 +1,112 @@
-
 require(tm)
 require(wordcloud)
 require(RWeka)
 require(ggplot2)
 require(RColorBrewer)
 
-replaceContraction <- function(texts, contraction, replaceWith, ignoreCase = F){
-    gsub(pattern = contraction, replacement = replaceWith, x = texts, ignore.case = ignoreCase)
+load_original_corpora <- function(){
+    twitter.all <- load_original_corpus("./../data/original/final/en_US/en_US.twitter.txt")
+    news.all <- load_original_corpus("./../data/original/final/en_US/en_US.news.txt")
+    blogs.all <- load_original_corpus("./../data/original/final/en_US/en_US.blogs.txt")
+    
+    list(twitterCorpus = twitter.all, newsCorpus = news.all, blogsCorpus = blogs.all)
+}
+
+load_original_corpus <- function(corpus.filepath){
+    con <- file(corpus.filepath, "r") 
+    data.all <- readLines(con, skipNul = T)
+    close(con)
+    data.all
+}
+
+#corpora as a list(twitterCorpus = twitter.all, newsCorpus = news.all, blogsCorpus = blogs.all)
+sample_corpora <- function(corpora, seed, twitter.perc = 0.1, news.perc = 0.1, blogs.perc = 0.1){
+    twitter.sampling <- biased_dice_outcome(noOfThrowings = length(corpora$twitterCorpus), seed = seed, percentageOfSuccess = twitter.perc)
+    news.sampling <- biased_dice_outcome(noOfThrowings = length(corpora$newsCorpus), seed = seed, percentageOfSuccess = news.perc)
+    blogs.sampling <- biased_dice_outcome(noOfThrowings = length(corpora$blogsCorpus), seed = seed, percentageOfSuccess = blogs.perc)
+    
+    list(twitterCorpus = corpora$twitterCorpus[twitter.sampling == 1], 
+         newsCorpus = corpora$newsCorpus[news.sampling == 1], 
+         blogsCorpus = corpora$blogsCorpus[blogs.sampling == 1])
+}
+
+biased_dice_outcome <- function(seed, noOfThrowings, percentageOfSuccess = 0.5){
+    set.seed(seed)
+    rbinom(noOfThrowings, 1, percentageOfSuccess)
+}
+
+#corpora as a list(twitterCorpus = twitter.all, newsCorpus = news.all, blogsCorpus = blogs.all)
+corpora_remove_short_entries <- function(corpora, minNoOfChars = 20){
+    lapply(corpora, corpus_remove_short_entries, minNoOfChars)
+}
+
+#corpus is a character vector
+corpus_remove_short_entries <- function(corpus, minNoOfChars){
+    corpus[nchar(corpus) >= minNoOfChars]
+}
+
+#corpora as a list(twitterCorpus = twitter.all, newsCorpus = news.all, blogsCorpus = blogs.all)
+corpora_text_cleaning <- function(corpora){
+    
+    print("corpora_cleaning::remove::gremlings(coerced to ASCII)")
+    tmp <- lapply(corpora, iconv, from = localeToCharset(), to = "ASCII", "")
+    
+    print("corpora_cleaning::remove::RT_retweeted")
+    tmp <- lapply(tmp, remove_RT_retweetted)
+    
+    print("corpora_cleaning::replace::remove_contractions")
+    tmp <- lapply(tmp, remove_contractions)
+    
+    tmp
 }
 
 remove_RT_retweetted <- function(texts){
-    gsub(pattern = "RT", replacement = " ", x = texts, ignore.case = F)
+    gsub(pattern = "RT", replacement = " ", x = texts, ignore.case = F, perl = T)
 }
 
-remove_links <- function(texts, ignoreCase = T){
-    gsub(pattern = "^(https?:\\/\\/)?([\\da-z\\.-]+)\\.([a-z\\.]{2,6})([\\/\\w \\.-]*)*\\/?$", 
-         replacement = " ", x = texts, ignore.case = ignoreCase)
-}
+## TODO Test the pattern is not working completely
+# remove_links <- function(texts, ignoreCase = T){
+#     gsub(pattern = "(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?", 
+#          replacement = " ", x = texts, ignore.case = ignoreCase)
+# }
 
 remove_contractions <- function(theTexts){
-    rem.contr.tmp <- replaceContraction(texts = theTexts, contraction = " u ", replaceWith = " you ", ignoreCase = T)
-    rem.contr.tmp <- replaceContraction(texts = theTexts, contraction = " r ", replaceWith = " are ", ignoreCase = T)
-    rem.contr.tmp <- replaceContraction(texts = theTexts, contraction = "c'mon", replaceWith = "come on",ignoreCase = T)
-    rem.contr.tmp <- replaceContraction(texts = theTexts, contraction = "doin'", replaceWith = "doing",ignoreCase = T)
-    rem.contr.tmp <- replaceContraction(texts = theTexts, contraction = "[yY]a?'a?ll", replaceWith = "you all",ignoreCase = T)
-    rem.contr.tmp <- replaceContraction(texts = theTexts, contraction = "ma'am", replaceWith = "madam",ignoreCase = T)
+    rem.contr.tmp <- replace_contraction(texts = theTexts, contraction = " u ", replaceWith = " you ", ignoreCase = T)
+    rem.contr.tmp <- replace_contraction(texts = rem.contr.tmp, contraction = " r ", replaceWith = " are ", ignoreCase = T)
+    rem.contr.tmp <- replace_contraction(texts = rem.contr.tmp, contraction = "c'mon", replaceWith = "come on",ignoreCase = T)
+    rem.contr.tmp <- replace_contraction(texts = rem.contr.tmp, contraction = "doin'", replaceWith = "doing",ignoreCase = T)
+    rem.contr.tmp <- replace_contraction(texts = rem.contr.tmp, contraction = "[yY]a?'a?ll", replaceWith = "you all",ignoreCase = T)
+    rem.contr.tmp <- replace_contraction(texts = rem.contr.tmp, contraction = "ma'am", replaceWith = "madam",ignoreCase = T)
     rem.contr.tmp
 }
 
+replace_contraction <- function(texts, contraction, replaceWith, ignoreCase = F){
+    gsub(pattern = contraction, replacement = replaceWith, x = texts, ignore.case = ignoreCase, perl = T)
+}
+
+
+## Profanity Words Loading list of words
+con <- file("./../data/original/bad-words.txt", "r") 
+stopwords.profanityWords <- readLines(con, skipNul = T)
+close(con)
+
+#corpora as a list(twitterCorpus = twitter.all, newsCorpus = news.all, blogsCorpus = blogs.all)
+#return a tdm::Corpus
+corpora_transform <- function(corpora){
+    lapply(corpora, corpus_transform)
+}
+
+#return a tdm::Corpus
+corpus_transform <- function(x){
+    corpus <- Corpus(VectorSource(x))
+    corpus <- tm_map(corpus, content_transformer(tolower))
+    corpus <- tm_map(corpus, removeWords, stopwords.profanityWords)
+    corpus <- tm_map(corpus, removeNumbers) 
+    corpus <- tm_map(corpus, content_transformer(removePunctuations.exceptApostrophe))
+    corpus <- tm_map(corpus, content_transformer(addStartEndMarkers))
+    corpus <- tm_map(corpus, stripWhitespace)
+    corpus
+}
 
 ##In order to keep contractions like I'm or I'll ....
 removePunctuations.exceptApostrophe <- function(texts){
@@ -51,21 +130,6 @@ addStartEndMarkers <- function(texts){
 # test.expected == result
 # result
 
-## Removal of Profanity Words
-con <- file("./../data/original/bad-words.txt", "r") 
-stopwords.profanityWords <- readLines(con, skipNul = T)
-close(con)
-
-corpora.transform <- function(x){
-    corpus <- Corpus(VectorSource(x))
-    corpus <- tm_map(corpus, content_transformer(tolower))
-    corpus <- tm_map(corpus, removeWords, stopwords.profanityWords)
-    corpus <- tm_map(corpus, removeNumbers) 
-    corpus <- tm_map(corpus, content_transformer(removePunctuations.exceptApostrophe))
-    corpus <- tm_map(corpus, content_transformer(addStartEndMarkers))
-    corpus <- tm_map(corpus, stripWhitespace)
-    corpus
-}
 
 tdm.generate.ng <- function(corpus, ng = 1){
     # MAC OS Manadtory if not using doMC library

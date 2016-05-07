@@ -7,24 +7,49 @@ output:
     keep_md: yes
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r setup, include=FALSE, echo= T}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+Sys.setlocale(category = "LC_ALL",locale = "English_United States.1252")
+source("./../scripts/corpora.R")
 ```
 
 # Test Dataset from the Corpora (Twitter, News & Blogs)
 
-the test dataset is created from each corpus wth random sampling approach, using a different seed from teh one used to generate the training data. 
+Note! __`eval = F`__ in the `setup` code chunck!
 
-```{r cars}
-summary(cars)
+Test dataset is created from each corpus wth random sampling approach, using a different seed from the one used to generate the training data. 
+
+```{r loadingAndSamplingTheCorpora}
+corpora.raw <- load_original_corpora()
+corpora.sampled <- sample_corpora(corpora = corpora.raw, seed = 19411016, twitter.perc = 0.005, news.perc = 0.01, blogs.perc = 0.01)
 ```
 
-## Including Plots
+# Cleaning the Sampled Corpora
 
-You can also embed plots, for example:
+The sampled corpora is going to be cleaned used the steps that have been previously used for the training data.
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r cleanSampleCorpora}
+# corpora.sampled <- list(twitterCorpus = c("Twitter Please RT it and http://test.com/pparacch/177065 u r c'mon doin' ma'am I'm doing it!ðŸ‘¦",
+#                                           "Twitter 12345       FUCK ass PIppero, I'm going to work a lot .... , _ test",
+#                                           "ciao"),
+#                          newsCorpus = c("News Please RT it and http://test.com/pparacch/177065 u r c'mon doin' ma'am I'm doing it!ðŸ‘¦",
+#                                         "News 12345       FUCK ass PIppero, I'm going to work a lot .... , _ test",
+#                                         "ciao"),
+#                          blogsCorpus = c("Blogs Please RT it and http://test.com/pparacch/177065 u r c'mon doin' ma'am I'm doing it!ðŸ‘¦",
+#                                          "Blogs 12345       FUCK ass PIppero, I'm going to work a lot .... , _ test",
+#                                          "ciao"))
+
+corpora.cleaned <- corpora_remove_short_entries(corpora = corpora.sampled, minNoOfChars = 40)
+corpora.cleaned <- corpora_text_cleaning(corpora = corpora.cleaned)
+corpora.transformed <- corpora_transform(corpora = corpora.cleaned)
+
+test.twitters <- data.frame(entry = sapply(corpora.transformed$twitterCorpus,as.character))
+test.news <- data.frame(entry = sapply(corpora.transformed$newsCorpus,as.character))
+test.blogs <- data.frame(entry = sapply(corpora.transformed$blogsCorpus,as.character))
+
+save(test.twitters, test.news, test.blogs, file = "./../data/processed/s02_04_corpora_testdataset.Rdata")
+rm(list = ls())
+load(file = "./../data/processed/s02_04_corpora_testdataset.Rdata")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Test dataset is going to be used for identify a set of sentences (realistic sentence)  and to create a set of sentences (not very realistic/ improbable). The latest set shoudl get the lower probability or higher perplexity.
