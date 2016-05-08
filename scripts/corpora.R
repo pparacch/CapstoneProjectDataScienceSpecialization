@@ -17,6 +17,12 @@ load_twitter_corpus <- function(){
     list(twitterCorpus = twitter.all)
 }
 
+load_news_corpus <- function(){
+    news.all <- load_original_corpus("./../data/original/final/en_US/en_US.news.txt")
+    
+    list(newsCorpus = news.all)
+}
+
 load_original_corpus <- function(corpus.filepath){
     con <- file(corpus.filepath, "r") 
     data.all <- readLines(con, skipNul = T)
@@ -33,6 +39,13 @@ sample_corpora <- function(corpora, seed, twitter.perc = 0.1, news.perc = 0.1, b
     list(twitterCorpus = corpora$twitterCorpus[twitter.sampling == 1], 
          newsCorpus = corpora$newsCorpus[news.sampling == 1], 
          blogsCorpus = corpora$blogsCorpus[blogs.sampling == 1])
+}
+
+#corpora as a list(newsCorpus = news.all)
+sample_news_corpus <- function(corpora, seed, news.perc = 0.1){
+    news.sampling <- biased_dice_outcome(noOfThrowings = length(corpora$newsCorpus), seed = seed, percentageOfSuccess = news.perc)
+    
+    list(newsCorpus = corpora$newsCorpus[news.sampling == 1])
 }
 
 #corpora as a list(twitterCorpus = twitters)

@@ -1,0 +1,315 @@
+---
+title: "News Data Processing & Preparation"
+author: "Pier Lorenzo Paracchini"
+date: "9 mai 2016"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, warning = F, message = F)
+
+# WINDOWS LOCALE SETTING
+Sys.setlocale(category = "LC_ALL",locale = "English_United States.1252")
+#Sys.getlocale("LC_CTYPE")
+#localeToCharset()
+
+#Required Libraries
+require(knitr)
+```
+
+```{r dataLoad, eval = F}
+rm(list = ls())
+#Required scripts
+source("./../scripts/corpora.R")
+
+# LOAD THE TWITTER CORPUS (ALL)
+data.corpora <- load_news_corpus()
+
+#Twitter example with some gremlings
+data.corpora[["newsCorpus"]][15]
+data.corpora[["newsCorpus"]][10967]
+data.corpora[["newsCorpus"]][7046]
+
+#Tweets example with word between 'w'
+tmp <- grep("'([[:alpha:]]+)'", data.corpora[["newsCorpus"]])
+news.word.in.apostrophe <- data.corpora[["newsCorpus"]][tmp]
+news.word.in.apostrophe[1:2]
+
+#Cleaning the full corpus
+#gremlins (converting to ASCII)
+#remove RT
+#remove contactions
+#replace abbreviations
+#manage apostrophes
+data.corpora <- corpora_text_cleaning(data.corpora)
+
+# QUICK CHECK
+data.corpora[["newsCorpus"]][15]
+data.corpora[["newsCorpus"]][10967]
+data.corpora[["newsCorpus"]][7046]
+
+news.word.in.apostrophe <- data.corpora[["newsCorpus"]][tmp]
+news.word.in.apostrophe[1:2]
+
+#Let's focus on news
+a <- nchar(data.corpora[["newsCorpus"]]) < 1500
+par(mfrow=c(1,2))
+hist(nchar(data.corpora[["newsCorpus"]][a]), main = "No Of Chars per News (< 1500)", breaks = 100, xlab = "no of characters")
+hist(nchar(data.corpora[["newsCorpus"]][!a]), main = "No Of Chars per News (>= 1500)", breaks = 100, xlab = "no of characters")
+
+sum(nchar(data.corpora[["newsCorpus"]]) < 20)
+
+ncharLess20 <- nchar(data.corpora[["newsCorpus"]]) < 20
+ncharLess20 <- data.corpora[["newsCorpus"]][ncharLess20]
+ncharLess20[1:10]
+ncharLess20 <- NULL
+
+# REMOVE THE SHORT TWEETS FROM FULL CORPUS
+data.corpora <- corpora_remove_short_entries(data.corpora)
+
+#QUICK CHECK - empty (0)
+sum(nchar(data.corpora[["newsCorpus"]]) < 20)
+
+#SAVE THE CLEANED CORPUS LOCALLY
+save(data.corpora, file = "./../data/processed/02_02_s01_allCorpus_news_cleanedtext.Rdata")
+```
+
+
+```{r dataReduction, eval = F}
+rm(list = ls())
+source("./../scripts/corpora.R")
+load(file = "./../data/processed/02_02_s01_allCorpus_news_cleanedtext.Rdata")
+
+length(data.corpora[["newsCorpus"]])
+data.corpora <- sample_news_corpus(corpora = data.corpora,seed = 19760126, news.perc = 0.1)
+length(data.corpora[["newsCorpus"]])
+
+save(data.corpora, file = "./../data/processed/02_02_s02_sampleCorpus_news_cleanedtext.Rdata")
+```
+
+# Exploring the (Sample) Corpora
+
+Exploration of the corpora is done using __natural language processing techniques__ - specifically term frequency analysis using ngrams (1-gram, 2-gram and 3-gram). Before tokenizing the corpora the following steps are performed:
+
+* transform to lower case
+* remove profanity words
+* remove numbers
+* remove punctuations - except of the `'` (apostrophe) in order to not lose contractions (e.g. I'll, I'm, etc)
+* add a `<s> ` marker at the beginning of each entry (tweet, news, blog)
+* add a ` </s>` marker at the end of each entry (tweet, news, blog) 
+
+`Wordclouds` and `barplots` are used to visualize the most frequent words/ tokens for the different n-grams. When plotting the 'barplots' only the first most frequent terms (top 30) are shown and max 200 terms in the wordclouds. __Note:__ For 2-grams and 3-grams a token like `<s> at the` refers to `at the` at the beginning of the entry (tweet, news or blog), while `the top </s>` refers to `the top` at the end of the entry (tweet, news or blog).
+
+```{r generateTermDocumentMatrixAndSummaryHeavyProcessing1, eval = F}
+rm(list = ls())
+source("./../scripts/corpora.R")
+load(file = "./../data/processed/02_02_s02_sampleCorpus_news_cleanedtext.Rdata")
+
+#CREATE THE CORPUS (tm) & DO SOME PROCESSING ON THE CORPUS
+##THE REMOVAL OF THE PROGANITY WORDS (circa 1300 words) is quite time demanding 
+##Idea on how to reduce required time? Limiting the words
+data.corpora.transformed <- corpora_transform(data.corpora) 
+
+lapply(data.corpora.transformed[["newsCorpus"]][1:5], as.character)
+lapply(data.corpora.transformed[["newsCorpus"]][100:110], as.character)
+
+save(data.corpora.transformed, file = "./../data/processed/02_02_s03_sampleCorpus_news_tm_transformed.Rdata")
+
+#CREATE THE TDM MATRIX//UNIGRAMS
+#Some Processing Time 
+news.corpus.tdm.1g <- tdm.generate.ng(data.corpora.transformed[["newsCorpus"]])
+news.corpus.tdm.1g
+
+as.matrix(news.corpus.tdm.1g[10000:11000,1:20])
+
+save(news.corpus.tdm.1g, file = "./../data/processed/02_02_s04_sampleCorpus_news_tdm.1g.Rdata")
+rm(news.corpus.tdm.1g)
+
+
+#CREATE THE TDM MATRIX//BIGRAMS
+#Some Processing Time 
+news.corpus.tdm.2g <- tdm.generate.ng(data.corpora.transformed[["newsCorpus"]],ng = 2)
+news.corpus.tdm.2g
+
+as.matrix(news.corpus.tdm.2g[10000:11000,1:20])
+
+save(news.corpus.tdm.2g, file = "./../data/processed/02_02_s04_sampleCorpus_news_tdm.2g.Rdata")
+rm(news.corpus.tdm.2g)
+
+#CREATE THE TDM MATRIX//TRIGRAMS
+#Some Processing Time 
+news.corpus.tdm.3g <- tdm.generate.ng(data.corpora.transformed[["newsCorpus"]],ng = 3)
+news.corpus.tdm.3g
+
+as.matrix(news.corpus.tdm.3g[10000:11000,1:20])
+
+save(news.corpus.tdm.3g, file = "./../data/processed/02_02_s04_sampleCorpus_news_tdm.3g.Rdata")
+rm(news.corpus.tdm.3g)
+
+#CREATE THE TDM MATRIX//4-GRAMS
+#Some Processing Time 
+news.corpus.tdm.4g <- tdm.generate.ng(data.corpora.transformed[["newsCorpus"]],ng = 4)
+news.corpus.tdm.4g
+
+as.matrix(news.corpus.tdm.4g[10000:11000,1:20])
+
+save(news.corpus.tdm.4g, file = "./../data/processed/02_02_s04_sampleCorpus_news_tdm.4g.Rdata")
+rm(news.corpus.tdm.4g)
+```
+
+```{r calculateTermFrequency, eval = F}
+rm(list = ls())
+source("./../scripts/corpora.R")
+
+##CORPUS
+#UNIGRAMS
+load(file = "./../data/processed/02_02_s04_sampleCorpus_news_tdm.1g.Rdata")
+news.corpus.tdm.1g
+corpus.tdm <- news.corpus.tdm.1g
+corpus.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df.i(corpus.tdm)
+save(corpus.allTermsFrequency, file = "./../data/processed/02_02_s05_sampleCorpus_news_termsfrequency.1g.Rdata")
+rm(news.corpus.tdm.1g)
+corpus.tdm <- NULL
+corpus.allTermsFrequency <- NULL
+
+#BIGRAMS
+load(file = "./../data/processed/02_02_s04_sampleCorpus_news_tdm.2g.Rdata")
+news.corpus.tdm.2g
+corpus.tdm <- news.corpus.tdm.2g
+corpus.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df.i(corpus.tdm)
+save(corpus.allTermsFrequency, file = "./../data/processed/02_02_s05_sampleCorpus_news_termsfrequency.2g.Rdata")
+rm(news.corpus.tdm.2g)
+corpus.tdm <- NULL
+corpus.allTermsFrequency <- NULL
+
+#TRIGRAMS
+load(file = "./../data/processed/02_02_s04_sampleCorpus_news_tdm.3g.Rdata")
+news.corpus.tdm.3g
+corpus.tdm <- news.corpus.tdm.3g
+corpus.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df.i(corpus.tdm)
+save(corpus.allTermsFrequency, file = "./../data/processed/02_02_s05_sampleCorpus_news_termsfrequency.3g.Rdata")
+rm(news.corpus.tdm.3g)
+corpus.tdm <- NULL
+corpus.allTermsFrequency <- NULL
+
+#4-GRAMS
+load(file = "./../data/processed/02_02_s04_sampleCorpus_news_tdm.4g.Rdata")
+news.corpus.tdm.4g
+corpus.tdm <- news.corpus.tdm.4g
+corpus.allTermsFrequency <- getAllTermsFrequencyInCorpora.as.df.i(corpus.tdm)
+save(corpus.allTermsFrequency, file = "./../data/processed/02_02_s05_sampleCorpus_news_termsfrequency.4g.Rdata")
+rm(news.corpus.tdm.4g)
+corpus.tdm <- NULL
+corpus.allTermsFrequency <- NULL
+```
+
+## News Corpora
+
+```{r loadNewsData, echo = T}
+rm(list = ls())
+source("./../scripts/corpora.R")
+load("../data/processed/02_02_s04_sampleCorpus_news_tdm.1g.Rdata")
+load("../data/processed/02_02_s04_sampleCorpus_news_tdm.2g.Rdata")
+load("../data/processed/02_02_s04_sampleCorpus_news_tdm.3g.Rdata")
+load("../data/processed/02_02_s04_sampleCorpus_news_tdm.4g.Rdata")
+
+load("../data/processed/02_02_s05_sampleCorpus_news_termsfrequency.1g.Rdata")
+news.allTerms.1g <- corpus.allTermsFrequency
+
+load("../data/processed/02_02_s05_sampleCorpus_news_termsfrequency.2g.Rdata")
+news.allTerms.2g <- corpus.allTermsFrequency
+
+load("../data/processed/02_02_s05_sampleCorpus_news_termsfrequency.3g.Rdata")
+news.allTerms.3g <- corpus.allTermsFrequency
+
+load("../data/processed/02_02_s05_sampleCorpus_news_termsfrequency.4g.Rdata")
+news.allTerms.4g <- corpus.allTermsFrequency
+corpus.allTermsFrequency <- NULL
+```
+
+
+### 1-grams
+
+```{r visualizeData_1g, warning = F, message = F}
+corpora.tdm <- news.corpus.tdm.1g
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 1500)
+visualizeBarPlot(ftm.df = frequentTermsLimited.df, titleBarPlot = "Frequent 1-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df)
+a <- getSomeInfoABoutCorpora(allFtm.df = news.allTerms.1g, filter = c(1:2))
+```
+
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| `r format(a$N, digits = 12, nsmall = 0)` | `r a$V` | `r a$C50` | `r a$C90` |
+
+
+```{r}
+visualizeCumuluativeCoverage(allFtm.df = news.allTerms.1g, title = "% Coverage By no of Unique Words (1-grams)")
+```
+
+### 2-grams
+
+```{r visualizeData_2g, warning = F, message = F}
+corpora.tdm <- news.corpus.tdm.2g
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 1000)
+visualizeBarPlot(ftm.df = frequentTermsLimited.df,titleBarPlot = "Frequent 2-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df)
+a <- getSomeInfoABoutCorpora(allFtm.df = news.allTerms.2g)
+```
+
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| `r format(a$N, digits = 12, nsmall = 0)` | `r a$V` | `r a$C50` | `r a$C90` |
+
+
+```{r echo=F}
+visualizeCumuluativeCoverage(allFtm.df = news.allTerms.2g, title = "% Coverage By no of Unique Words (2-grams)")
+```
+
+### 3-grams
+
+```{r visualizeData_3g, warning = F, message = F}
+corpora.tdm <- news.corpus.tdm.3g
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 250)
+visualizeBarPlot(ftm.df = frequentTermsLimited.df,titleBarPlot = "Frequent 3-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df)
+a <- getSomeInfoABoutCorpora(allFtm.df = news.allTerms.3g)
+```
+
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| `r format(a$N, digits = 12, nsmall = 0)` | `r a$V` | `r a$C50` | `r a$C90` |
+
+
+```{r}
+visualizeCumuluativeCoverage(allFtm.df = news.allTerms.3g, title = "% Coverage By no of Unique Words (3-grams)")
+```
+
+### 4-grams
+
+```{r visualizeData_4g, warning = F, message = F}
+corpora.tdm <- news.corpus.tdm.4g
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpora.tdm, 50)
+visualizeBarPlot(ftm.df = frequentTermsLimited.df,titleBarPlot = "Frequent 4-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df)
+a <- getSomeInfoABoutCorpora(allFtm.df = news.allTerms.4g)
+```
+
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| `r format(a$N, digits = 12, nsmall = 0)` | `r a$V` | `r a$C50` | `r a$C90` |
+
+
+```{r}
+visualizeCumuluativeCoverage(allFtm.df = news.allTerms.4g, title = "% Coverage By no of Unique Words (4-grams)")
+```
