@@ -84,6 +84,13 @@ replace_contraction <- function(texts, contraction, replaceWith, ignoreCase = F)
     gsub(pattern = contraction, replacement = replaceWith, x = texts, ignore.case = ignoreCase, perl = T)
 }
 
+normalize.abbreviations <- function(theTexts){
+    tmp <- replace_contraction(texts = theTexts, contraction = "^u.s.([[:blank:]|[:punct:]])", replaceWith = "usa\\1", ignoreCase = T)
+    tmp <- replace_contraction(texts = tmp, contraction = "([[:blank:]|[:punct:]])u.s.$", replaceWith = "\\1usa", ignoreCase = T)
+    tmp <- replace_contraction(texts = tmp, contraction = "([[:blank:]|[:punct:]])u.s.([[:blank:]|[:punct:]])", replaceWith = "\\1usa\\2", ignoreCase = T)
+    tmp
+}
+
 
 ## Profanity Words Loading list of words
 con <- file("./../data/original/bad-words.txt", "r") 
@@ -112,12 +119,6 @@ corpus_transform <- function(x){
 removePunctuations.exceptApostrophe <- function(texts){
     gsub(pattern = "[^'[:^punct:]]", replacement = " ", x = texts, perl = T)
 }
-
-# test <- "I'm I'll I like %$@to*&, chew;: gum, but don't like|}{[] bubble@#^)( gum!?"
-# test.expected <- "I'm I'll I like    to    chew   gum  but don't like      bubble      gum  "
-# result <- removePunctuations.exceptApostrophe(texts = test)
-# test.expected == result
-# result
 
 ##Add start sentence (<s>) and end sentence (</s>) markers in the sentences
 addStartEndMarkers <- function(texts){
