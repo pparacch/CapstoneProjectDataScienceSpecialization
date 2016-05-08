@@ -91,6 +91,10 @@ normalize.abbreviations <- function(theTexts){
     tmp
 }
 
+normalize.wordsBetweenApostrophes <- function(theTexts){
+    tmp <- replace_contraction(texts = theTexts, contraction = "'([[:alpha:]]+)'", replaceWith = "\\1", ignoreCase = T)
+    tmp
+}
 
 ## Profanity Words Loading list of words
 con <- file("./../data/original/bad-words.txt", "r") 
