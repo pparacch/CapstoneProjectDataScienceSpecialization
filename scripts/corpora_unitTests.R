@@ -19,6 +19,29 @@ test.run <- function(test.name, test.inputs, test.expected, function.udt){
 }
 
 cat("\n")
+test.name <- "Test - manage_apostrophe"
+test.inputs <- c("''Don't Fall in Love. 'Fall' 'off' a Bridge ,It hurts less.''",
+                 "MT ''It's not surprising, then, they'll get bitter, they cling to guns or religion...''''",
+                 "Just got voted ''most likely to 'marry' Justin Bieber''. '''Hahahahahaha'''.")
+test.expected <- c("Don't Fall in Love. Fall off a Bridge ,It hurts less.",
+                   "MT It's not surprising, then, they'll get bitter, they cling to guns or religion...",
+                   "Just got voted most likely to marry Justin Bieber. Hahahahahaha.")
+test.run(test.name = test.name, test.inputs = test.inputs, test.expected = test.expected, function.udt = manage_apostrophe)
+
+
+cat("\n")
+test.name <- "Test - remove.multipleConsecutiveApostrophes - (at least 2) - e.g. ''spy-> spy"
+test.inputs <- c("''Don't Fall in Love. Fall off a Bridge ,It hurts less.''",
+                 "MT ''It's not surprising, then, they'll get bitter, they cling to guns or religion...''''",
+                 "Movies friday alone ''",
+                 "Just got voted ''most likely to 'marry' Justin Bieber''. '''Hahahahahaha'''.")
+test.expected <- c("Don't Fall in Love. Fall off a Bridge ,It hurts less.",
+                   "MT It's not surprising, then, they'll get bitter, they cling to guns or religion...",
+                   "Movies friday alone ",
+                   "Just got voted most likely to 'marry' Justin Bieber. Hahahahahaha.")
+test.run(test.name = test.name, test.inputs = test.inputs, test.expected = test.expected, function.udt = remove_multipleConsecutiveApostrophes)
+
+cat("\n")
 test.name <- "Test - normalize.wordsBetweenApostrophes - 'spy'-> spy"
 test.inputs <- c("that's why they're now 'servers'.",
                  "'me' too!! btw did you change your 'name' here?",
@@ -28,7 +51,7 @@ test.expected <- c("that's why they're now servers.",
                    "me too!! btw did you change your name here?",
                    "Ha! At least Jared or Jarred Weaver isn't trending",
                    "I'm not a Football expert, but this game seems bloody exciting suddenly? #Superbowl\"")
-test.run(test.name = test.name, test.inputs = test.inputs, test.expected = test.expected, function.udt = normalize.wordsBetweenApostrophes)
+test.run(test.name = test.name, test.inputs = test.inputs, test.expected = test.expected, function.udt = normalize_wordsBetweenApostrophes)
 
 cat("\n")
 test.name <- "Test - normalize.abbreviations - u.s. (usa)"
@@ -38,7 +61,7 @@ test.inputs <- c("U.S. planning a tour of national parks in the U.S. camping and
 test.expected <- c("usa planning a tour of national parks in the usa camping and volunteering...",
                    "usa: ROCK! ROLL & AxeOff usa Friggin A! www.AxeOffUSA.com",
                    "i could be wrong here, usa, but they do trade carbon credits in the usa")
-test.run(test.name = test.name, test.inputs = test.inputs, test.expected = test.expected, function.udt = normalize.abbreviations)
+test.run(test.name = test.name, test.inputs = test.inputs, test.expected = test.expected, function.udt = normalize_abbreviations)
 
 
 cat("\n")

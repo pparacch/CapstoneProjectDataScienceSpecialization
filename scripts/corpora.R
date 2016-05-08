@@ -84,17 +84,27 @@ replace_contraction <- function(texts, contraction, replaceWith, ignoreCase = F)
     gsub(pattern = contraction, replacement = replaceWith, x = texts, ignore.case = ignoreCase, perl = T)
 }
 
-normalize.abbreviations <- function(theTexts){
+normalize_abbreviations <- function(theTexts){
     tmp <- replace_contraction(texts = theTexts, contraction = "^u.s.([[:blank:]|[:punct:]])", replaceWith = "usa\\1", ignoreCase = T)
     tmp <- replace_contraction(texts = tmp, contraction = "([[:blank:]|[:punct:]])u.s.$", replaceWith = "\\1usa", ignoreCase = T)
     tmp <- replace_contraction(texts = tmp, contraction = "([[:blank:]|[:punct:]])u.s.([[:blank:]|[:punct:]])", replaceWith = "\\1usa\\2", ignoreCase = T)
     tmp
 }
 
-normalize.wordsBetweenApostrophes <- function(theTexts){
-    tmp <- replace_contraction(texts = theTexts, contraction = "'([[:alpha:]]+)'", replaceWith = "\\1", ignoreCase = T)
-    tmp
+manage_apostrophe <- function(theTexts){
+    tmp <- remove_multipleConsecutiveApostrophes(theTexts)
+    normalize.wordsBetweenApostrophes(tmp)
 }
+
+normalize_wordsBetweenApostrophes <- function(theTexts){
+    replace_contraction(texts = theTexts, contraction = "'([[:alpha:]]+)'", replaceWith = "\\1", ignoreCase = T)
+}
+
+remove_multipleConsecutiveApostrophes <- function(theTexts){
+    replace_contraction(texts = theTexts, contraction = "'{2,}", replaceWith = "", ignoreCase = T)
+}
+
+
 
 ## Profanity Words Loading list of words
 con <- file("./../data/original/bad-words.txt", "r") 
