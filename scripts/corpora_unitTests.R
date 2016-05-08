@@ -65,6 +65,35 @@ test.run(test.name = test.name, test.inputs = test.inputs, test.expected = test.
 
 
 cat("\n")
+test.name <- "Test - remove_contractions"
+test.inputs <- c("I'm coo... Jus at work hella c'mon tired are u ever in cali",
+                 "I'm coo... Jus at work hella tired r you ever in cali")
+test.expected <- c("I'm coo... Jus at work hella come on tired are you ever in cali",
+                   "I'm coo... Jus at work hella tired are you ever in cali")
+test.run(test.name = test.name, test.inputs = test.inputs, test.expected = test.expected, function.udt = remove_contractions)
+
+cat("\n")
+test.name <- "Test - remove_RT_retweeted"
+test.inputs <- c("I'm cool... RT : Just at work RT tired r you ever in cali", "RT I'm cool...")
+test.expected <- c("I'm cool...   : Just at work   tired r you ever in cali", "  I'm cool...")
+test.run(test.name = test.name, test.inputs = test.inputs, test.expected = test.expected, function.udt = remove_RT_retweetted)
+
+
+# test <- "I'm I'll I like %$@to*&, chew;: gum, but don't like|}{[] bubble@#^)( gum!?"
+# test.expected <- "I'm I'll I like    to    chew   gum  but don't like      bubble      gum  "
+# result <- removePunctuations.exceptApostrophe(texts = test)
+# test.expected == result
+# result
+
+# test <- c("I love nlp.", "I like the sea.")
+# test.expected <- c("<s> I love nlp. </s>", "<s> I like the sea. </s>")
+# result <- addStartEndMarkers(texts = test)
+# test.expected == result
+# result
+
+
+
+cat("\n")
 print("Test - removePunctuations.exceptApostrophe")
 test <- "I'm I'll I like %$@to*&, chew;: gum, but don't like|}{[] bubble@#^)( gum!?"
 test.expected <- "I'm I'll I like    to    chew   gum  but don't like      bubble      gum  "

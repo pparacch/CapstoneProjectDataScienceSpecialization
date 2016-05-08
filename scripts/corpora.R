@@ -12,6 +12,11 @@ load_original_corpora <- function(){
     list(twitterCorpus = twitter.all, newsCorpus = news.all, blogsCorpus = blogs.all)
 }
 
+load_twitter_corpus <- function(){
+    twitter.all <- load_original_corpus("./../data/original/final/en_US/en_US.twitter.txt")
+    list(twitterCorpus = twitter.all)
+}
+
 load_original_corpus <- function(corpus.filepath){
     con <- file(corpus.filepath, "r") 
     data.all <- readLines(con, skipNul = T)
@@ -28,6 +33,12 @@ sample_corpora <- function(corpora, seed, twitter.perc = 0.1, news.perc = 0.1, b
     list(twitterCorpus = corpora$twitterCorpus[twitter.sampling == 1], 
          newsCorpus = corpora$newsCorpus[news.sampling == 1], 
          blogsCorpus = corpora$blogsCorpus[blogs.sampling == 1])
+}
+
+#corpora as a list(twitterCorpus = twitters)
+sample_twitter_corpus <- function(corpora, seed, twitter.perc = 0.1){
+    twitter.sampling <- biased_dice_outcome(noOfThrowings = length(corpora$twitterCorpus), seed = seed, percentageOfSuccess = twitter.perc)
+    list(twitterCorpus = corpora$twitterCorpus[twitter.sampling == 1])
 }
 
 biased_dice_outcome <- function(seed, noOfThrowings, percentageOfSuccess = 0.5){
@@ -56,6 +67,12 @@ corpora_text_cleaning <- function(corpora){
     
     print("corpora_cleaning::replace::remove_contractions")
     tmp <- lapply(tmp, remove_contractions)
+    
+    print("corpora_cleaning::normalize_abbreviation")
+    tmp <- lapply(tmp, normalize_abbreviations)
+    
+    print("corpora_cleaning::manage_apostrophe")
+    tmp <- lapply(tmp, manage_apostrophe)
     
     tmp
 }
@@ -93,7 +110,7 @@ normalize_abbreviations <- function(theTexts){
 
 manage_apostrophe <- function(theTexts){
     tmp <- remove_multipleConsecutiveApostrophes(theTexts)
-    normalize.wordsBetweenApostrophes(tmp)
+    normalize_wordsBetweenApostrophes(tmp)
 }
 
 normalize_wordsBetweenApostrophes <- function(theTexts){
@@ -110,6 +127,7 @@ remove_multipleConsecutiveApostrophes <- function(theTexts){
 con <- file("./../data/original/bad-words.txt", "r") 
 stopwords.profanityWords <- readLines(con, skipNul = T)
 close(con)
+con <- NULL
 
 #corpora as a list(twitterCorpus = twitter.all, newsCorpus = news.all, blogsCorpus = blogs.all)
 #return a tdm::Corpus
@@ -120,11 +138,17 @@ corpora_transform <- function(corpora){
 #return a tdm::Corpus
 corpus_transform <- function(x){
     corpus <- Corpus(VectorSource(x))
+    print("tolower...")
     corpus <- tm_map(corpus, content_transformer(tolower))
+    print("removeWords::profanityWords...")
     corpus <- tm_map(corpus, removeWords, stopwords.profanityWords)
+    print("removeNumbers...")
     corpus <- tm_map(corpus, removeNumbers) 
+    print("removePunctuations.except apostrophe '...")
     corpus <- tm_map(corpus, content_transformer(removePunctuations.exceptApostrophe))
+    print("addStartEndMarkers...")
     corpus <- tm_map(corpus, content_transformer(addStartEndMarkers))
+    print("strpWhitespaces...")
     corpus <- tm_map(corpus, stripWhitespace)
     corpus
 }
@@ -138,12 +162,6 @@ removePunctuations.exceptApostrophe <- function(texts){
 addStartEndMarkers <- function(texts){
     paste("<s>", texts, "</s>")
 }
-
-# test <- c("I love nlp.", "I like the sea.")
-# test.expected <- c("<s> I love nlp. </s>", "<s> I like the sea. </s>")
-# result <- addStartEndMarkers(texts = test)
-# test.expected == result
-# result
 
 
 tdm.generate.ng <- function(corpus, ng = 1){
@@ -208,7 +226,7 @@ getAllTermsFrequencyInCorpora.as.df <- function(corpus.tdm, chunck = 2000){
 
 getAllTermsFrequencyInCorpora.as.df.i <- function(corpus.tdm){
     all.terms <- findFreqTerms(corpus.tdm) #get all of the terms
-    tm_term_score(x = corpus.tdm, terms = all.terms, FUN = slam::row_sums)
+    data.frame(freq = tm_term_score(x = corpus.tdm, terms = all.terms, FUN = slam::row_sums))
 }
 
 
