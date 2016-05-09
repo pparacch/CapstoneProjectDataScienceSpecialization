@@ -47,9 +47,9 @@ test.twitters <- data.frame(entry = sapply(corpora.transformed$twitterCorpus,as.
 test.news <- data.frame(entry = sapply(corpora.transformed$newsCorpus,as.character))
 test.blogs <- data.frame(entry = sapply(corpora.transformed$blogsCorpus,as.character))
 
-save(test.twitters, test.news, test.blogs, file = "./../data/processed/s02_04_corpora_testdataset.Rdata")
+save(test.twitters, test.news, test.blogs, file = "./../data/processed/02_04_s01_corpora_testdataset.Rdata")
 rm(list = ls())
-load(file = "./../data/processed/s02_04_corpora_testdataset.Rdata")
+load(file = "./../data/processed/02_04_s01_corpora_testdataset.Rdata")
 ```
 
 Test dataset is going to be used for identify a set of sentences (realistic sentence)  and to create a set of sentences (not very realistic/ improbable). The latest set shoudl get the lower probability or higher perplexity.
