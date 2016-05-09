@@ -25,9 +25,6 @@ Bigrams and
 Trigrams
 
 ```{r collapse, eval=F}
-##TODO
-### 1 ORDER the list after having collased them by total (decreasing order)
-
 rm(list = ls())
 source("./../scripts/model.R")
 tw.4g <- load.twitter.4g.data(file_url_allTermsFrequency = "./../data/processed/02_01_s05_sampleCorpus_twitter_termsfrequency.4g.Rdata",
@@ -131,9 +128,14 @@ rm(list = ls())
 source("./../scripts/model.R")
 source("./../scripts/model_trigramLanguageModel.R")
 
-noElements <- 1000
-filename <- generate.corpora.3gramModel(noElements = noElements)
+#noElements <- 1000
+##VERY INEFFICIENT -> OPTIMIZED CODE generate.corpora.3gramModel.i
+##THAT IS THE REASON WHY WE WERE LIMITING THE NUMBER OF ELEMENTS
+# filename <- generate.corpora.3gramModel(noElements = noElements)
+# load(file = filename)
+# tmp1 <- data.3g.model.df
 
+filename <- generate.corpora.3gramModel.i()
 load(file = filename)
 
 bigram <- "<s> thanks"
