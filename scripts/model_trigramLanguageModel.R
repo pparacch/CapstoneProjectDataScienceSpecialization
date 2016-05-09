@@ -1,4 +1,36 @@
-source("./model.R")
+generate.corpora.3gramModel <- function(noElements){
+    
+    load(file = "./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.3g.rdata")
+    data.3g <- d.ng.df
+    load(file = "./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.2g.rdata")
+    data.2g <- d.ng.df
+    d.ng.df <- NULL
+    
+    ##Term Counters Ordered By Frequency
+    idx <- order(data.3g$total, decreasing = T)
+    data.3g <- data.3g[idx,]
+    
+    ##Term Counters Ordered By Frequency
+    idx <- order(data.2g$total, decreasing = T)
+    data.2g <- data.2g[idx,]
+    idx <- NULL
+    
+    data.3g.model <- trigrams.model(t.terms = data.3g$terms[1:noElements], t.counters = data.3g$total[1:noElements],
+                                    b.terms = data.2g$terms, b.counters = data.2g$total)
+    
+    data.3g.model.df <- data.frame(bigram = data.3g.model$t.bigram, 
+                                   next.word= data.3g.model$t.nextWord, 
+                                   count = data.3g.model$t.count,
+                                   probability = data.3g.model$t.probability)
+    
+    
+    
+    filename <- paste("./../scripts/trigramLanguageModel/allCorpora.3gModel_", Sys.Date(), ".rdata", sep = "")
+    save(data.3g, data.2g, data.3g.model, data.3g.model.df, file = filename)
+    filename
+}
+
+
 
 generate.twitter.3gramModel <- function(folder, 
                                         file.allTermFrequency.3g, file.tdm.3g,
@@ -28,7 +60,7 @@ generate.twitter.3gramModel <- function(folder,
                                    count = data.3g.model$t.count,
                                    probability = data.3g.model$t.probability)
     
-    filename <- paste("./trigramLanguageModel/twitter.3gModel_", Sys.Date(), ".rdata", sep = "")
+    filename <- paste("./../scripts/trigramLanguageModel/twitter.3gModel_", Sys.Date(), ".rdata", sep = "")
     save(data.3g.tc.info, data.2g.tc.info, data.3g.model, data.3g.model.df, file = filename)
     filename
 }
@@ -61,7 +93,7 @@ generate.news.3gramModel <- function(folder,
                                    count = data.3g.model$t.count,
                                    probability = data.3g.model$t.probability)
     
-    filename <- paste("./trigramLanguageModel/news.3gModel_", Sys.Date(), ".rdata", sep = "")
+    filename <- paste("./../scripts/trigramLanguageModel/news.3gModel_", Sys.Date(), ".rdata", sep = "")
     save(data.3g.tc.info, data.2g.tc.info, data.3g.model, data.3g.model.df, file = filename)
     filename
 }
@@ -94,7 +126,7 @@ generate.blogs.3gramModel <- function(folder,
                                    count = data.3g.model$t.count,
                                    probability = data.3g.model$t.probability)
     
-    filename <- paste("./trigramLanguageModel/blogs.3gModel_", Sys.Date(), ".rdata", sep = "")
+    filename <- paste("./../scripts/trigramLanguageModel/blogs.3gModel_", Sys.Date(), ".rdata", sep = "")
     save(data.3g.tc.info, data.2g.tc.info, data.3g.model, data.3g.model.df, file = filename)
     filename
 }

@@ -8,76 +8,87 @@ ngramTokenize <- function(y, ng) RWeka::NGramTokenizer(y, RWeka::Weka_control(mi
 
 load.twitter.1g.data <- function(file_url_allTermsFrequency, file_url_tdm){
     load(file_url_allTermsFrequency)
-    allTerms.1g <- corpora.allTermsFrequency
+    allTerms.1g <- corpus.allTermsFrequency
     load(file_url_tdm)
-    
-    list(tdm = twitter.corpora.tdm.1g, tcv = allTerms.1g)
+    list(tdm = twitter.corpus.tdm.1g, tcv = allTerms.1g)
 }
 
 load.twitter.2g.data <- function(file_url_allTermsFrequency, file_url_tdm){
     load(file_url_allTermsFrequency)
-    allTerms.2g <- corpora.allTermsFrequency
+    allTerms.2g <- corpus.allTermsFrequency
     load(file_url_tdm)
-    
-    list(tdm = twitter.corpora.tdm.2g, tcv = allTerms.2g)
+    list(tdm = twitter.corpus.tdm.2g, tcv = allTerms.2g)
 }
 
 load.twitter.3g.data <- function(file_url_allTermsFrequency, file_url_tdm){
     load(file_url_allTermsFrequency)
-    allTerms.3g <- corpora.allTermsFrequency
+    allTerms.3g <- corpus.allTermsFrequency
     load(file_url_tdm)
-    
-    list(tdm = twitter.corpora.tdm.3g, tcv = allTerms.3g)
+    list(tdm = twitter.corpus.tdm.3g, tcv = allTerms.3g)
+}
+
+load.twitter.4g.data <- function(file_url_allTermsFrequency, file_url_tdm){
+    load(file_url_allTermsFrequency)
+    allTerms.4g <- corpus.allTermsFrequency
+    load(file_url_tdm)
+    list(tdm = twitter.corpus.tdm.4g, tcv = allTerms.4g)
 }
 
 load.news.1g.data <- function(file_url_allTermsFrequency, file_url_tdm){
     load(file_url_allTermsFrequency)
-    allTerms.1g <- corpora.allTermsFrequency
+    allTerms.1g <- corpus.allTermsFrequency
     load(file_url_tdm)
-    
-    list(tdm = news.corpora.tdm.1g, tcv = allTerms.1g)
+    list(tdm = news.corpus.tdm.1g, tcv = allTerms.1g)
 }
 
 load.news.2g.data <- function(file_url_allTermsFrequency, file_url_tdm){
     load(file_url_allTermsFrequency)
-    allTerms.2g <- corpora.allTermsFrequency
+    allTerms.2g <- corpus.allTermsFrequency
     load(file_url_tdm)
-    
-    list(tdm = news.corpora.tdm.2g, tcv = allTerms.2g)
+    list(tdm = news.corpus.tdm.2g, tcv = allTerms.2g)
 }
 
 load.news.3g.data <- function(file_url_allTermsFrequency, file_url_tdm){
     load(file_url_allTermsFrequency)
-    allTerms.3g <- corpora.allTermsFrequency
+    allTerms.3g <- corpus.allTermsFrequency
     load(file_url_tdm)
-    
-    list(tdm = news.corpora.tdm.3g, tcv = allTerms.3g)
+    list(tdm = news.corpus.tdm.3g, tcv = allTerms.3g)
+}
+
+load.news.4g.data <- function(file_url_allTermsFrequency, file_url_tdm){
+    load(file_url_allTermsFrequency)
+    allTerms.4g <- corpus.allTermsFrequency
+    load(file_url_tdm)
+    list(tdm = news.corpus.tdm.4g, tcv = allTerms.4g)
 }
 
 load.blogs.1g.data <- function(file_url_allTermsFrequency, file_url_tdm){
     load(file_url_allTermsFrequency)
-    allTerms.1g <- corpora.allTermsFrequency
+    allTerms.1g <- corpus.allTermsFrequency
     load(file_url_tdm)
-    
-    list(tdm = blogs.corpora.tdm.1g, tcv = allTerms.1g)
+    list(tdm = blogs.corpus.tdm.1g, tcv = allTerms.1g)
 }
 
 load.blogs.2g.data <- function(file_url_allTermsFrequency, file_url_tdm){
     load(file_url_allTermsFrequency)
-    allTerms.2g <- corpora.allTermsFrequency
+    allTerms.2g <- corpus.allTermsFrequency
     load(file_url_tdm)
-    
-    list(tdm = blogs.corpora.tdm.2g, tcv = allTerms.2g)
+    list(tdm = blogs.corpus.tdm.2g, tcv = allTerms.2g)
 }
 
 load.blogs.3g.data <- function(file_url_allTermsFrequency, file_url_tdm){
     load(file_url_allTermsFrequency)
-    allTerms.3g <- corpora.allTermsFrequency
+    allTerms.3g <- corpus.allTermsFrequency
     load(file_url_tdm)
-    
-    list(tdm = blogs.corpora.tdm.3g, tcv = allTerms.3g)
+    list(tdm = blogs.corpus.tdm.3g, tcv = allTerms.3g)
 }
 
+load.blogs.4g.data <- function(file_url_allTermsFrequency, file_url_tdm){
+    load(file_url_allTermsFrequency)
+    allTerms.4g <- corpus.allTermsFrequency
+    load(file_url_tdm)
+    list(tdm = blogs.corpus.tdm.4g, tcv = allTerms.4g)
+}
 
 orderElementsByFrequency <- function(tcv, decreasing = F){
     tmp.terms <- rownames(tcv$tcv)
@@ -111,7 +122,7 @@ collapseToOneList <- function(twitter.ng, news.dg, blogs.ng, ng){
     d.ng.df$blogs.count[is.na(d.ng.df$blogs.count)] = 0
     d.ng.df$total = d.ng.df$twitter.count + d.ng.df$news.count + d.ng.df$blogs.count
     
-    filename <- paste("./../data/processed/allCorpora_aggregated_allTermsFrequency.", ng, "g.rdata", sep = "")
+    filename <- paste("./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.", ng, "g.rdata", sep = "")
     save(d.ng.df, file = filename)
     filename
 }

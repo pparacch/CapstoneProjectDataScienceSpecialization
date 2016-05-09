@@ -18,15 +18,15 @@ See 04_languageModels.Rmd for actual implementation.
 
 ```{r unigramModel, collapse = T}
 # rm(list = ls())
-source("./model.R")
+source("./../scripts/model.R")
 
 require(profr)
 
 Rprof(tmp <- tempfile())
-
-twitter.1g.list <- load.twitter.1g.data("./../data/processed/")
-u.terms <- rownames(twitter.1g.list$allTermsCounters)
-u.counters <- twitter.1g.list$allTermsCounters$freq
+twitter.1g.list <- load.twitter.1g.data("./../data/processed/02_01_s05_sampleCorpus_twitter_termsfrequency.1g.Rdata",
+                                        "./../data/processed/02_01_s04_sampleCorpus_twitter_tdm.1g.Rdata")
+u.terms <- rownames(twitter.1g.list$tcv)
+u.counters <- twitter.1g.list$tcv$freq
 u.N <- sum(u.counters)
 Rprof(NULL)
 summaryRprof(tmp)
@@ -34,7 +34,7 @@ summaryRprof(tmp)
 
 format(object.size(u.terms), "auto")
 format(object.size(u.counters), "auto")
-format(object.size(twitter.1g.list$allTermsCounters), "auto")
+format(object.size(twitter.1g.list$tcv), "auto")
 
 unigramModel.probabilityForWord <- function(word){
     print("--- UNIGRAM-Model ---")
@@ -79,21 +79,22 @@ summaryRprof(tmp)
 ```
 
 ```{r biGramsModel, collapse = T}
-Rprof(tmp <- tempfile())
+# source("./../scripts/model.R")
 
-twitter.2g.list <- load.twitter.2g.data("./../data/processed/")
-b.terms <- rownames(twitter.2g.list$allTermsCounters)
-b.counters <- twitter.2g.list$allTermsCounters$freq
+Rprof(tmp <- tempfile())
+twitter.2g.list <- load.twitter.2g.data("./../data/processed/02_01_s05_sampleCorpus_twitter_termsfrequency.2g.Rdata",
+                                        "./../data/processed/02_01_s04_sampleCorpus_twitter_tdm.2g.Rdata")
+b.terms <- rownames(twitter.2g.list$tcv)
+b.counters <- twitter.2g.list$tcv$freq
 b.N <- sum(b.counters)
 b.V <- length(unique(b.terms))
-
 Rprof(NULL)
 summaryRprof(tmp)
 
 
 format(object.size(b.terms), "auto")
 format(object.size(b.counters), "auto")
-format(object.size(twitter.2g.list$allTermsCounters), "auto")
+format(object.size(twitter.2g.list$tcv), "auto")
 
 unigramModel.counterForTerm <- function(word){
     idx <- which(u.terms == word)
@@ -154,10 +155,13 @@ bigramsModel.probabilityFor("for", "the")
 ```
 
 ```{r triGramsModel, collapse = T}
+#source("./../scripts/model.R")
+
 Rprof(tmp <- tempfile())
-twitter.3g.list <- load.twitter.3g.data("./../data/processed/")
-t.terms <- rownames(twitter.3g.list$allTermsCounters)
-t.counters <- twitter.3g.list$allTermsCounters$freq
+twitter.3g.list <- load.twitter.3g.data("./../data/processed/02_01_s05_sampleCorpus_twitter_termsfrequency.3g.Rdata",
+                                        "./../data/processed/02_01_s04_sampleCorpus_twitter_tdm.3g.Rdata")
+t.terms <- rownames(twitter.3g.list$tcv)
+t.counters <- twitter.3g.list$tcv$freq
 t.N <- sum(t.counters)
 t.V <- length(unique(t.terms))
 Rprof(NULL)
@@ -166,7 +170,7 @@ summaryRprof(tmp)
 
 format(object.size(t.terms), "auto")
 format(object.size(t.counters), "auto")
-format(object.size(twitter.3g.list$allTermsCounters), "auto")
+format(object.size(twitter.3g.list$tcv), "auto")
 
 bigramModel.counterForTerm <- function(word){
     idx <- which(b.terms == word)
@@ -212,9 +216,7 @@ trigramsModel.probabilityFor("<s>", "thanks", "for")
 Rprof(NULL)
 summaryRprof(tmp)
 
-
 trigramsModel.probabilityFor("i", "love", "you")
-
 ```
 
 
@@ -246,13 +248,12 @@ Rprof(tmp <- tempfile())
 hash_found <- sapply(index, FUN=function(x){data_h[[x]]})
 Rprof(NULL)
 summaryRprof(tmp)
-
 ```
 
 ## Trigrams
 
 
-```{r TrigramsInvestigate}
+```{r TrigramsInvestigate, eval = F}
 
 require(profr)
 require(hash)
@@ -270,9 +271,9 @@ t.V <- length(unique(t.terms))
 
 sum(t.counters >= 3) #circa 50000
 
-t.counters.atLeast3 <- (t.counters >= 3)
-t.terms <- t.terms[t.counters.atLeast3]
-t.counters <- t.counters[t.counters.atLeast3]
+t.counters.atLeast <- (t.counters >= 3)
+t.terms <- t.terms[t.counters.atLeast]
+t.counters <- t.counters[t.counters.atLeast]
 t.N <- sum(t.counters)
 t.V <- length(unique(t.terms))
 
@@ -290,9 +291,9 @@ getTrigramModel.forTrigram <- function(i){
     elem.nextWord <- elem.1grams[3]
     elem.prob <- trigramsModel.probabilityFor(elem.1grams[1], elem.1grams[2], elem.1grams[3])
     
-    #print(elem.bigram)
-    #print(elem.nextWord)
-    #print(elem.prob)
+    # print(elem.bigram)
+    # print(elem.nextWord)
+    # print(elem.prob)
     
     data.bigrams[i] <<- elem.bigram
     data.nextWord[i] <<- elem.nextWord
@@ -303,18 +304,34 @@ getTrigramModel.forTrigram(1)
 getTrigramModel.forTrigram(2)
 getTrigramModel.forTrigram(3)
 
-for(i in 1:size){
-    if(i %% 1000 == 0) print(paste("Processing", i, "of", size))
-    getTrigramModel.forTrigram(i)
-}
+
+##TIME CONSUMING but BETTER THAN THE ONE BELOW
+##NEED TO BE OPTIMIZED
+Rprof(tmpf <- tempfile())
+tmp <- sapply(c(1:size), FUN = getTrigramModel.forTrigram)
+Rprof(NULL)
+summaryRprof(tmpf)
 
 
-save(t.terms, t.counters, t.N, t.V, data.bigrams, data.nextWord, data.prob, file = "./../data/processed/model.twitter.trigrams.Rdata")
+#CRAPPY CODE - NOT VERY PERFORMANT
+# for(i in 1:size){
+#     if(i %% 1000 == 0) print(paste("Processing", i, "of", size))
+#     getTrigramModel.forTrigram(i)
+# }
+
+
+save(t.terms, t.counters, t.N, t.V, data.bigrams, data.nextWord, data.prob, 
+     file = "./../data/processed/03_languageModel.playground.twitter.trigrams.Rdata")
+
 format(object.size(data.bigrams), "auto")
 format(object.size(data.nextWord), "auto")
 format(object.size(data.prob), "auto")
 
-load(file = "./../data/processed/model.twitter.trigrams.Rdata")
+```
+
+```{r useModel}
+rm(list = ls())
+load(file = "./../data/processed/03_languageModel.playground.twitter.trigrams.Rdata")
 
 #Case 1
 # The guy in front of me just bought a pound of bacon, a bouquet, and a case of
@@ -346,12 +363,6 @@ index <- which(data.bigrams == "at the")
 data.nextWord[index]
 data.prob[index]
 data.nextWord[index][order(data.prob[index], decreasing = T)]
-
-# format(object.size(data_h), "auto")
-# Rprof(tmp <- tempfile())
-# hash_found <- sapply(index, FUN=function(x){data_h[[x]]})
-# Rprof(NULL)
-# summaryRprof(tmp)
 
 ```
 
