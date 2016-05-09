@@ -12,6 +12,12 @@ load_original_corpora <- function(){
     list(twitterCorpus = twitter.all, newsCorpus = news.all, blogsCorpus = blogs.all)
 }
 
+load_blogs_corpus <- function(){
+    blogs.all <- load_original_corpus("./../data/original/final/en_US/en_US.blogs.txt")
+    list(blogsCorpus = blogs.all)
+}
+
+
 load_twitter_corpus <- function(){
     twitter.all <- load_original_corpus("./../data/original/final/en_US/en_US.twitter.txt")
     list(twitterCorpus = twitter.all)
@@ -39,6 +45,12 @@ sample_corpora <- function(corpora, seed, twitter.perc = 0.1, news.perc = 0.1, b
     list(twitterCorpus = corpora$twitterCorpus[twitter.sampling == 1], 
          newsCorpus = corpora$newsCorpus[news.sampling == 1], 
          blogsCorpus = corpora$blogsCorpus[blogs.sampling == 1])
+}
+
+#corpora as a list(blogsCorpus = all)
+sample_blogs_corpus <- function(corpora, seed, blogs.perc = 0.1){
+    blogs.sampling <- biased_dice_outcome(noOfThrowings = length(corpora$blogsCorpus), seed = seed, percentageOfSuccess = blogs.perc)
+    list(blogsCorpus = corpora$blogsCorpus[blogs.sampling == 1])
 }
 
 #corpora as a list(newsCorpus = news.all)
