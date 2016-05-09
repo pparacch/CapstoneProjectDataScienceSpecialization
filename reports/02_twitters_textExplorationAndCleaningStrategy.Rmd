@@ -1,5 +1,5 @@
 ---
-title: "Twitters - Text Exploration"
+title: "Twitters - Text Exploration - Playground"
 author: "Pier Lorenzo Paracchini"
 date: "23 April 2016"
 output: html_document
@@ -24,6 +24,10 @@ getOption("encoding")
 Sys.getlocale("LC_CTYPE")
 localeToCharset()
 ```
+
+
+Initial exploration around the tweets ....
+It is not updated to use the scripts for teh project.
 
 ```{r supportingFunctions, echo = F}
 normalizeLowerLetter <- function(texts, replaceWith = ""){
