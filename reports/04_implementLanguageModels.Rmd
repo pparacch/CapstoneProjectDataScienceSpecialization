@@ -123,7 +123,7 @@ Process
 __Note the generation of the models depends on the normalized coprpora so when re-cleaning & processing the corpora all of those steps need to be performed.__
 
 
-```{r trigramModelAllCorpora, eval = F}
+```{r trigramModelAllCorporaModelCreation, eval = F}
 rm(list = ls())
 source("./../scripts/model.R")
 source("./../scripts/model_trigramLanguageModel.R")
@@ -135,9 +135,20 @@ source("./../scripts/model_trigramLanguageModel.R")
 # load(file = filename)
 # tmp1 <- data.3g.model.df
 
+
+#For the Creation of the model
 filename <- generate.corpora.3gramModel.i()
 load(file = filename)
 
+```
+
+```{r modelUsage}
+rm(list = ls())
+source("./../scripts/model.R")
+source("./../scripts/model_trigramLanguageModel.R")
+
+#For using the existent Model - the file below contains teh latest generated model
+load(file = "./../scripts/trigramLanguageModel/allCorpora.3gModel_i_2016-05-10.rdata")
 bigram <- "<s> thanks"
 data.3g.model.df[which(data.3g.model.df$bigram == bigram),]
 
@@ -422,21 +433,42 @@ data.3g.model.df[which(data.3g.model.df$bigram == bigram),]
 
 ```{r}
 rm(list = ls())
-source("model.R")
+source("./../scripts/model.R")
 require(hash)
 
-load("./../data/processed/allCorpora_aggregated_allTermsFrequency.3g.rdata")
+visualizeCumuluativeCoverage <- function(freqs, terms, title){
+    idx <- order(freqs, decreasing = T)
+    terms.term <- terms[idx]
+    terms.freq <- freqs[idx]
+
+    terms.count <- sum(terms.freq)
+    terms.unique <- length(unique(terms.term))
+    terms.cumulativeCoverage <- (cumsum(terms.freq)/ terms.count) * 100
+    
+    
+    plot(terms.cumulativeCoverage, type = "l", xlab = "Number Of Words", ylab = "% Coverage", main = title)
+    abline(v = which(terms.cumulativeCoverage >= 50)[1], col = "orange", lwd = 3)
+    abline(v = which(terms.cumulativeCoverage >= 90)[1], col = "red", lwd = 3)
+    legend(x = "topright", lty=c(1,1), lwd=c(3,3), col=c("orange", "red"), legend = c("50% coverage", "90% coverage")) 
+}
+
+
+load("./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.3g.rdata")
 allCorpora.3g <- d.ng.df
 d.ng.df <- NULL
+visualizeCumuluativeCoverage(allCorpora.3g$total, allCorpora.3g$terms, "allCorpora-3g")
 
-load("./../data/processed/allCorpora_aggregated_allTermsFrequency.2g.rdata")
+load("./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.2g.rdata")
 allCorpora.2g <- d.ng.df
 d.ng.df <- NULL
+visualizeCumuluativeCoverage(allCorpora.2g$total, allCorpora.2g$terms, "allCorpora-2g")
 
-load("./../data/processed/allCorpora_aggregated_allTermsFrequency.1g.rdata")
+load("./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.1g.rdata")
 allCorpora.1g <- d.ng.df
 d.ng.df <- NULL
+visualizeCumuluativeCoverage(allCorpora.1g$total, allCorpora.1g$terms, "allCorpora-1g")
 
+#Size of the object in memory
 format(object.size(allCorpora.3g$terms), "auto")
 format(object.size(allCorpora.3g$total), "auto")
 
@@ -447,15 +479,17 @@ format(object.size(allCorpora.1g$terms), "auto")
 format(object.size(allCorpora.1g$total), "auto")
 
 #Something to investigate the use of hash for memory reduction
+#CAREFULL do not try with big object - a circa 400 M object size (especially the saving)
 allCorpora.3g.h <- hash(allCorpora.3g$terms, allCorpora.3g$total)
 format(object.size(allCorpora.3g.h), "auto")
-
+save(allCorpora.3g.h, file = "./../scripts/stupidBackoff_3g_LanguageModel/04_allCorpora_3g_hash_object.rdata")
 allCorpora.3g.h[allCorpora.3g$terms[1:10]]
 allCorpora.3g$terms[1:10]
 allCorpora.3g$total[1:10]
 
 allCorpora.2g.h <- hash(allCorpora.2g$terms, allCorpora.2g$total)
 format(object.size(allCorpora.2g.h), "auto")
+save(allCorpora.2g.h, file = "./../scripts/stupidBackoff_3g_LanguageModel/04_allCorpora_2g_hash_object.rdata")
 
 allCorpora.2g.h[allCorpora.2g$terms[1:10]]
 allCorpora.2g$terms[1:10]
@@ -463,16 +497,12 @@ allCorpora.2g$total[1:10]
 
 allCorpora.1g.h <- hash(allCorpora.1g$terms, allCorpora.1g$total)
 format(object.size(allCorpora.1g.h), "auto")
-
+save(allCorpora.1g.h, file = "./../scripts/stupidBackoff_3g_LanguageModel/04_allCorpora_1g_hash_object.rdata")
 allCorpora.1g.h[allCorpora.1g$terms[1:10]]
 allCorpora.1g$terms[1:10]
 allCorpora.1g$total[1:10]
 
-load(file = "./tmp/twitter_step2_sample.1.Rdata")
-data.twitter.sample[10:20]
-
-
-s <- "<s> you will absolutely love it after the"
+s <- "<s> <s> you will absolutely love it after the"
 
 Rprof(tmp <- tempfile())
 estimateSentenceProbabilities(s = s, t.terms = allCorpora.3g$terms, t.counters = allCorpora.3g$total,

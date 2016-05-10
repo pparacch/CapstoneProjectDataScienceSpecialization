@@ -465,5 +465,5 @@ estimateSentenceProbabilities <- function(s, t.terms, t.counters, b.terms, b.cou
         print(paste("#    prob(log):", tmp, ", total(log):", result))
     }
     
-    list(probability_ln <- result, perplexity_ln <- (-1/ N)* result)
+    list(probability_ln = result, perplexity_ln = (-1/ N)* result)
 }
