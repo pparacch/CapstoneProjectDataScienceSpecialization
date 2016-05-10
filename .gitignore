@@ -26,7 +26,7 @@ scripts/*_cache/
 scripts/*_files/
 scripts/rsconnect/
 scripts/tmp/
-scripts/trigramLanguageModel/
+scripts/model_*/
 
 reports/*.md
 reports/*.html

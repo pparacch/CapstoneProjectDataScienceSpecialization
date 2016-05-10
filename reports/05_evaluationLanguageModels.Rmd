@@ -49,7 +49,7 @@ The trigrams and bigrams generated using all of the sample corpora are used. If 
 ```{r loadTheModel, cache = T}
 #Model - based on all of the 3g and 2g from the all corpora used for training
 #Model - simple MLE / no smoothing applied
-load(file = "./../scripts/trigramLanguageModel/allCorpora.3gModel_i_2016-05-10.rdata")
+load(file = "./../scripts/model_trigramLanguage/allCorpora.3gModel_i_2016-05-10.rdata")
 ```
 
 ```{r testTrigramModel_3g_all_2g_all_MLE_model}
@@ -75,15 +75,15 @@ rm(data.2g, data.3g, data.3g.model, data.3g.model.df, data.3g.model.evaluation)
 The trigrams and bigrams generated using all of the sample corpora are used. If the combination bigram, net word is not found the model assign a 0 probability to that specific case.
 
 ```{r loadTheModelData, cache = T}
-load("./../scripts/stupidBackoff_3g_LanguageModel/04_s01_allCorpora_aggregated_termsFrequency.3g.rdata")
+load("./../scripts/model_stupidBackoff_3g_Language/04_s01_allCorpora_aggregated_termsFrequency.3g.rdata")
 allCorpora.3g <- d.ng.df
 d.ng.df <- NULL
 
-load("./../scripts/stupidBackoff_3g_LanguageModel/04_s01_allCorpora_aggregated_termsFrequency.2g.rdata")
+load("./../scripts/model_stupidBackoff_3g_Language/04_s01_allCorpora_aggregated_termsFrequency.2g.rdata")
 allCorpora.2g <- d.ng.df
 d.ng.df <- NULL
 
-load("./../scripts/stupidBackoff_3g_LanguageModel/04_s01_allCorpora_aggregated_termsFrequency.1g.rdata")
+load("./../scripts/model_stupidBackoff_3g_Language/04_s01_allCorpora_aggregated_termsFrequency.1g.rdata")
 allCorpora.1g <- d.ng.df
 d.ng.df <- NULL
 
