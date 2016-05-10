@@ -1,3 +1,4 @@
+##THIS IS VERY SLOW
 generate.corpora.3gramModel <- function(noElements){
     
     load(file = "./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.3g.rdata")
@@ -72,103 +73,161 @@ generate.corpora.3gramModel.i <- function(noElements){
     filename
 }
 
-
-
-generate.twitter.3gramModel <- function(folder, 
-                                        file.allTermFrequency.3g, file.tdm.3g,
-                                        file.allTermFrequency.2g, file.tdm.2g,
-                                        noElements){
+#############################################################################
+# estimateSentenceProbabilities                                             #
+# Probability Calculation for a sentence using the ChainRule                #
+# Trigram Language Model Aprroximation                                      #
+# log(Proability) = log(p1) + log(p2) + .. + log(pn)                        #
+# Perplexity Calculation for a sentence                                     #
+# Trigram Language Model Aprroximation                                      #
+# S: sentence, N: number of words in S, PP = perplexity                     #
+# log(PP) = -1/N * log(Proability) = -1/N * log(p1) + log(p2) + .. + log(pn)#
+#---------------------------------------------------------------------------#
+# Inputs:                                                                   #
+# s: sentence (normalized)                                                  #
+# model.3g: dataframe representing the model                                #
+# bigram, next.word,count, count.b, probability                             #
+# (wi-2, wi-1), wi, c((wi-2, wi-1, wi)), c((wi-2, wi-1)),                   #
+# pro = c((wi-2, wi-1, wi))/c((wi-2, wi-1))                                 #
+#############################################################################
+# sentence -> normalized sentence, e.g. "<s> <s>" and "</s>" added, toLowerCase, remove punctuations and numbers
+estimateSentenceProbabilities.mle <- function(s, x){
+    s.words <- ngramTokenize(y = s, ng = 1)
+    N <- length(s.words)
     
-    f.allTermFrequency <- paste(folder, file.allTermFrequency.3g, sep = "")
-    f.tdm <- paste(folder, file.tdm.3g, sep = "")
-    data.3g <- load.twitter.3g.data(file_url_allTermsFrequency = f.allTermFrequency,
-                                    file_url_tdm = f.tdm)
+    print(paste("###########sentenceProbability"))
+    print(paste("#    sentence:", s, ", NoOfWords:", N))
     
-    f.allTermFrequency <- paste(folder, file.allTermFrequency.2g, sep = "")
-    f.tdm <- paste(folder, file.tdm.2g, sep = "")
-    data.2g <- load.twitter.2g.data(file_url_allTermsFrequency = f.allTermFrequency,
-                                    file_url_tdm = f.tdm)
+    result <- 0
+    s.trigrams <- ngramTokenize(y = s, ng = 3)
     
-    ##Term Counters Ordered By Frequency
-    data.3g.tc.info <- orderElementsByFrequency(tcv = data.3g, decreasing = T)
-    data.2g.tc.info <- orderElementsByFrequency(tcv = data.2g, decreasing = T)
+    for(i in 1:length(s.trigrams)){
+        d.t <- s.trigrams[i]
+        d.t.ws <- ngramTokenize(d.t,1)
+        d.t.w_i <- d.t.ws[3]
+        d.t.b <- paste(d.t.ws[1], d.t.ws[2])
+        
+        print(paste("#     bigram_i-1:", d.t.b))
+        print(paste("#         word_i:", d.t.w_i))
+        
+        idx <- which(x$bigram == d.t.b & x$next.word == d.t.w_i)
+        
+        if(length(idx) == 1){
+            entryFound <- x[which(x$bigram == d.t.b & x$next.word == d.t.w_i),]
+            print(paste("# ------------->bigram:", entryFound$bigram, ", next.word:", entryFound$next.word ,", prob:", entryFound$probability))
+            tmp <- log(entryFound$probability, base = 2)
+            result <- result + tmp
+        }else{
+            print("# =============>Not Found")
+            tmp <- log(0, base = 2)
+            result <- result + tmp
+            print(paste("#    prob(log):", tmp, ", total(log):", result))
+            break
+        }
+        
+        print(paste("#    prob(log):", tmp, ", total(log):", result))
+    }
     
-    
-    data.3g.model <- trigrams.model(t.terms = data.3g.tc.info$terms[1:noElements], t.counters = data.3g.tc.info$counters[1:noElements],
-                                    b.terms = data.2g.tc.info$terms, b.counters = data.2g.tc.info$counters)
-    
-    data.3g.model.df <- data.frame(bigram = data.3g.model$t.bigram, 
-                                   next.word= data.3g.model$t.nextWord, 
-                                   count = data.3g.model$t.count,
-                                   probability = data.3g.model$t.probability)
-    
-    filename <- paste("./../scripts/trigramLanguageModel/twitter.3gModel_", Sys.Date(), ".rdata", sep = "")
-    save(data.3g.tc.info, data.2g.tc.info, data.3g.model, data.3g.model.df, file = filename)
-    filename
+    list(sentence = s, probability_ln = result, perplexity_ln = (-1/ N)* result)
 }
 
-generate.news.3gramModel <- function(folder, 
-                                     file.allTermFrequency.3g, file.tdm.3g,
-                                     file.allTermFrequency.2g, file.tdm.2g,
-                                     noElements){
-    
-    f.allTermFrequency <- paste(folder, file.allTermFrequency.3g, sep = "")
-    f.tdm <- paste(folder, file.tdm.3g, sep = "")
-    data.3g <- load.news.3g.data(file_url_allTermsFrequency = f.allTermFrequency,
-                                 file_url_tdm = f.tdm)
-    
-    f.allTermFrequency <- paste(folder, file.allTermFrequency.2g, sep = "")
-    f.tdm <- paste(folder, file.tdm.2g, sep = "")
-    data.2g <- load.news.2g.data(file_url_allTermsFrequency = f.allTermFrequency,
-                                 file_url_tdm = f.tdm)
-    
-    ##Term Counters Ordered By Frequency
-    data.3g.tc.info <- orderElementsByFrequency(tcv = data.3g, decreasing = T)
-    data.2g.tc.info <- orderElementsByFrequency(tcv = data.2g, decreasing = T)
-    
-    
-    data.3g.model <- trigrams.model(t.terms = data.3g.tc.info$terms[1:noElements], t.counters = data.3g.tc.info$counters[1:noElements],
-                                    b.terms = data.2g.tc.info$terms, b.counters = data.2g.tc.info$counters)
-    
-    data.3g.model.df <- data.frame(bigram = data.3g.model$t.bigram, 
-                                   next.word= data.3g.model$t.nextWord, 
-                                   count = data.3g.model$t.count,
-                                   probability = data.3g.model$t.probability)
-    
-    filename <- paste("./../scripts/trigramLanguageModel/news.3gModel_", Sys.Date(), ".rdata", sep = "")
-    save(data.3g.tc.info, data.2g.tc.info, data.3g.model, data.3g.model.df, file = filename)
-    filename
-}
 
-generate.blogs.3gramModel <- function(folder, 
-                                     file.allTermFrequency.3g, file.tdm.3g,
-                                     file.allTermFrequency.2g, file.tdm.2g,
-                                     noElements){
-    
-    f.allTermFrequency <- paste(folder, file.allTermFrequency.3g, sep = "")
-    f.tdm <- paste(folder, file.tdm.3g, sep = "")
-    data.3g <- load.blogs.3g.data(file_url_allTermsFrequency = f.allTermFrequency,
-                                 file_url_tdm = f.tdm)
-    
-    f.allTermFrequency <- paste(folder, file.allTermFrequency.2g, sep = "")
-    f.tdm <- paste(folder, file.tdm.2g, sep = "")
-    data.2g <- load.blogs.2g.data(file_url_allTermsFrequency = f.allTermFrequency,
-                                 file_url_tdm = f.tdm)
-    
-    ##Term Counters Ordered By Frequency
-    data.3g.tc.info <- orderElementsByFrequency(tcv = data.3g, decreasing = T)
-    data.2g.tc.info <- orderElementsByFrequency(tcv = data.2g, decreasing = T)
-    
-    
-    data.3g.model <- trigrams.model(t.terms = data.3g.tc.info$terms[1:noElements], t.counters = data.3g.tc.info$counters[1:noElements],
-                                    b.terms = data.2g.tc.info$terms, b.counters = data.2g.tc.info$counters)
-    
-    data.3g.model.df <- data.frame(bigram = data.3g.model$t.bigram, 
-                                   next.word= data.3g.model$t.nextWord, 
-                                   count = data.3g.model$t.count,
-                                   probability = data.3g.model$t.probability)
-    
-    filename <- paste("./../scripts/trigramLanguageModel/blogs.3gModel_", Sys.Date(), ".rdata", sep = "")
-    save(data.3g.tc.info, data.2g.tc.info, data.3g.model, data.3g.model.df, file = filename)
-    filename
-}
+
+# generate.twitter.3gramModel <- function(folder, 
+#                                         file.allTermFrequency.3g, file.tdm.3g,
+#                                         file.allTermFrequency.2g, file.tdm.2g,
+#                                         noElements){
+#     
+#     f.allTermFrequency <- paste(folder, file.allTermFrequency.3g, sep = "")
+#     f.tdm <- paste(folder, file.tdm.3g, sep = "")
+#     data.3g <- load.twitter.3g.data(file_url_allTermsFrequency = f.allTermFrequency,
+#                                     file_url_tdm = f.tdm)
+#     
+#     f.allTermFrequency <- paste(folder, file.allTermFrequency.2g, sep = "")
+#     f.tdm <- paste(folder, file.tdm.2g, sep = "")
+#     data.2g <- load.twitter.2g.data(file_url_allTermsFrequency = f.allTermFrequency,
+#                                     file_url_tdm = f.tdm)
+#     
+#     ##Term Counters Ordered By Frequency
+#     data.3g.tc.info <- orderElementsByFrequency(tcv = data.3g, decreasing = T)
+#     data.2g.tc.info <- orderElementsByFrequency(tcv = data.2g, decreasing = T)
+#     
+#     
+#     data.3g.model <- trigrams.model(t.terms = data.3g.tc.info$terms[1:noElements], t.counters = data.3g.tc.info$counters[1:noElements],
+#                                     b.terms = data.2g.tc.info$terms, b.counters = data.2g.tc.info$counters)
+#     
+#     data.3g.model.df <- data.frame(bigram = data.3g.model$t.bigram, 
+#                                    next.word= data.3g.model$t.nextWord, 
+#                                    count = data.3g.model$t.count,
+#                                    probability = data.3g.model$t.probability)
+#     
+#     filename <- paste("./../scripts/trigramLanguageModel/twitter.3gModel_", Sys.Date(), ".rdata", sep = "")
+#     save(data.3g.tc.info, data.2g.tc.info, data.3g.model, data.3g.model.df, file = filename)
+#     filename
+# }
+# 
+# generate.news.3gramModel <- function(folder, 
+#                                      file.allTermFrequency.3g, file.tdm.3g,
+#                                      file.allTermFrequency.2g, file.tdm.2g,
+#                                      noElements){
+#     
+#     f.allTermFrequency <- paste(folder, file.allTermFrequency.3g, sep = "")
+#     f.tdm <- paste(folder, file.tdm.3g, sep = "")
+#     data.3g <- load.news.3g.data(file_url_allTermsFrequency = f.allTermFrequency,
+#                                  file_url_tdm = f.tdm)
+#     
+#     f.allTermFrequency <- paste(folder, file.allTermFrequency.2g, sep = "")
+#     f.tdm <- paste(folder, file.tdm.2g, sep = "")
+#     data.2g <- load.news.2g.data(file_url_allTermsFrequency = f.allTermFrequency,
+#                                  file_url_tdm = f.tdm)
+#     
+#     ##Term Counters Ordered By Frequency
+#     data.3g.tc.info <- orderElementsByFrequency(tcv = data.3g, decreasing = T)
+#     data.2g.tc.info <- orderElementsByFrequency(tcv = data.2g, decreasing = T)
+#     
+#     
+#     data.3g.model <- trigrams.model(t.terms = data.3g.tc.info$terms[1:noElements], t.counters = data.3g.tc.info$counters[1:noElements],
+#                                     b.terms = data.2g.tc.info$terms, b.counters = data.2g.tc.info$counters)
+#     
+#     data.3g.model.df <- data.frame(bigram = data.3g.model$t.bigram, 
+#                                    next.word= data.3g.model$t.nextWord, 
+#                                    count = data.3g.model$t.count,
+#                                    probability = data.3g.model$t.probability)
+#     
+#     filename <- paste("./../scripts/trigramLanguageModel/news.3gModel_", Sys.Date(), ".rdata", sep = "")
+#     save(data.3g.tc.info, data.2g.tc.info, data.3g.model, data.3g.model.df, file = filename)
+#     filename
+# }
+# 
+# generate.blogs.3gramModel <- function(folder, 
+#                                      file.allTermFrequency.3g, file.tdm.3g,
+#                                      file.allTermFrequency.2g, file.tdm.2g,
+#                                      noElements){
+#     
+#     f.allTermFrequency <- paste(folder, file.allTermFrequency.3g, sep = "")
+#     f.tdm <- paste(folder, file.tdm.3g, sep = "")
+#     data.3g <- load.blogs.3g.data(file_url_allTermsFrequency = f.allTermFrequency,
+#                                  file_url_tdm = f.tdm)
+#     
+#     f.allTermFrequency <- paste(folder, file.allTermFrequency.2g, sep = "")
+#     f.tdm <- paste(folder, file.tdm.2g, sep = "")
+#     data.2g <- load.blogs.2g.data(file_url_allTermsFrequency = f.allTermFrequency,
+#                                  file_url_tdm = f.tdm)
+#     
+#     ##Term Counters Ordered By Frequency
+#     data.3g.tc.info <- orderElementsByFrequency(tcv = data.3g, decreasing = T)
+#     data.2g.tc.info <- orderElementsByFrequency(tcv = data.2g, decreasing = T)
+#     
+#     
+#     data.3g.model <- trigrams.model(t.terms = data.3g.tc.info$terms[1:noElements], t.counters = data.3g.tc.info$counters[1:noElements],
+#                                     b.terms = data.2g.tc.info$terms, b.counters = data.2g.tc.info$counters)
+#     
+#     data.3g.model.df <- data.frame(bigram = data.3g.model$t.bigram, 
+#                                    next.word= data.3g.model$t.nextWord, 
+#                                    count = data.3g.model$t.count,
+#                                    probability = data.3g.model$t.probability)
+#     
+#     filename <- paste("./../scripts/trigramLanguageModel/blogs.3gModel_", Sys.Date(), ".rdata", sep = "")
+#     save(data.3g.tc.info, data.2g.tc.info, data.3g.model, data.3g.model.df, file = filename)
+#     filename
+# }

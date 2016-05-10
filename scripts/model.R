@@ -443,7 +443,7 @@ estimateSentenceProbabilities <- function(s, t.terms, t.counters, b.terms, b.cou
     s.words <- ngramTokenize(y = s, ng = 1)
     N <- length(s.words)
     
-    print(paste("#sentenceProbability"))
+    print(paste("########sentenceProbability"))
     print(paste("#    sentence:", s, ", NoOfWords:", N))
 
     result <- 0
@@ -455,8 +455,8 @@ estimateSentenceProbabilities <- function(s, t.terms, t.counters, b.terms, b.cou
         d.t.w_i <- d.t.ws[3]
         d.t.b <- paste(d.t.ws[1], d.t.ws[2])
         
-        print(paste("#         word_i:", d.t.w_i))
         print(paste("#     bigram_i-1:", d.t.b))
+        print(paste("#         word_i:", d.t.w_i))
         tmp <- log(stupidBackoff.trigrams(word_i = d.t.w_i, bigramBeforeWord_i = d.t.b,
                                           t.terms = t.terms, t.counters = t.counters,
                                           b.terms = b.terms, b.counters = b.counters,
@@ -465,5 +465,5 @@ estimateSentenceProbabilities <- function(s, t.terms, t.counters, b.terms, b.cou
         print(paste("#    prob(log):", tmp, ", total(log):", result))
     }
     
-    list(probability_ln = result, perplexity_ln = (-1/ N)* result)
+    list(sentence = s, probability_ln = result, perplexity_ln = (-1/ N)* result)
 }

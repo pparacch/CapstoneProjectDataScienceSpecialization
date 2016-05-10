@@ -1,0 +1,113 @@
+---
+title: 'Models: Comparing & Evaluation'
+author: "Pier Lorenzo Paracchini"
+date: "10 mai 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(knitr)
+
+# WINDOWS LOCALE SETTING
+Sys.setlocale(category = "LC_ALL",locale = "English_United States.1252")
+
+```
+
+# Testing
+
+A simple approach for testing the different models is to evaluate  __How does our language model prefer good sentences over bad one?__, or in other words __Does the model assign high probability to "real" or "frequently observed" sentences?__.
+
+The test is done using a set of sentences that have not been used for training the model - basic assumption __the model has never seen those sentences__.
+
+The evaluation metrics (ln scale) used to evaluate how well the model is preforming in the __P(S)__ (probability assigned to the sentence S = w1, w2, .., wn) and perplexity. These metrics are related __perplexity = f(probability)__. A better model is the one which assigns a higher probability to the words that actually occurs (reality).
+
+```{r creatingTestDataSetOfSentences}
+sentences <- c(
+    #High Probability (max is ln(1) = 0/ Lower perplexity (limit to 0 when ln(1))
+    "you will absolutely love it",
+    "you will absolutely love him after the meeting",
+    "if this isn't the cutest thing you've ever seen then you must be insane",
+    "i think most people mean things like that",
+    "morning is my least favorite time of the day",
+    "i love you",
+    
+    #Lower Probability/ Higher perplexity
+    "you will absolutely love and it",
+    "you will absolutely love him after the and meeting",
+    "you will absolutely him after the meeting",
+    "if this isn't not the cutest thing you've ever never seen then you must be insane",
+    "i think most people mean things like that",
+    "i love you not"
+)
+```
+
+# Tri-gram model based on MLE, using all of the trigrams and bigrams within all of the sample corpus
+
+The trigrams and bigrams generated using all of the sample corpora are used. If the combination bigram, net word is not found the model assign a 0 probability to that specific case.
+
+```{r loadTheModel, cache = T}
+#Model - based on all of the 3g and 2g from the all corpora used for training
+#Model - simple MLE / no smoothing applied
+load(file = "./../scripts/trigramLanguageModel/allCorpora.3gModel_i_2016-05-10.rdata")
+```
+
+```{r testTrigramModel_3g_all_2g_all_MLE_model}
+source("./../scripts/model.R")
+source("./../scripts/model_trigramLanguageModel.R")
+
+#Size of the object in memory
+format(object.size(data.3g.model.df), "auto")
+
+# estimateSentenceProbabilities.mle(paste("<s>", sentences[1], "</s>"), data.3g.model.df)
+data.3g.model.evaluation <- sapply(sentences, FUN = estimateSentenceProbabilities.mle, data.3g.model.df)
+colnames(data.3g.model.evaluation) <- NULL
+```
+
+`r kable(t(data.3g.model.evaluation), caption = "Tri-grams Model - Base")`
+
+```{r cleanUp}
+rm(data.2g, data.3g, data.3g.model, data.3g.model.df, data.3g.model.evaluation)
+```
+
+# Tri-gram model based on Stupid Backoff, using all of the trigrams and bigrams within all of the sample corpus
+
+The trigrams and bigrams generated using all of the sample corpora are used. If the combination bigram, net word is not found the model assign a 0 probability to that specific case.
+
+```{r loadTheModelData, cache = T}
+load("./../scripts/stupidBackoff_3g_LanguageModel/04_s01_allCorpora_aggregated_termsFrequency.3g.rdata")
+allCorpora.3g <- d.ng.df
+d.ng.df <- NULL
+
+load("./../scripts/stupidBackoff_3g_LanguageModel/04_s01_allCorpora_aggregated_termsFrequency.2g.rdata")
+allCorpora.2g <- d.ng.df
+d.ng.df <- NULL
+
+load("./../scripts/stupidBackoff_3g_LanguageModel/04_s01_allCorpora_aggregated_termsFrequency.1g.rdata")
+allCorpora.1g <- d.ng.df
+d.ng.df <- NULL
+
+#Size of the object in memory
+format(object.size(allCorpora.3g$terms), "auto")
+format(object.size(allCorpora.3g$total), "auto")
+
+format(object.size(allCorpora.2g$terms), "auto")
+format(object.size(allCorpora.2g$total), "auto")
+
+format(object.size(allCorpora.1g$terms), "auto")
+format(object.size(allCorpora.1g$total), "auto")
+```
+
+```{r testStupidBackOff_3g_all_2g_all_1g_all_model}
+stupidBackoff.model.base.evaluation <- sapply(sentences, FUN = estimateSentenceProbabilities,
+                                   t.terms = allCorpora.3g$terms, t.counters = allCorpora.3g$total,
+                                   b.terms = allCorpora.2g$terms, allCorpora.2g$total,
+                                   u.words = allCorpora.1g$terms, u.counters = allCorpora.1g$total)
+colnames(stupidBackoff.model.base.evaluation) <- NULL
+stupidBackoff.model.base.evaluation <- t(stupidBackoff.model.base.evaluation)
+```
+
+`r kable(stupidBackoff.model.base.evaluation, caption = "Tri-grams StupidBackoff - simple")`
+
+
+
