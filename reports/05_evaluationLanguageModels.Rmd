@@ -31,6 +31,7 @@ sentences <- c(
     "<s> i think most people mean things like that </s>",
     "<s> morning is my least favorite time of the day </s>",
     "<s> i love you </s>",
+    "<s> it’s potentially the most important engagement of our week yet it’s the one the majority of us aren’t even penciling into our agendas </s>",
     
     #Lower Probability/ Higher perplexity
     "<s> you will absolutely love and it </s>",

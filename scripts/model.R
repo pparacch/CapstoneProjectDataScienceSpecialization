@@ -481,8 +481,12 @@ estimateSentenceProbabilities <- function(s, t.terms, t.counters, b.terms, b.cou
 # Implementation of a (simple) Good Turing smoothing alg
 getGoodTuringCount <- function(term, terms, counters){
     #Simple implementation based on Good-Turing numbers
+    print(paste("    >>>> term:", term))
+    
     result <- NULL
     idx <- which(terms == term)
+    
+    
     if(length(idx) == 0){
         #A new term that I have never seen before so
         result <- support_getGoodTuringCountByActualCount(0)
@@ -549,6 +553,9 @@ calculatePerplexity <- function(evaluation.as.df){
     if(sum(is.infinite(probs))){
         return(NA)
     }else{
+        s.p <- sum(probs)
+        s.Ns <- sum(Ns)
+        print(paste("Sum Probabilities:", s.p, ", Total NoOfTerms:", s.Ns))
         return(-1 * sum(probs)/ sum(Ns))
     }
 }
