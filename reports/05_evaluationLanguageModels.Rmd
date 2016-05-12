@@ -25,20 +25,20 @@ The evaluation metrics (ln scale) used to evaluate how well the model is preform
 ```{r creatingTestDataSetOfSentences}
 sentences <- c(
     #High Probability (max is ln(1) = 0/ Lower perplexity (limit to 0 when ln(1))
-    "you will absolutely love it",
-    "you will absolutely love him after the meeting",
-    "if this isn't the cutest thing you've ever seen then you must be insane",
-    "i think most people mean things like that",
-    "morning is my least favorite time of the day",
-    "i love you",
+    "<s> you will absolutely love it </s>",
+    "<s> you will absolutely love him after the meeting </s>",
+    "<s> if this isn't the cutest thing you've ever seen then you must be insane </s>",
+    "<s> i think most people mean things like that </s>",
+    "<s> morning is my least favorite time of the day </s>",
+    "<s> i love you </s>",
     
     #Lower Probability/ Higher perplexity
-    "you will absolutely love and it",
-    "you will absolutely love him after the and meeting",
-    "you will absolutely him after the meeting",
-    "if this isn't not the cutest thing you've ever never seen then you must be insane",
-    "i think most people mean things like that",
-    "i love you not"
+    "<s> you will absolutely love and it </s>",
+    "<s> you will absolutely love him after the and meeting </s>",
+    "<s> you will absolutely him after the meeting </s>",
+    "<s> if this isn't not the cutest thing you've ever never seen then you must be insane </s>",
+    "<s> i think most people mean things like that </s>",
+    "<s> i love you not </s>"
 )
 ```
 
@@ -52,7 +52,7 @@ The trigrams and bigrams generated using all of the sample corpora are used. If 
 load(file = "./../scripts/model_trigramLanguage/allCorpora.3gModel_i_2016-05-10.rdata")
 ```
 
-```{r testTrigramModel_3g_all_2g_all_MLE_model}
+```{r testTrigramModel_3g_all_2g_all_MLE_model, collapse = T}
 source("./../scripts/model.R")
 source("./../scripts/model_trigramLanguageModel.R")
 
@@ -62,9 +62,13 @@ format(object.size(data.3g.model.df), "auto")
 # estimateSentenceProbabilities.mle(paste("<s>", sentences[1], "</s>"), data.3g.model.df)
 data.3g.model.evaluation <- sapply(sentences, FUN = estimateSentenceProbabilities.mle, data.3g.model.df)
 colnames(data.3g.model.evaluation) <- NULL
+data.3g.model.evaluation <- t(data.3g.model.evaluation)
+model1.perplexity <- calculatePerplexity(data.3g.model.evaluation)
 ```
 
-`r kable(t(data.3g.model.evaluation), caption = "Tri-grams Model - Base")`
+`r kable(data.3g.model.evaluation, caption = "Tri-grams Model - Base")`
+
+__Perplexity (log base2):__ `r model1.perplexity`
 
 ```{r cleanUp}
 rm(data.2g, data.3g, data.3g.model, data.3g.model.df, data.3g.model.evaluation)
@@ -74,7 +78,7 @@ rm(data.2g, data.3g, data.3g.model, data.3g.model.df, data.3g.model.evaluation)
 
 The trigrams and bigrams generated using all of the sample corpora are used. If the combination bigram, net word is not found the model assign a 0 probability to that specific case.
 
-```{r loadTheModelData, cache = T}
+```{r loadTheModelData, cache = T, collapse=T}
 load("./../scripts/model_stupidBackoff_3g_Language/04_s01_allCorpora_aggregated_termsFrequency.3g.rdata")
 allCorpora.3g <- d.ng.df
 d.ng.df <- NULL
@@ -98,16 +102,22 @@ format(object.size(allCorpora.1g$terms), "auto")
 format(object.size(allCorpora.1g$total), "auto")
 ```
 
-```{r testStupidBackOff_3g_all_2g_all_1g_all_model}
+```{r testStupidBackOff_3g_all_2g_all_1g_all_model, collapse=T}
 stupidBackoff.model.base.evaluation <- sapply(sentences, FUN = estimateSentenceProbabilities,
                                    t.terms = allCorpora.3g$terms, t.counters = allCorpora.3g$total,
                                    b.terms = allCorpora.2g$terms, allCorpora.2g$total,
                                    u.words = allCorpora.1g$terms, u.counters = allCorpora.1g$total)
 colnames(stupidBackoff.model.base.evaluation) <- NULL
 stupidBackoff.model.base.evaluation <- t(stupidBackoff.model.base.evaluation)
+model2.perplexity <- calculatePerplexity(stupidBackoff.model.base.evaluation)
 ```
 
 `r kable(stupidBackoff.model.base.evaluation, caption = "Tri-grams StupidBackoff - simple")`
 
+__Perplexity (log base2):__ `r model2.perplexity`
 
 
+Model | Perplexity
+------------- | -------------
+Trigram - no smoothing - all corpora| `r model1.perplexity`
+StupidBackoff - no smoothing - allCorpora | `r model2.perplexity`

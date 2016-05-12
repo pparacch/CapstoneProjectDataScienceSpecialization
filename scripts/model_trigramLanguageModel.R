@@ -1,36 +1,36 @@
 ##THIS IS VERY SLOW
-generate.corpora.3gramModel <- function(noElements){
-    
-    load(file = "./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.3g.rdata")
-    data.3g <- d.ng.df
-    load(file = "./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.2g.rdata")
-    data.2g <- d.ng.df
-    d.ng.df <- NULL
-    
-    ##Term Counters Ordered By Frequency
-    idx <- order(data.3g$total, decreasing = T)
-    data.3g <- data.3g[idx,]
-    
-    ##Term Counters Ordered By Frequency
-    idx <- order(data.2g$total, decreasing = T)
-    data.2g <- data.2g[idx,]
-    idx <- NULL
-    
-    
-    data.3g.model <- trigrams.model(t.terms = data.3g$terms[1:noElements], t.counters = data.3g$total[1:noElements],
-                                    b.terms = data.2g$terms, b.counters = data.2g$total)
-    
-    data.3g.model.df <- data.frame(bigram = data.3g.model$t.bigram, 
-                                   next.word= data.3g.model$t.nextWord, 
-                                   count = data.3g.model$t.count,
-                                   probability = data.3g.model$t.probability)
-    
-    
-    
-    filename <- paste("./../scripts/trigramLanguageModel/allCorpora.3gModel_", Sys.Date(), ".rdata", sep = "")
-    save(data.3g, data.2g, data.3g.model, data.3g.model.df, file = filename)
-    filename
-}
+# generate.corpora.3gramModel <- function(noElements){
+#     
+#     load(file = "./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.3g.rdata")
+#     data.3g <- d.ng.df
+#     load(file = "./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.2g.rdata")
+#     data.2g <- d.ng.df
+#     d.ng.df <- NULL
+#     
+#     ##Term Counters Ordered By Frequency
+#     idx <- order(data.3g$total, decreasing = T)
+#     data.3g <- data.3g[idx,]
+#     
+#     ##Term Counters Ordered By Frequency
+#     idx <- order(data.2g$total, decreasing = T)
+#     data.2g <- data.2g[idx,]
+#     idx <- NULL
+#     
+#     
+#     data.3g.model <- trigrams.model(t.terms = data.3g$terms[1:noElements], t.counters = data.3g$total[1:noElements],
+#                                     b.terms = data.2g$terms, b.counters = data.2g$total)
+#     
+#     data.3g.model.df <- data.frame(bigram = data.3g.model$t.bigram, 
+#                                    next.word= data.3g.model$t.nextWord, 
+#                                    count = data.3g.model$t.count,
+#                                    probability = data.3g.model$t.probability)
+#     
+#     
+#     
+#     filename <- paste("./../scripts/trigramLanguageModel/allCorpora.3gModel_", Sys.Date(), ".rdata", sep = "")
+#     save(data.3g, data.2g, data.3g.model, data.3g.model.df, file = filename)
+#     filename
+# }
 
 generate.corpora.3gramModel.i <- function(noElements){
     
@@ -78,22 +78,22 @@ generate.corpora.3gramModel.i <- function(noElements){
 # Probability Calculation for a sentence using the ChainRule                #
 # Trigram Language Model Aprroximation                                      #
 # log(Proability) = log(p1) + log(p2) + .. + log(pn)                        #
-# Perplexity Calculation for a sentence                                     #
 # Trigram Language Model Aprroximation                                      #
-# S: sentence, N: number of words in S, PP = perplexity                     #
-# log(PP) = -1/N * log(Proability) = -1/N * log(p1) + log(p2) + .. + log(pn)#
+# s: sentence, N: number of words in s                     #
 #---------------------------------------------------------------------------#
 # Inputs:                                                                   #
 # s: sentence (normalized)                                                  #
 # model.3g: dataframe representing the model                                #
 # bigram, next.word,count, count.b, probability                             #
 # (wi-2, wi-1), wi, c((wi-2, wi-1, wi)), c((wi-2, wi-1)),                   #
-# pro = c((wi-2, wi-1, wi))/c((wi-2, wi-1))                                 #
+# probability = c((wi-2, wi-1, wi))/c((wi-2, wi-1))                         #
 #############################################################################
-# sentence -> normalized sentence, e.g. "<s> <s>" and "</s>" added, toLowerCase, remove punctuations and numbers
+
+# sentence -> normalized sentence, e.g. "<s>" and "</s>" added, 
+# toLowerCase, remove punctuations and numbers
 estimateSentenceProbabilities.mle <- function(s, x){
     s.words <- ngramTokenize(y = s, ng = 1)
-    N <- length(s.words)
+    N <- length(s.words) - 1 #Do not count the beginning of the sentence marker <s>
     
     print(paste("###########sentenceProbability"))
     print(paste("#    sentence:", s, ", NoOfWords:", N))
@@ -117,6 +117,7 @@ estimateSentenceProbabilities.mle <- function(s, x){
             print(paste("# ------------->bigram:", entryFound$bigram, ", next.word:", entryFound$next.word ,", prob:", entryFound$probability))
             tmp <- log(entryFound$probability, base = 2)
             result <- result + tmp
+            print(paste("#    prob(log):", tmp, ", total(log):", result))
         }else{
             print("# =============>Not Found")
             tmp <- log(0, base = 2)
@@ -124,11 +125,27 @@ estimateSentenceProbabilities.mle <- function(s, x){
             print(paste("#    prob(log):", tmp, ", total(log):", result))
             break
         }
-        
-        print(paste("#    prob(log):", tmp, ", total(log):", result))
     }
     
-    list(sentence = s, probability_ln = result, perplexity_ln = (-1/ N)* result)
+    data.frame(sentence = s, probability_log_base2 = result, noOfWords.sentence = N, stringsAsFactors = F)
+}
+
+
+
+calculatePerplexity <- function(evaluation.as.df){
+    
+    elements <- dim(evaluation.as.df)[1]
+    probs <- unlist(evaluation.as.df[(elements + 1):(elements * 2)])
+    Ns <- unlist(evaluation.as.df[(elements * 2) + 1 : (elements * 3)])
+    
+    print(paste("Probs:", paste(probs, collapse = ", ")))
+    print(paste("   Ns:", paste(Ns, collapse = ", ")))
+          
+    if(sum(is.infinite(probs))){
+        return(NA)
+    }else{
+        return(-1 * sum(probs)/ sum(Ns))
+    }
 }
 
 
