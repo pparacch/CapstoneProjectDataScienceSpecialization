@@ -78,7 +78,7 @@ rm(data.2g, data.3g, data.3g.model, data.3g.model.df, data.3g.model.evaluation)
 
 ## Simplified Trigrams Model with (simple) Good-Turing Smoothing
 
-```{r loadData_model1_1, ca}
+```{r loadData_model1_1, cache = T}
 load("./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.3g.rdata")
 allSample.termFreq.3g <- d.ng.df
 d.ng.df <- NULL
@@ -89,8 +89,8 @@ d.ng.df <- NULL
 source("./../scripts/model.R")
 
 model1_1.evaluation <- sapply(sentences, 
-                              FUN = estimateSentenceProbabilities.trigrams.model.simplified.withGoodTuring.smoothing, 
-                              t.terms = allSample.termFreq.3g$terms, t.counters = allSample.termFreq.3g$total)
+                              FUN = estimateSentenceProbabilities.ng.model.simple.withGoodTuring.smoothing, 
+                              terms = allSample.termFreq.3g$terms, counters = allSample.termFreq.3g$total, ng = 3)
 colnames(model1_1.evaluation) <- NULL
 model1_1.evaluation <- t(model1_1.evaluation)
 model1_1.perplexity <- calculatePerplexity(model1_1.evaluation)
@@ -99,6 +99,31 @@ model1_1.perplexity <- calculatePerplexity(model1_1.evaluation)
 `r kable(model1_1.evaluation, caption = "Tri-grams Model - Base")`
 
 __Perplexity (log base2):__ `r model1_1.perplexity`
+
+
+## Simplified Bigrams Model with (simple) Good-Turing Smoothing
+
+```{r loadData_model2, cache = T}
+load("./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.2g.rdata")
+allSample.termFreq.2g <- d.ng.df
+d.ng.df <- NULL
+```
+
+
+```{r evaluate_model2, collapse = T}
+source("./../scripts/model.R")
+
+model2.evaluation <- sapply(sentences, 
+                              FUN = estimateSentenceProbabilities.ng.model.simple.withGoodTuring.smoothing, 
+                              terms = allSample.termFreq.2g$terms, counters = allSample.termFreq.2g$total, ng = 2)
+colnames(model2.evaluation) <- NULL
+model2.evaluation <- t(model2.evaluation)
+model2.perplexity <- calculatePerplexity(model2.evaluation)
+```
+
+`r kable(model2.evaluation, caption = "Bi-grams Model - Base")`
+
+__Perplexity (log base2):__ `r model2.perplexity`
 
 
 # Tri-gram model based on Stupid Backoff, using all of the trigrams and bigrams within all of the sample corpus
@@ -136,17 +161,18 @@ stupidBackoff.model.base.evaluation <- sapply(sentences, FUN = estimateSentenceP
                                    u.words = allCorpora.1g$terms, u.counters = allCorpora.1g$total)
 colnames(stupidBackoff.model.base.evaluation) <- NULL
 stupidBackoff.model.base.evaluation <- t(stupidBackoff.model.base.evaluation)
-model2.perplexity <- calculatePerplexity(stupidBackoff.model.base.evaluation)
+model3.perplexity <- calculatePerplexity(stupidBackoff.model.base.evaluation)
 ```
 
 `r kable(stupidBackoff.model.base.evaluation, caption = "Tri-grams StupidBackoff - simple")`
 
-__Perplexity (log base2):__ `r model2.perplexity`
+__Perplexity (log base2):__ `r model3.perplexity`
 
 
 Model | Perplexity
 ------------- | -------------
 Trigram - no smoothing - all corpora| `r model1.perplexity`
 Trigram - GT smoothing - allCorpora | `r model1_1.perplexity`
-StupidBackoff - no smoothing - allCorpora | `r model2.perplexity`
+Bigram - GT smoothing - allCorpora | `r model2.perplexity`
+StupidBackoff - no smoothing - allCorpora | `r model3.perplexity`
 

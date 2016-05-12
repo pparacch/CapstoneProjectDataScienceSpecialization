@@ -130,6 +130,7 @@ collapseToOneList <- function(twitter.ng, news.dg, blogs.ng, ng){
 
 ########################
 ####### UNIGRAMS #######
+#### NO SMOOTHING #####
 ########################
 
 
@@ -192,6 +193,7 @@ unigramModel.probabilityForWord <- function(u.model, word){
 
 #######################
 ####### BIGRAMS #######
+#### NO SMOOTHING #####
 #######################
 
 bigrams.countForTerm <- function(term, b.terms, b.counters, errorIfTermMissing = T){
@@ -268,6 +270,7 @@ bigrams.model <- function(b.terms, b.counters, u.words, u.counters){
 
 ########################
 ####### TRIGRAMS #######
+#### NO SMOOTHING #####
 ########################
 
 trigrams.countForTerm <- function(term, t.terms, t.counters, errorIfTermMissing = T){
@@ -509,22 +512,22 @@ support_getGoodTuringCountByActualCount <- function(actualCount){
 # }
 
 
-estimateSentenceProbabilities.trigrams.model.simplified.withGoodTuring.smoothing <- function(s, t.terms, t.counters){
+estimateSentenceProbabilities.ng.model.simple.withGoodTuring.smoothing <- function(s, terms, counters, ng){
     s.words <- ngramTokenize(y = s, ng = 1)
     s.N <- length(s.words) - 1
-    N <- sum(t.counters)
+    N <- sum(counters)
     
-    print(paste("###########sentenceProbability - Trigram SImple - Good-Turing Smoothing"))
-    print(paste("#    sentence:", s, ", NoOfWords:", s.N))
-    print(paste("#   noOfWords:", N))
+    print(paste("###########sentenceProbability - Ngram Simple - Good-Turing Smoothing"))
+    print(paste("#    sentence:'", s, "', NoOfWords:", s.N))
+    print(paste("#          ng:", ng, ", totalNoOfTerms:", N))
     
     result <- 0
-    s.trigrams <- ngramTokenize(y = s, ng = 3)
+    s.ngrams <- ngramTokenize(y = s, ng = ng)
     
-    for(i in 1:length(s.trigrams)){
-        d.t <- s.trigrams[i]
-        print(paste("#     trigram:", d.t))
-        gt.count <- getGoodTuringCount(term = d.t, terms = t.terms, counters = t.counters)
+    for(i in 1:length(s.ngrams)){
+        d.t <- s.ngrams[i]
+        print(paste("#     ngram:", d.t))
+        gt.count <- getGoodTuringCount(term = d.t, terms = terms, counters = counters)
         tmp <- log(x = (gt.count/N), base = 2)
         
         result <- result + tmp
