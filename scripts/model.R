@@ -347,6 +347,8 @@ trigrams.model <- function(t.terms, t.counters, b.terms, b.counters){
     result_ls <- list(t.bigram = result.bigram, t.nextWord = result.nextWord, t.count = result.count,  t.probability = result.prob)
 }
 
+
+
 # Implementation of the stupid backoff algorithm
 # No discount just use relative frequencies
 sb_factor <- 0.4
@@ -467,3 +469,91 @@ estimateSentenceProbabilities <- function(s, t.terms, t.counters, b.terms, b.cou
     
     data.frame(sentence = s, probability_log_base2 = result, noOfWords.sentence = N, stringsAsFactors = F)
 }
+
+
+
+
+
+########################################################
+# Implementation of a (simple) Good Turing smoothing alg
+getGoodTuringCount <- function(term, terms, counters){
+    #Simple implementation based on Good-Turing numbers
+    result <- NULL
+    idx <- which(terms == term)
+    if(length(idx) == 0){
+        #A new term that I have never seen before so
+        result <- support_getGoodTuringCountByActualCount(0)
+    }else{
+        result <- support_getGoodTuringCountByActualCount(counters[idx])
+    }
+    return(result)
+}
+
+support_getGoodTuringCountByActualCount <- function(actualCount){
+    result <- NULL
+    if(actualCount == 0){
+        #A new term that I have never seen before so
+        result <- 0.000027
+    }else{
+        result <- actualCount - 0.75
+    }
+    print(paste("    >>>> Actual count:", actualCount, "- Good-Turing Count:", result))
+    return(result)
+}
+########################################################
+
+# trigrams.model.simplified.withGoodTuring.smoothing <- function(t.term, t.terms, t.counters){
+#     N <- sum(t.counters)
+#     gt.count <- getGoodTuringCount(term = t.term, terms = t.terms, counters = t.counters)
+#     return(log(x = (gt.count/N), base = 2))
+# }
+
+
+estimateSentenceProbabilities.trigrams.model.simplified.withGoodTuring.smoothing <- function(s, t.terms, t.counters){
+    s.words <- ngramTokenize(y = s, ng = 1)
+    s.N <- length(s.words) - 1
+    N <- sum(t.counters)
+    
+    print(paste("###########sentenceProbability - Trigram SImple - Good-Turing Smoothing"))
+    print(paste("#    sentence:", s, ", NoOfWords:", s.N))
+    print(paste("#   noOfWords:", N))
+    
+    result <- 0
+    s.trigrams <- ngramTokenize(y = s, ng = 3)
+    
+    for(i in 1:length(s.trigrams)){
+        d.t <- s.trigrams[i]
+        print(paste("#     trigram:", d.t))
+        gt.count <- getGoodTuringCount(term = d.t, terms = t.terms, counters = t.counters)
+        tmp <- log(x = (gt.count/N), base = 2)
+        
+        result <- result + tmp
+        print(paste("#    prob(log):", tmp, ", total(log):", result))
+    }
+    
+    data.frame(sentence = s, probability_log_base2 = result, noOfWords.sentence = s.N, stringsAsFactors = F)
+}
+
+calculatePerplexity <- function(evaluation.as.df){
+    
+    elements <- dim(evaluation.as.df)[1]
+    probs <- unlist(evaluation.as.df[(elements + 1):(elements * 2)])
+    Ns <- unlist(evaluation.as.df[(elements * 2) + 1 : (elements * 3)])
+    
+    print(paste("Probs:", paste(probs, collapse = ", ")))
+    print(paste("   Ns:", paste(Ns, collapse = ", ")))
+    
+    if(sum(is.infinite(probs))){
+        return(NA)
+    }else{
+        return(-1 * sum(probs)/ sum(Ns))
+    }
+}
+
+
+
+
+
+
+
+

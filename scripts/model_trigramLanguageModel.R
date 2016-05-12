@@ -131,25 +131,6 @@ estimateSentenceProbabilities.mle <- function(s, x){
 }
 
 
-
-calculatePerplexity <- function(evaluation.as.df){
-    
-    elements <- dim(evaluation.as.df)[1]
-    probs <- unlist(evaluation.as.df[(elements + 1):(elements * 2)])
-    Ns <- unlist(evaluation.as.df[(elements * 2) + 1 : (elements * 3)])
-    
-    print(paste("Probs:", paste(probs, collapse = ", ")))
-    print(paste("   Ns:", paste(Ns, collapse = ", ")))
-          
-    if(sum(is.infinite(probs))){
-        return(NA)
-    }else{
-        return(-1 * sum(probs)/ sum(Ns))
-    }
-}
-
-
-
 # generate.twitter.3gramModel <- function(folder, 
 #                                         file.allTermFrequency.3g, file.tdm.3g,
 #                                         file.allTermFrequency.2g, file.tdm.2g,
