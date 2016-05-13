@@ -13,8 +13,8 @@
 
 gts_getGoodTuringCount <- function(term, terms, counters){
     #Simple implementation based on Good-Turing numbers
-    print(paste("    >>>> term:", term))
-    
+    print(paste("          >>>> term:", term))
+
     result <- NULL
     idx <- which(terms == term)
     
@@ -39,6 +39,6 @@ gts_support_getGoodTuringCountByActualCount <- function(actualCount){
     }else{
         result <- actualCount - 0.75
     }
-    print(paste("    >>>> Actual count:", actualCount, "- Good-Turing Count:", result))
+    print(paste("          >>>> Actual count:", actualCount, "- Good-Turing Count:", result))
     return(result)
 }
