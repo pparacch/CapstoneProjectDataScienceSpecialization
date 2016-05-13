@@ -42,7 +42,7 @@ load(file = "./../scripts/model_trigramLanguage/allCorpora.3gModel_i_2016-05-10.
 ```{r testTrigramModel_3g_all_2g_all_MLE_model, collapse = T}
 source("./../scripts/model_evaluation.R")
 source("./../scripts/model_supportingFunctions.R")
-source("./../scripts/model_trigramLanguageModel.R")
+source("./../scripts/model_MLE_trigramLanguageModel.R")
 
 #Order elements in the data structure by count (decreasing)
 data.3g.model.df <- data.3g.model.df[order(data.3g.model.df$count, decreasing = T),]
