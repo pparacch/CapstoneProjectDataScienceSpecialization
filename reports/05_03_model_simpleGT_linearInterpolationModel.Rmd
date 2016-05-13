@@ -9,9 +9,10 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 require(knitr)
 
+source("./../scripts/model_evaluation.R")
 source("./../scripts/model_supportingFunctions.R")
 source("./../scripts/goodTuringSmoothing.R")
-source("./../scripts/model_linearInterpolation.R")
+source("./../scripts/model_simpleGTS_linearInterpolation.R")
 
 
 # WINDOWS LOCALE SETTING
@@ -28,29 +29,14 @@ The test is done using a set of sentences that have not been used for training t
 The evaluation metrics (ln scale) used to evaluate how well the model is preforming in the __P(S)__ (probability assigned to the sentence S = w1, w2, .., wn) and perplexity. These metrics are related __perplexity = f(probability)__. A better model is the one which assigns a higher probability to the words that actually occurs (reality).
 
 ```{r creatingTestDataSetOfSentences}
-sentences <- c(
-    #High Probability (max is ln(1) = 0/ Lower perplexity (limit to 0 when ln(1))
-    "<s> you will absolutely love it </s>",
-    "<s> you will absolutely love him after the meeting </s>",
-    "<s> if this isn't the cutest thing you've ever seen then you must be insane </s>",
-    "<s> i think most people mean things like that </s>",
-    "<s> morning is my least favorite time of the day </s>",
-    "<s> i love you </s>",
-    "<s> it’s potentially the most important engagement of our week yet it's the one the majority of us aren't even penciling into our agendas </s>",
-    
-    #Lower Probability/ Higher perplexity
-    "<s> you will absolutely love and it </s>",
-    "<s> you will absolutely love him after the and meeting </s>",
-    "<s> you will absolutely him after the meeting </s>",
-    "<s> if this isn't not the cutest thing you've ever never seen then you must be insane </s>",
-    "<s> i think most people mean things like that </s>",
-    "<s> i love you not </s>"
-)
+sentences
 ```
 
-# Linear Interpolation with Good-Turing Smoothing
+# Linear Interpolation (simple) with Good-Turing Smoothing
 
-See NLP classroom (Coursera)
+P(wi|wi-1, wi-2) = lambda1 * P(wi|wi-1, wi-2) + lambda2 * P(wi|wi-1) + lambda3 * P(wi)
+P models have been implemented using a simple GT smoothing
+
 
 ```{r loadTheModel, cache = T, collapse=T}
 load(file = "./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.3g.rdata")
@@ -79,7 +65,7 @@ format(object.size(d.1g$total), "auto")
 
 ```{r testLinearInterpolation, collapse = T}
 
-m4.l1 = 0.8; m4.l2 = 0.15; m4.l3 = 0.05
+m4.l1 = 0.9; m4.l2 = 0.09; m4.l3 = 0.01
 model4.evaluation <- sapply(sentences, FUN = estimateSentProb.linearInterpolation.model.withGoodTuring.smoothing, 
                             t.terms = d.3g$terms, t.counters = d.3g$total,
                             b.terms = d.2g$terms, b.counters = d.2g$total,
@@ -98,7 +84,7 @@ __Perplexity (log base2):__ `r model4.perplexity`
 
 ```{r testLinearInterpolation_1, collapse = T}
 
-m5.l1 = 0.9; m5.l2 = 0.08; m5.l3 = 0.02
+m5.l1 = 0.8; m5.l2 = 0.15; m5.l3 = 0.05
 model5.evaluation <- sapply(sentences, FUN = estimateSentProb.linearInterpolation.model.withGoodTuring.smoothing, 
                             t.terms = d.3g$terms, t.counters = d.3g$total,
                             b.terms = d.2g$terms, b.counters = d.2g$total,
@@ -112,7 +98,7 @@ model5.perplexity <- calculatePerplexity(model5.evaluation)
 
 ```{r testLinearInterpolation_2, collapse = T}
 
-m6.l1 = 0.3; m6.l2 = 0.6; m6.l3 = 0.1
+m6.l1 = 0.6; m6.l2 = 0.3; m6.l3 = 0.1
 model6.evaluation <- sapply(sentences, FUN = estimateSentProb.linearInterpolation.model.withGoodTuring.smoothing, 
                             t.terms = d.3g$terms, t.counters = d.3g$total,
                             b.terms = d.2g$terms, b.counters = d.2g$total,
@@ -126,7 +112,7 @@ model6.perplexity <- calculatePerplexity(model6.evaluation)
 
 ```{r testLinearInterpolation_3, collapse = T}
 
-m7.l1 = 0.1; m7.l2 = 0.87; m7.l3 = 0.03
+m7.l1 = 0.5; m7.l2 = 0.4; m7.l3 = 0.1
 model7.evaluation <- sapply(sentences, FUN = estimateSentProb.linearInterpolation.model.withGoodTuring.smoothing, 
                             t.terms = d.3g$terms, t.counters = d.3g$total,
                             b.terms = d.2g$terms, b.counters = d.2g$total,
@@ -143,9 +129,48 @@ model7.perplexity <- calculatePerplexity(model7.evaluation)
 __Perplexity (log base2):__ `r model7.perplexity`
 
 
+```{r testLinearInterpolation_4, collapse = T}
+
+m8.l1 = 0.4; m8.l2 = 0.4; m8.l3 = 0.2
+model8.evaluation <- sapply(sentences, FUN = estimateSentProb.linearInterpolation.model.withGoodTuring.smoothing, 
+                            t.terms = d.3g$terms, t.counters = d.3g$total,
+                            b.terms = d.2g$terms, b.counters = d.2g$total,
+                            u.terms = d.1g$terms, u.counters = d.1g$total,
+                            lambda_1 = m8.l1, lambda_2 = m8.l2, lambda_3 = m8.l3)
+
+colnames(model8.evaluation) <- NULL
+model8.evaluation <- t(model8.evaluation)
+model8.perplexity <- calculatePerplexity(model8.evaluation)
+```
+
+`r kable(model8.evaluation, caption = "Linear Interpolation Model - Base")`
+
+__Perplexity (log base2):__ `r model8.perplexity`
+
+```{r testLinearInterpolation_5, collapse = T}
+
+m9.l1 = 0.4; m9.l2 = 0.3; m9.l3 = 0.3
+model9.evaluation <- sapply(sentences, FUN = estimateSentProb.linearInterpolation.model.withGoodTuring.smoothing, 
+                            t.terms = d.3g$terms, t.counters = d.3g$total,
+                            b.terms = d.2g$terms, b.counters = d.2g$total,
+                            u.terms = d.1g$terms, u.counters = d.1g$total,
+                            lambda_1 = m9.l1, lambda_2 = m9.l2, lambda_3 = m9.l3)
+
+colnames(model9.evaluation) <- NULL
+model9.evaluation <- t(model9.evaluation)
+model9.perplexity <- calculatePerplexity(model9.evaluation)
+```
+
+`r kable(model9.evaluation, caption = "Linear Interpolation Model - Base")`
+
+__Perplexity (log base2):__ `r model9.perplexity`
+
+
 Model | lambda1 | lambda2 | lambda3 |Perplexity
 ------------- | -------------| -------------| -------------| -------------
 LI - GT smoothing| `r m4.l1` | `r m4.l2` | `r m4.l3` |`r model4.perplexity`
 LI - GT smoothing| `r m5.l1` | `r m5.l2` | `r m5.l3` |`r model5.perplexity`
 LI - GT smoothing| `r m6.l1` | `r m6.l2` | `r m6.l3` |`r model6.perplexity`
 LI - GT smoothing| `r m7.l1` | `r m7.l2` | `r m7.l3` |`r model7.perplexity`
+LI - GT smoothing| `r m8.l1` | `r m8.l2` | `r m8.l3` |`r model8.perplexity`
+LI - GT smoothing| `r m9.l1` | `r m9.l2` | `r m9.l3` |`r model9.perplexity`

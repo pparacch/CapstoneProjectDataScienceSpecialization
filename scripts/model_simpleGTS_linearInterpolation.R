@@ -10,7 +10,7 @@
 ngrams.gtsmoothing.probabilityForWord <- function(term, terms, counters){
     gt.count <- gts_getGoodTuringCount(term = term, terms = terms, counters = counters)
     result <- gt.count/ sum(counters)
-    print(paste("    >>>> Term:", term, " - probabilityForWord:", result))
+    print(paste("           >>> Term:", term, " - probabilityForWord:", result))
     result
 }
 
@@ -55,6 +55,7 @@ estimateSentProb.linearInterpolation.model.withGoodTuring.smoothing <- function(
 
         result <- result + tmp
         print(paste("#    prob(log):", tmp, ", total(log):", result))
+        print("--------------------")
     }
     
     data.frame(sentence = s, probability_log_base2 = result, noOfWords.sentence = s.N, stringsAsFactors = F)

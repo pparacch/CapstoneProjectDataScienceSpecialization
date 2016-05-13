@@ -1,7 +1,7 @@
 # dependent on:
 source("model_supportingFunctions.R")
 source("goodTuringSmoothing.R")
-source("model_linearInterpolation.R")
+source("model_simpelGTS_linearInterpolation.R")
 
 
 check.results <- function(input, expected, result){
