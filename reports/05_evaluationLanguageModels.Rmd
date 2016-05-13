@@ -9,9 +9,10 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 require(knitr)
 
+source("./../scripts/model_evaluation.R")
+
 # WINDOWS LOCALE SETTING
 Sys.setlocale(category = "LC_ALL",locale = "English_United States.1252")
-
 ```
 
 # Testing
@@ -22,25 +23,8 @@ The test is done using a set of sentences that have not been used for training t
 
 The evaluation metrics (ln scale) used to evaluate how well the model is preforming in the __P(S)__ (probability assigned to the sentence S = w1, w2, .., wn) and perplexity. These metrics are related __perplexity = f(probability)__. A better model is the one which assigns a higher probability to the words that actually occurs (reality).
 
-```{r creatingTestDataSetOfSentences}
-sentences <- c(
-    #High Probability (max is ln(1) = 0/ Lower perplexity (limit to 0 when ln(1))
-    "<s> you will absolutely love it </s>",
-    "<s> you will absolutely love him after the meeting </s>",
-    "<s> if this isn't the cutest thing you've ever seen then you must be insane </s>",
-    "<s> i think most people mean things like that </s>",
-    "<s> morning is my least favorite time of the day </s>",
-    "<s> i love you </s>",
-    "<s> it’s potentially the most important engagement of our week yet it's the one the majority of us aren't even penciling into our agendas </s>",
-    
-    #Lower Probability/ Higher perplexity
-    "<s> you will absolutely love and it </s>",
-    "<s> you will absolutely love him after the and meeting </s>",
-    "<s> you will absolutely him after the meeting </s>",
-    "<s> if this isn't not the cutest thing you've ever never seen then you must be insane </s>",
-    "<s> i think most people mean things like that </s>",
-    "<s> i love you not </s>"
-)
+```{r creatingTestDataSetOfSentences, collpase = T}
+sentences
 ```
 
 # Tri-gram model based on MLE, using all of the trigrams and bigrams within all of the sample corpus, No smoothing
@@ -48,6 +32,7 @@ sentences <- c(
 The trigrams and bigrams generated using all of the sample corpora are used. If the combination bigram, net word is not found the model assign a 0 probability to that specific case.
 
 ```{r loadTheModel, cache = T}
+rm(list = ls())
 #Model - based on all of the 3g and 2g from the all corpora used for training
 #Model - simple MLE / no smoothing applied
 load(file = "./../scripts/model_trigramLanguage/allCorpora.3gModel_i_2016-05-10.rdata")
@@ -56,7 +41,8 @@ load(file = "./../scripts/model_trigramLanguage/allCorpora.3gModel_i_2016-05-10.
 # Based on MLE, using all of the trigrams and bigrams within all of the sample corpus, no smoothing
 
 ```{r testTrigramModel_3g_all_2g_all_MLE_model, collapse = T}
-source("./../scripts/model.R")
+source("./../scripts/model_evaluation.R")
+source("./../scripts/model_supportingFunctions.R")
 source("./../scripts/model_trigramLanguageModel.R")
 
 #Size of the object in memory
@@ -74,12 +60,17 @@ model1.perplexity <- calculatePerplexity(data.3g.model.evaluation)
 __Perplexity (log base2):__ `r model1.perplexity`
 
 ```{r cleanUp}
-rm(data.2g, data.3g, data.3g.model, data.3g.model.df, data.3g.model.evaluation)
+rm(list = ls())
 ```
 
 ## Simplified Trigrams Model with (simple) Good-Turing Smoothing
 
 ```{r loadData_model1_1, cache = T}
+source("./../scripts/model_evaluation.R")
+source("./../scripts/goodTuringSmoothing.R")
+source("./../scripts/model_supportingFunctions.R")
+source("./../scripts/model.R")
+
 load("./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.3g.rdata")
 allSample.termFreq.3g <- d.ng.df
 d.ng.df <- NULL
@@ -87,7 +78,6 @@ d.ng.df <- NULL
 
 
 ```{r evaluate_model1_1, collapse = T}
-source("./../scripts/model.R")
 
 model1_1.evaluation <- sapply(sentences, 
                               FUN = estimateSentenceProbabilities.ng.model.simple.withGoodTuring.smoothing, 
@@ -102,9 +92,18 @@ model1_1.perplexity <- calculatePerplexity(model1_1.evaluation)
 __Perplexity (log base2):__ `r model1_1.perplexity`
 
 
+```{r cleanUp_1}
+rm(list = ls())
+```
+
 ## Simplified Bigrams Model with (simple) Good-Turing Smoothing
 
 ```{r loadData_model2, cache = T}
+source("./../scripts/model_evaluation.R")
+source("./../scripts/goodTuringSmoothing.R")
+source("./../scripts/model_supportingFunctions.R")
+source("./../scripts/model.R")
+
 load("./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.2g.rdata")
 allSample.termFreq.2g <- d.ng.df
 d.ng.df <- NULL
@@ -112,8 +111,6 @@ d.ng.df <- NULL
 
 
 ```{r evaluate_model2, collapse = T}
-source("./../scripts/model.R")
-
 model2.evaluation <- sapply(sentences, 
                               FUN = estimateSentenceProbabilities.ng.model.simple.withGoodTuring.smoothing, 
                               terms = allSample.termFreq.2g$terms, counters = allSample.termFreq.2g$total, ng = 2)
@@ -127,11 +124,20 @@ model2.perplexity <- calculatePerplexity(model2.evaluation)
 __Perplexity (log base2):__ `r model2.perplexity`
 
 
+```{r cleanUp_2}
+rm(list = ls())
+```
+
 # Tri-gram model based on Stupid Backoff, using all of the trigrams and bigrams within all of the sample corpus
 
 The trigrams and bigrams generated using all of the sample corpora are used. If the combination bigram, net word is not found the model assign a 0 probability to that specific case.
 
 ```{r loadTheModelData, cache = T, collapse=T}
+source("./../scripts/model_evaluation.R")
+source("./../scripts/goodTuringSmoothing.R")
+source("./../scripts/model_supportingFunctions.R")
+source("./../scripts/model.R")
+
 load("./../scripts/model_stupidBackoff_3g_Language/04_s01_allCorpora_aggregated_termsFrequency.3g.rdata")
 allCorpora.3g <- d.ng.df
 d.ng.df <- NULL
@@ -172,8 +178,8 @@ __Perplexity (log base2):__ `r model3.perplexity`
 
 Model | Perplexity
 ------------- | -------------
-Trigram - no smoothing - all corpora| `r model1.perplexity`
-Trigram - GT smoothing - allCorpora | `r model1_1.perplexity`
-Bigram - GT smoothing - allCorpora | `r model2.perplexity`
-StupidBackoff - no smoothing - allCorpora | `r model3.perplexity`
+Trigram - no smoothing - all corpora| `r #model1.perplexity`
+Trigram - GT smoothing - allCorpora | `r #model1_1.perplexity`
+Bigram - GT smoothing - allCorpora | `r #model2.perplexity`
+StupidBackoff - no smoothing - allCorpora | `r #model3.perplexity`
 

@@ -3,8 +3,12 @@
 #### GT SMOOTHING  #####
 ########################
 
+# dependent on:
+# source("goodTuringSmoothing.R")
+
+
 ngrams.gtsmoothing.probabilityForWord <- function(term, terms, counters){
-    gt.count <- getGoodTuringCount(term = term, terms = terms, counters = counters)
+    gt.count <- gts_getGoodTuringCount(term = term, terms = terms, counters = counters)
     result <- gt.count/ sum(counters)
     print(paste("    >>>> Term:", term, " - probabilityForWord:", result))
     result

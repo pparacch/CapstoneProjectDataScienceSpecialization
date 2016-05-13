@@ -9,8 +9,9 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 require(knitr)
 
-source("./../scripts/model.R")
-source("./../scripts/linearInterpolationModel.R")
+source("./../scripts/model_supportingFunctions.R")
+source("./../scripts/goodTuringSmoothing.R")
+source("./../scripts/model_linearInterpolation.R")
 
 
 # WINDOWS LOCALE SETTING

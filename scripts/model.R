@@ -477,37 +477,37 @@ estimateSentenceProbabilities <- function(s, t.terms, t.counters, b.terms, b.cou
 
 
 
-########################################################
-# Implementation of a (simple) Good Turing smoothing alg
-getGoodTuringCount <- function(term, terms, counters){
-    #Simple implementation based on Good-Turing numbers
-    print(paste("    >>>> term:", term))
-    
-    result <- NULL
-    idx <- which(terms == term)
-    
-    
-    if(length(idx) == 0){
-        #A new term that I have never seen before so
-        result <- support_getGoodTuringCountByActualCount(0)
-    }else{
-        result <- support_getGoodTuringCountByActualCount(counters[idx])
-    }
-    return(result)
-}
-
-support_getGoodTuringCountByActualCount <- function(actualCount){
-    result <- NULL
-    if(actualCount == 0){
-        #A new term that I have never seen before so
-        result <- 0.000027
-    }else{
-        result <- actualCount - 0.75
-    }
-    print(paste("    >>>> Actual count:", actualCount, "- Good-Turing Count:", result))
-    return(result)
-}
-########################################################
+# ########################################################
+# # Implementation of a (simple) Good Turing smoothing alg
+# getGoodTuringCount <- function(term, terms, counters){
+#     #Simple implementation based on Good-Turing numbers
+#     print(paste("    >>>> term:", term))
+#     
+#     result <- NULL
+#     idx <- which(terms == term)
+#     
+#     
+#     if(length(idx) == 0){
+#         #A new term that I have never seen before so
+#         result <- support_getGoodTuringCountByActualCount(0)
+#     }else{
+#         result <- support_getGoodTuringCountByActualCount(counters[idx])
+#     }
+#     return(result)
+# }
+# 
+# support_getGoodTuringCountByActualCount <- function(actualCount){
+#     result <- NULL
+#     if(actualCount == 0){
+#         #A new term that I have never seen before so
+#         result <- 0.000027
+#     }else{
+#         result <- actualCount - 0.75
+#     }
+#     print(paste("    >>>> Actual count:", actualCount, "- Good-Turing Count:", result))
+#     return(result)
+# }
+# ########################################################
 
 # trigrams.model.simplified.withGoodTuring.smoothing <- function(t.term, t.terms, t.counters){
 #     N <- sum(t.counters)
@@ -531,7 +531,7 @@ estimateSentenceProbabilities.ng.model.simple.withGoodTuring.smoothing <- functi
     for(i in 1:length(s.ngrams)){
         d.t <- s.ngrams[i]
         print(paste("#     ngram:", d.t))
-        gt.count <- getGoodTuringCount(term = d.t, terms = terms, counters = counters)
+        gt.count <- gts_getGoodTuringCount(term = d.t, terms = terms, counters = counters)
         tmp <- log(x = (gt.count/N), base = 2)
         
         result <- result + tmp
@@ -541,24 +541,24 @@ estimateSentenceProbabilities.ng.model.simple.withGoodTuring.smoothing <- functi
     data.frame(sentence = s, probability_log_base2 = result, noOfWords.sentence = s.N, stringsAsFactors = F)
 }
 
-calculatePerplexity <- function(evaluation.as.df){
-    
-    elements <- dim(evaluation.as.df)[1]
-    probs <- unlist(evaluation.as.df[(elements + 1):(elements * 2)])
-    Ns <- unlist(evaluation.as.df[(elements * 2) + 1 : (elements * 3)])
-    
-    print(paste("Probs:", paste(probs, collapse = ", ")))
-    print(paste("   Ns:", paste(Ns, collapse = ", ")))
-    
-    if(sum(is.infinite(probs))){
-        return(NA)
-    }else{
-        s.p <- sum(probs)
-        s.Ns <- sum(Ns)
-        print(paste("Sum Probabilities:", s.p, ", Total NoOfTerms:", s.Ns))
-        return(-1 * sum(probs)/ sum(Ns))
-    }
-}
+# calculatePerplexity <- function(evaluation.as.df){
+#     
+#     elements <- dim(evaluation.as.df)[1]
+#     probs <- unlist(evaluation.as.df[(elements + 1):(elements * 2)])
+#     Ns <- unlist(evaluation.as.df[(elements * 2) + 1 : (elements * 3)])
+#     
+#     print(paste("Probs:", paste(probs, collapse = ", ")))
+#     print(paste("   Ns:", paste(Ns, collapse = ", ")))
+#     
+#     if(sum(is.infinite(probs))){
+#         return(NA)
+#     }else{
+#         s.p <- sum(probs)
+#         s.Ns <- sum(Ns)
+#         print(paste("Sum Probabilities:", s.p, ", Total NoOfTerms:", s.Ns))
+#         return(-1 * sum(probs)/ sum(Ns))
+#     }
+# }
 
 
 
