@@ -54,8 +54,65 @@ model1_1.perplexity <- calculatePerplexity(model1_1.evaluation)
 
 __Perplexity (log base2):__ `r model1_1.perplexity`
 
+```{r}
+rm(allSample.termFreq.3g, model1_1.evaluation)
+```
+
+
+## Simplified Bigrams Model with (simple) Good-Turing Smoothing
+
+```{r loadData_model2, cache = T}
+
+load("./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.2g.rdata")
+allSample.termFreq.2g <- d.ng.df
+d.ng.df <- NULL
+```
+
+
+```{r evaluate_model2, collapse = T}
+model2.evaluation <- sapply(sentences, 
+                              FUN = estimateSentenceProbabilities.ng.model.simple.withGoodTuring.smoothing, 
+                              terms = allSample.termFreq.2g$terms, counters = allSample.termFreq.2g$total, ng = 2)
+colnames(model2.evaluation) <- NULL
+model2.evaluation <- t(model2.evaluation)
+model2.perplexity <- calculatePerplexity(model2.evaluation)
+```
+
+`r kable(model2.evaluation, caption = "Bi-grams Model - Base")`
+
+__Perplexity (log base2):__ `r model2.perplexity`
+
+```{r}
+rm(allSample.termFreq.2g, model2.evaluation)
+```
+
+
+## Simplified Unigram Model with (simple) Good-Turing Smoothing
+
+```{r loadData_model3, cache = T}
+
+load("./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.1g.rdata")
+allSample.termFreq.1g <- d.ng.df
+d.ng.df <- NULL
+```
+
+
+```{r evaluate_model3, collapse = T}
+model3.evaluation <- sapply(sentences, 
+                              FUN = estimateSentenceProbabilities.ng.model.simple.withGoodTuring.smoothing, 
+                              terms = allSample.termFreq.1g$terms, counters = allSample.termFreq.1g$total, ng = 1)
+colnames(model3.evaluation) <- NULL
+model3.evaluation <- t(model3.evaluation)
+model3.perplexity <- calculatePerplexity(model3.evaluation)
+```
+
+`r kable(model3.evaluation, caption = "Bi-grams Model - Base")`
+
+__Perplexity (log base2):__ `r model3.perplexity`
+
 
 Model | Perplexity
 ------------- | -------------
 Trigram - GT smoothing - allCorpora | `r model1_1.perplexity`
-
+Bigram - GT smoothing - allCorpora | `r model2.perplexity`
+Unigram - GT smoothing - allCorpora | `r model3.perplexity`
