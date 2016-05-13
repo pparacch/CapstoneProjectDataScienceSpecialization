@@ -1,4 +1,4 @@
-##THIS IS VERY SLOW
+##The GENARTION OF THE TRGIGRAM MODEL USIN THIS FUNCTION IS VERY SLOW
 # generate.corpora.3gramModel <- function(noElements){
 #     
 #     load(file = "./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.3g.rdata")
@@ -32,6 +32,8 @@
 #     filename
 # }
 
+## GENERATE THE TRIGRAM MODEL
+## bigram, nextwod, count, count_bigram, probability (MLE)
 generate.corpora.3gramModel.i <- function(noElements){
     
     load(file = "./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.3g.rdata")
@@ -114,15 +116,17 @@ estimateSentenceProbabilities.mle <- function(s, x){
         
         if(length(idx) == 1){
             entryFound <- x[which(x$bigram == d.t.b & x$next.word == d.t.w_i),]
-            print(paste("# ------------->bigram:", entryFound$bigram, ", next.word:", entryFound$next.word ,", prob:", entryFound$probability))
+            print(paste("#         >bigram:", entryFound$bigram, ", next.word:", entryFound$next.word ,", prob:", entryFound$probability))
             tmp <- log(entryFound$probability, base = 2)
             result <- result + tmp
             print(paste("#    prob(log):", tmp, ", total(log):", result))
+            print("#----------------------")
         }else{
-            print("# =============>Not Found")
+            print("#         >Not Found")
             tmp <- log(0, base = 2)
             result <- result + tmp
             print(paste("#    prob(log):", tmp, ", total(log):", result))
+            print("#----------------------")
             break
         }
     }
