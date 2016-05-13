@@ -1,0 +1,79 @@
+---
+title: 'Models: Comparing & Evaluation'
+author: "Pier Lorenzo Paracchini"
+date: "10 mai 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(knitr)
+
+source("./../scripts/model_evaluation.R")
+source("./../scripts/model_supportingFunctions.R")
+source("./../scripts/model_stupidBackoff.R")
+
+# WINDOWS LOCALE SETTING
+Sys.setlocale(category = "LC_ALL",locale = "English_United States.1252")
+```
+
+# Testing
+
+A simple approach for testing the different models is to evaluate  __How does our language model prefer good sentences over bad one?__, or in other words __Does the model assign high probability to "real" or "frequently observed" sentences?__.
+
+The test is done using a set of sentences that have not been used for training the model - basic assumption __the model has never seen those sentences__.
+
+The evaluation metrics (ln scale) used to evaluate how well the model is preforming in the __P(S)__ (probability assigned to the sentence S = w1, w2, .., wn) and perplexity. These metrics are related __perplexity = f(probability)__. A better model is the one which assigns a higher probability to the words that actually occurs (reality).
+
+```{r creatingTestDataSetOfSentences, collpase = T}
+sentences
+```
+
+# Tri-gram model based on Stupid Backoff
+
+Using all of the trigrams, bigrams and unigrams within all of the sample corpus to calculate the score for a specific sequence of words. In order to avoid the 0 score - especially when a term is not known, teh unigram will return 1/V (mumber of terms/unigrams i our vocabulary).
+
+
+```{r loadTheModelData, cache = T, collapse=T}
+load("./../scripts/model_stupidBackoff_3g_Language/04_s01_allCorpora_aggregated_termsFrequency.3g.rdata")
+allCorpora.3g <- d.ng.df
+d.ng.df <- NULL
+
+load("./../scripts/model_stupidBackoff_3g_Language/04_s01_allCorpora_aggregated_termsFrequency.2g.rdata")
+allCorpora.2g <- d.ng.df
+d.ng.df <- NULL
+
+load("./../scripts/model_stupidBackoff_3g_Language/04_s01_allCorpora_aggregated_termsFrequency.1g.rdata")
+allCorpora.1g <- d.ng.df
+d.ng.df <- NULL
+
+#Size of the object in memory
+format(object.size(allCorpora.3g$terms), "auto")
+format(object.size(allCorpora.3g$total), "auto")
+
+format(object.size(allCorpora.2g$terms), "auto")
+format(object.size(allCorpora.2g$total), "auto")
+
+format(object.size(allCorpora.1g$terms), "auto")
+format(object.size(allCorpora.1g$total), "auto")
+```
+
+```{r testStupidBackOff_3g_all_2g_all_1g_all_model, collapse=T}
+stupidBackoff.model.base.evaluation <- sapply(sentences, FUN = estimateSentenceProbabilities,
+                                   t.terms = allCorpora.3g$terms, t.counters = allCorpora.3g$total,
+                                   b.terms = allCorpora.2g$terms, allCorpora.2g$total,
+                                   u.words = allCorpora.1g$terms, u.counters = allCorpora.1g$total)
+colnames(stupidBackoff.model.base.evaluation) <- NULL
+stupidBackoff.model.base.evaluation <- t(stupidBackoff.model.base.evaluation)
+model3.perplexity <- calculatePerplexity(stupidBackoff.model.base.evaluation)
+```
+
+`r kable(stupidBackoff.model.base.evaluation, caption = "Tri-grams StupidBackoff - simple")`
+
+__Perplexity (log base2):__ `r model3.perplexity`
+
+
+Model | Perplexity
+------------- | -------------
+StupidBackoff - no smoothing - allCorpora | `r model3.perplexity`
+

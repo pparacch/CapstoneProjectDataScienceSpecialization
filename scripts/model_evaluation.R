@@ -14,7 +14,8 @@ sentences <- c(
     "<s> you will absolutely him after the meeting </s>",
     "<s> if this isn't not the cutest thing you've ever never seen then you must be insane </s>",
     "<s> i think most people mean things like that </s>",
-    "<s> i love you not </s>"
+    "<s> i love you not </s>",
+    "<s> i love you not lunatico </s>"
 )
 
 
