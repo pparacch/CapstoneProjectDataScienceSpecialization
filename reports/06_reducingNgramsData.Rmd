@@ -1,0 +1,180 @@
+---
+title: "Reducing ngrams (memory footprint)"
+author: "Pier Lorenzo Paracchini"
+date: "14 mai 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+require(knitr)
+source("./../scripts/model_supportingFunctions.R")
+```
+
+## Current ngrams from Sample Corpora
+
+```{r loadData, cache = T}
+sortingAndFeatureReduction <- function(d.ng){
+    d.ng <- d.ng[, c("terms","total")]
+    d.ng <- d.ng[order(d.ng$total, decreasing = T),]
+    d.ng
+}
+
+summaryInfo <- function(d.ng, ng){
+    data.frame(ng = ng, 
+               noOfEntries_V = dim(d.ng)[1], 
+               N = sum(d.ng$total), 
+               memorySize = format(object.size(d.ng), "auto"))
+}
+
+load("./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.1g.rdata")
+s.1g <- d.ng.df
+s.1g <- sortingAndFeatureReduction(s.1g)
+s.1g$terms <- as.character(s.1g$terms)
+
+load("./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.2g.rdata")
+s.2g <- d.ng.df
+s.2g <- sortingAndFeatureReduction(s.2g)
+s.2g$terms <- as.character(s.2g$terms)
+
+load("./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.3g.rdata")
+s.3g <- d.ng.df
+s.3g <- sortingAndFeatureReduction(s.3g)
+s.3g$terms <- as.character(s.3g$terms)
+d.ng.df <- NULL
+
+s.info <- NULL
+s.info <- rbind(s.info, summaryInfo(s.1g, 1))
+s.info <- rbind(s.info, summaryInfo(s.2g, 2))
+s.info <- rbind(s.info, summaryInfo(s.3g, 3))
+```
+
+
+`r kable(s.info, caption = "Summary Info About NGrams")`
+
+# Trigram
+
+Create a data structure like `bigram(w_i-2, w_i-1), next.word(w_i), count.trigram(w_i-2, w_i-1, w_i), count.bigram(w_i-2, w_i-1)` and limit it to a certain number of trigrams in order to have a certain coverage. 
+
+```{r reduceTrigrams1, collapse = T}
+visualizeCumuluativeCoverage(s.3g$total, s.3g$terms, "3-grams")
+
+f.max30 <- cumsum(s.3g$total)/sum(s.3g$total) <= 0.30
+sum(f.max30)
+
+f.max50 <- cumsum(s.3g$total)/sum(s.3g$total) <= 0.50
+sum(f.max50)
+```
+
+With a 30% coverage, we limit the trigrams to `r sum(f.max30)` over `r dim(s.3g)[1]` observed trigrams. 
+
+```{r reduceTrigrams2, collapse = T}
+f.max30 <- cumsum(s.3g$total)/sum(s.3g$total) <= 0.30
+s.3g.30 <- s.3g[f.max30,] 
+```
+
+```{r transformTrigrams, collapse = T}
+print(paste("noElements:", dim(s.3g.30)[1]))
+names(s.3g.30) <- c("trigram", "total")
+s.3g.30$before.bigram <- sapply(s.3g.30$trigram, function(x){paste(unlist(strsplit(x, split = " "))[1:2], collapse = " ")})
+s.3g.30$next.word <- sapply(s.3g.30$trigram, function(x){unlist(strsplit(x, split = " "))[3]})
+
+s.3g.30 <- s.3g.30[, c("before.bigram", "next.word", "total")]
+
+```
+
+# Bigram Strategy
+
+Limit the size of the bigram model in order to have a certain coverage.
+
+```{r reduceBigrams, collapse = T}
+visualizeCumuluativeCoverage(s.2g$total, s.2g$terms, "2-grams")
+
+f.max50 <- cumsum(s.2g$total)/sum(s.2g$total) <= 0.5
+sum(f.max50)
+
+f.max75 <- cumsum(s.2g$total)/sum(s.2g$total) <= 0.75
+sum(f.max75)
+
+
+s.2g.75 <- s.2g[f.max75,] 
+# format(object.size(s.2g.75), "auto")
+
+
+consistencyCheckTrigramsVsBigrams <- function(){
+    #Check if all of the bigrams in the trigram list are available in the list of bigrams simpified
+    a <- data.frame(b = unique(s.3g.30$before.bigram))
+    b <- merge(x = a, y = s.2g.75, by.x = "b", by.y = "terms", all.x = T)
+    c <- is.na(b$total)
+    if(sum(c) != 0){
+        print(b$b[which(c)])
+        stop()  
+    }     
+}
+
+consistencyCheckTrigramsVsBigrams()
+```
+
+# Unigram Strategy
+
+Limit the size of the unigram model in order to have a 95% coverage, tme left-out unigrams are replaced by the "OTH" unigram that has the same count as the left out (N does not change, V does change). When looking for an unigram, if the unigram is not found than "OTH" is used.
+
+```{r reduceUnigrams, collapse = T}
+visualizeCumuluativeCoverage(s.1g$total, s.1g$terms, "1-grams")
+
+f.max95 <- cumsum(s.1g$total)/sum(s.1g$total) <= 0.95
+sum(f.max95)
+s.1g.over95 <- s.1g[!f.max95,] 
+s.1g.95 <- s.1g[f.max95,] 
+s.1g.95 <- rbind(s.1g.95, data.frame(terms = "OTH", total = sum(s.1g.over95$total)))
+
+consistencyCheckTrigramsVsUnigrams <- function(){
+    #Check if all of the unigrams in the trigram list are available in the list of unigrams simpified
+    a <- data.frame(b = unique(s.3g.30$next.word))
+    b <- merge(x = a, y = s.1g.95, by.x = "b", by.y = "terms", all.x = T)
+    c <- is.na(b$total)
+    if(sum(c) != 0){
+        print(paste("Adding Missing Unigrams:", sum(c)))
+        
+        idxs <- which(c)
+        for(idx in idxs){
+            
+            idxOTH <- which(s.1g.95$terms == "OTH")
+            idx.term <- as.character(b$b[idx])
+            idx.count <- s.1g$total[s.1g$terms == idx.term]
+            #print(paste("  term:", idx.term))
+            s.1g.95 <<- rbind(s.1g.95, data.frame(terms = idx.term, total = idx.count))
+            s.1g.95$total[idxOTH] <<- s.1g.95$total[idxOTH] - idx.count 
+        }
+        
+        if(sum(s.1g$total)!= sum(s.1g.95$total)) stop()
+        
+    }else{
+        print("No Missing Unigrams...")
+    }     
+}
+
+
+consistencyCheckTrigramsVsUnigrams()
+```
+
+`r kable(s.info, caption = "Summary Info About NGrams - Original Memory Footprint")`
+
+```{r}
+s.info.l <- NULL
+s.info.l <- rbind(s.info.l, summaryInfo(s.1g.95, 1))
+s.info.l <- rbind(s.info.l, summaryInfo(s.2g.75, 2))
+s.info.l <- rbind(s.info.l, summaryInfo(s.3g.30, 3))
+```
+
+
+`r kable(s.info.l, caption = "Summary Info About NGrams - Reduced Memory Footprint")`
+
+
+```{r saveObjects}
+saveRDS(object = s.1g.95, file = "./../model/model.1g.rds")
+saveRDS(object = s.2g.75, file = "./../model/model.2g.rds")
+saveRDS(object = s.3g.30, file = "./../model/model.3g.rds")
+```
+
