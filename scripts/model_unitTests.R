@@ -3,6 +3,7 @@ print("###############Unigrams###################")
 print("##########################################")
 
 rm(list = ls())
+source("model_supportingFunctions.R")
 source("model.R")
 
 u.test.words <- c("the", "time", "of", "love")
@@ -52,6 +53,7 @@ print("######################################################################")
 cat("\n")
 print("##########################################")
 rm(list = ls())
+source("model_supportingFunctions.R")
 source("model.R")
 
 u.test.words <- c("the", "time", "of", "love")
@@ -84,6 +86,7 @@ if(!is.error) stop()
 
 print("##########################################")
 rm(list = ls())
+source("model_supportingFunctions.R")
 source("model.R")
 
 u.test.words <- c("the", "time", "of", "love")
@@ -102,6 +105,7 @@ print("##########################################")
 print("################Bigrams###################")
 print("##########################################")
 rm(list = ls())
+source("model_supportingFunctions.R")
 source("model.R")
 
 b.test.words <- c("the time", "time of", "of love", "love </s>")
@@ -159,6 +163,7 @@ print("######################################################################")
 cat("\n")
 print("##########################################")
 rm(list = ls())
+source("model_supportingFunctions.R")
 source("model.R")
 
 u.test.words <- c("the", "time", "of", "love")
@@ -197,6 +202,7 @@ if(!is.error) stop()
 
 print("##########################################")
 rm(list = ls())
+source("model_supportingFunctions.R")
 source("model.R")
 
 u.test.words <- c("the", "time", "of", "love")
@@ -225,6 +231,7 @@ print("##########################################")
 print("###############Trigrams###################")
 print("##########################################")
 rm(list = ls())
+source("model_supportingFunctions.R")
 source("model.R")
 
 t.test.words <- c("the time of", "time of love", "of love </s>")
@@ -283,6 +290,7 @@ print("################################################################")
 cat("\n")
 print("##########################################")
 rm(list = ls())
+source("model_supportingFunctions.R")
 source("model.R")
 
 b.test.words <- c("the time", "time of", "of love", "love </s>")
@@ -325,6 +333,7 @@ print("#Test - Trigram Model Creation - Probability = c(t)/c(b)               #"
 print("# t = 'w.i-2 w.i-1 w.i', b = 'w.i-2 w.i-1'                            #")
 print("#######################################################################")
 rm(list = ls())
+source("model_supportingFunctions.R")
 source("model.R")
 
 b.test.words <- c("the time", "time of", "of love", "love </s>")
@@ -351,30 +360,3 @@ print(paste(test.name, "::trigrams.model::", test.passed, sep = ""))
 if(!test.passed) stop()
 
 print("##########################################")
-
-
-cat("\n")
-print("###############################################################")
-print("# Test - Merging ngrams terms/counters                        #")
-print("###############################################################")
-rm(list = ls())
-source("model.R")
-d1.terms <- c("i", "am", "tired", "but", "excited", "about")
-d1.counters <- c(1,2,3,4,5,6)
-
-d2.terms <- c("about", "the", "trip", "but", "still", "excited")
-d2.counters <- c(10,20,30,40,50,60)
-
-exp.terms <- c("i", "am", "tired", "but", "excited", "about", "the", "trip", "still")
-exp.counters <- c(1,2,3,44,65,16, 20, 30, 50)
-
-test.name <- "Test - Merging ngrams terms/counters"
-test.result <- collapseToOneList(d1.terms = d1.terms, d1.counters = d1.counters, 
-                                 d2.terms = d2.terms, d2.counters = d2.counters)
-test.passed <- (identical(exp.terms,test.result$terms) & identical(exp.counters,test.result$counters))
-print(paste(test.name, "::collapseToOneList::", test.passed , sep = ""))
-if(!test.passed)stop()
-
-
-
-print("###############################################################")

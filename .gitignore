@@ -27,6 +27,7 @@ scripts/*_files/
 scripts/rsconnect/
 scripts/tmp/
 scripts/model_*/
+scripts/*Model/
 
 reports/*.md
 reports/*.html

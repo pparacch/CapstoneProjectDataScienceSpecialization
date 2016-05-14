@@ -26,7 +26,7 @@ Trigrams
 
 ```{r collapse, eval=F}
 rm(list = ls())
-source("./../scripts/model.R")
+source("./../scripts/model_supportingFunctions.R")
 tw.4g <- load.twitter.4g.data(file_url_allTermsFrequency = "./../data/processed/02_01_s05_sampleCorpus_twitter_termsfrequency.4g.Rdata",
                               file_url_tdm = "./../data/processed/02_01_s04_sampleCorpus_twitter_tdm.4g.Rdata")
 
@@ -45,7 +45,7 @@ tail(x)
 
 
 rm(list = ls())
-source("./../scripts/model.R")
+source("./../scripts/model_supportingFunctions.R")
 tw.3g <- load.twitter.3g.data(file_url_allTermsFrequency = "./../data/processed/02_01_s05_sampleCorpus_twitter_termsfrequency.3g.Rdata",
                               file_url_tdm = "./../data/processed/02_01_s04_sampleCorpus_twitter_tdm.3g.Rdata")
 
@@ -63,7 +63,7 @@ head(x)
 tail(x)
 
 rm(list = ls())
-source("./../scripts/model.R")
+source("./../scripts/model_supportingFunctions.R")
 
 tw.2g <- load.twitter.2g.data(file_url_allTermsFrequency = "./../data/processed/02_01_s05_sampleCorpus_twitter_termsfrequency.2g.Rdata",
                               file_url_tdm = "./../data/processed/02_01_s04_sampleCorpus_twitter_tdm.2g.Rdata")
@@ -82,7 +82,7 @@ head(x)
 tail(x)
 
 rm(list = ls())
-source("./../scripts/model.R")
+source("./../scripts/model_supportingFunctions.R")
 
 tw.1g <- load.twitter.1g.data(file_url_allTermsFrequency = "./../data/processed/02_01_s05_sampleCorpus_twitter_termsfrequency.1g.Rdata",
                               file_url_tdm = "./../data/processed/02_01_s04_sampleCorpus_twitter_tdm.1g.Rdata")
@@ -125,8 +125,7 @@ __Note the generation of the models depends on the normalized coprpora so when r
 
 ```{r trigramModelAllCorporaModelCreation, eval = F}
 rm(list = ls())
-source("./../scripts/model.R")
-source("./../scripts/model_trigramLanguageModel.R")
+source("./../scripts/model_MLE_trigramLanguageModel.R")
 
 #noElements <- 1000
 ##VERY INEFFICIENT -> OPTIMIZED CODE generate.corpora.3gramModel.i
@@ -144,8 +143,7 @@ load(file = filename)
 
 ```{r modelUsage}
 rm(list = ls())
-source("./../scripts/model.R")
-source("./../scripts/model_trigramLanguageModel.R")
+source("./../scripts/model_supportingFunctions.R")
 
 #For using the existent Model - the file below contains teh latest generated model
 load(file = "./../scripts/trigramLanguageModel/allCorpora.3gModel_i_2016-05-10.rdata")
@@ -433,25 +431,9 @@ data.3g.model.df[which(data.3g.model.df$bigram == bigram),]
 
 ```{r}
 rm(list = ls())
-source("./../scripts/model.R")
+source("./../scripts/model_supportingFunctions.R")
+source("./../scripts/model_stupidBackoff.R")
 require(hash)
-
-visualizeCumuluativeCoverage <- function(freqs, terms, title){
-    idx <- order(freqs, decreasing = T)
-    terms.term <- terms[idx]
-    terms.freq <- freqs[idx]
-
-    terms.count <- sum(terms.freq)
-    terms.unique <- length(unique(terms.term))
-    terms.cumulativeCoverage <- (cumsum(terms.freq)/ terms.count) * 100
-    
-    
-    plot(terms.cumulativeCoverage, type = "l", xlab = "Number Of Words", ylab = "% Coverage", main = title)
-    abline(v = which(terms.cumulativeCoverage >= 50)[1], col = "orange", lwd = 3)
-    abline(v = which(terms.cumulativeCoverage >= 90)[1], col = "red", lwd = 3)
-    legend(x = "topright", lty=c(1,1), lwd=c(3,3), col=c("orange", "red"), legend = c("50% coverage", "90% coverage")) 
-}
-
 
 load("./../data/processed/04_s01_allCorpora_aggregated_termsFrequency.3g.rdata")
 allCorpora.3g <- d.ng.df
