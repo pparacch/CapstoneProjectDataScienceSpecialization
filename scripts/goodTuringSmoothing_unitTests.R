@@ -31,4 +31,4 @@ test.inputs.terms <- c("i am", "am going", "going to")
 test.inputs.counters <- c(1, 2, 10)
 test.expected <- c(0.000027, 1.25, 9.25, 0.25, 0.000027)
 test.run(test.name = test.name, test.inputs = test.inputs, test.expected = test.expected, 
-         fun.udt = getGoodTuringCount, fun.terms = test.inputs.terms, fun.counts = test.inputs.counters)
+         fun.udt = gts_getGoodTuringCount, fun.terms = test.inputs.terms, fun.counts = test.inputs.counters)
