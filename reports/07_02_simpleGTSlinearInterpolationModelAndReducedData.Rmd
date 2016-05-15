@@ -1,0 +1,87 @@
+---
+title: "Models & Reduced Ngrams"
+author: "Pier Lorenzo Paracchini"
+date: "15 mai 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# WINDOWS LOCALE SETTING
+Sys.setlocale(category = "LC_ALL",locale = "English_United States.1252")
+
+require(knitr)
+
+source("./../scripts/model_evaluation.R")
+source("./../model/model_supportingFunctions.R")
+source("./../model/goodTuringSmoothing.R")
+source("./../model/model_simpleGTS_linearInterpolation.R")
+```
+
+# Testing Sentences
+
+```{r creatingTestDataSetOfSentences, collpase = T}
+sentences
+
+sentences_1
+```
+
+# Linear Interpolation (simple) with Good-Turing Smoothing
+
+P(wi|wi-1, wi-2) = lambda1 * P(wi|wi-1, wi-2) + lambda2 * P(wi|wi-1) + lambda3 * P(wi)
+P models have been implemented using a __simple GT smoothing__.
+
+
+```{r loadTheNgramData, cache = T, collapse=T}
+d.1g <- readRDS("./../model/model.1g.rds")
+d.2g <- readRDS("./../model/model.2g.rds")
+d.3g <- readRDS("./../model/model.3g.withTrigrams.rds")
+
+#Size of the object in memory
+format(object.size(d.3g$terms), "auto")
+format(object.size(d.3g$total), "auto")
+
+format(object.size(d.2g$terms), "auto")
+format(object.size(d.2g$total), "auto")
+
+format(object.size(d.1g$terms), "auto")
+format(object.size(d.1g$total), "auto")
+```
+
+```{r testLinearInterpolation_1, collapse = T}
+m9.l1 = 0.4; m9.l2 = 0.3; m9.l3 = 0.3
+model9.evaluation <- sapply(sentences, FUN = estimateSentProb.linearInterpolation.model.withGoodTuring.smoothing, 
+                            t.terms = d.3g$terms, t.counters = d.3g$total,
+                            b.terms = d.2g$terms, b.counters = d.2g$total,
+                            u.terms = d.1g$terms, u.counters = d.1g$total,
+                            lambda_1 = m9.l1, lambda_2 = m9.l2, lambda_3 = m9.l3)
+
+colnames(model9.evaluation) <- NULL
+model9.evaluation <- t(model9.evaluation)
+model9.perplexity <- calculatePerplexity(model9.evaluation)
+```
+
+`r kable(model9.evaluation, caption = "Linear Interpolation Model - Base")`
+
+__Perplexity (log base2):__ `r model9.perplexity`
+
+
+```{r testLinearInterpolation_2, collapse = T}
+m9.l1 = 0.4; m9.l2 = 0.3; m9.l3 = 0.3
+model9.evaluation <- sapply(sentences_1, FUN = estimateSentProb.linearInterpolation.model.withGoodTuring.smoothing, 
+                            t.terms = d.3g$terms, t.counters = d.3g$total,
+                            b.terms = d.2g$terms, b.counters = d.2g$total,
+                            u.terms = d.1g$terms, u.counters = d.1g$total,
+                            lambda_1 = m9.l1, lambda_2 = m9.l2, lambda_3 = m9.l3)
+
+colnames(model9.evaluation) <- NULL
+model9.evaluation <- t(model9.evaluation)
+model9.perplexity <- calculatePerplexity(model9.evaluation)
+```
+
+`r kable(model9.evaluation, caption = "Linear Interpolation Model - Base")`
+
+__Perplexity (log base2):__ `r model9.perplexity`
+
+
