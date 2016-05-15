@@ -79,12 +79,3 @@ model2.perplexity <- calculatePerplexity(stupidBackoff.model.base.evaluation2)
 __Perplexity (log base2):__ `r model2.perplexity`
 
 
-# Some extra testing
-
-```{r}
-s.corpora.3g <- readRDS("./../model/model.3g.rds")
-tmp <- "and i’d"
-s.corpora.3g[s.corpora.3g$before.bigram == tmp,]
-
-```
-
