@@ -28,7 +28,7 @@ sentences_1 <- c(
 	
 	"<s> guy at my table's wife got up to go to the bathroom and i asked about dessert and he started telling me about his financial </>",
 	"<s> guy at my table's wife got up to go to the bathroom and i asked about dessert and he started telling me about his marital </>",
-	"<s> guy at my table's wife got up to go to the bathroom and i asked about dessert and he started telling me about his hrorticultural </>",
+	"<s> guy at my table's wife got up to go to the bathroom and i asked about dessert and he started telling me about his horticultural </>",
 	"<s> guy at my table's wife got up to go to the bathroom and i asked about dessert and he started telling me about his spiritual </>",
 	
 	"<s> i'd give anything to see arctic monkeys this month </s>",
@@ -45,16 +45,30 @@ sentences_1 <- c(
 	"<s> when you were in Holland you were like inch away from me but you hadn't time to take a picture </s>",
 	"<s> when you were in Holland you were like inch away from me but you hadn't time to take a minute </s>",
 	"<s> when you were in Holland you were like inch away from me but you hadn't time to take a look </s>",
-	
+
+    "<s> i'd just like all of these questions answered a presentation of evidence and a jury to settle the incident </s>",
+    "<s> i'd just like all of these questions answered a presentation of evidence and a jury to settle the case </s>",
+    "<s> i'd just like all of these questions answered a presentation of evidence and a jury to settle the matter </s>",
+    "<s> i'd just like all of these questions answered a presentation of evidence and a jury to settle the account </s>",
+
+    "<s> i can't deal with unsymetrical things i can't even hold an uneven number of bags of groceries in each toe </s>",
+    "<s> i can't deal with unsymetrical things i can't even hold an uneven number of bags of groceries in each hand </s>",
+    "<s> i can't deal with unsymetrical things i can't even hold an uneven number of bags of groceries in each arm </s>",
+    "<s> i can't deal with unsymetrical things i can't even hold an uneven number of bags of groceries in each finger </s>",
+    
+    "<s> every inch of you is perfect from the bottom to the middle </s>",
+    "<s> every inch of you is perfect from the bottom to the center </s>",
+    "<s> every inch of you is perfect from the bottom to the top </s>",
+    "<s> every inch of you is perfect from the bottom to the side </s>",
+    
+    "<s> i'm thankful my childhood was filled with imagination and bruises from playing daily </s>",
+    "<s> i'm thankful my childhood was filled with imagination and bruises from playing weekly </s>",
+    "<s> i'm thankful my childhood was filled with imagination and bruises from playing inside </s>",
+    "<s> i'm thankful my childhood was filled with imagination and bruises from playing outside </s>",
+        	
 	"<s> i like how the same people are in almost all of adam sandler's movies </s>",
 	"<s> i like how the same people are in almost all of adam sandler's novels </s>",
 	"<s> i like how the same people are in almost all of adam sandler's pictures </s>",
-	"<s> i like how the same people are in almost all of adam sandler's stories </s>",
-	
-	"<s> i'm thankful my childhood was filled with imagination and bruises from playing daily </s>",
-	"<s> i'm thankful my childhood was filled with imagination and bruises from playing weekly </s>",
-	"<s> i'm thankful my childhood was filled with imagination and bruises from playing inside </s>",
-	"<s> i'm thankful my childhood was filled with imagination and bruises from playing outside </s>"
-	
+	"<s> i like how the same people are in almost all of adam sandler's stories </s>"
 )
 

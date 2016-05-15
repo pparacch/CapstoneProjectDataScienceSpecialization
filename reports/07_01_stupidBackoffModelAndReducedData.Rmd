@@ -1,0 +1,90 @@
+---
+title: "Models & Reduced Ngrams"
+author: "Pier Lorenzo Paracchini"
+date: "15 mai 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# WINDOWS LOCALE SETTING
+Sys.setlocale(category = "LC_ALL",locale = "English_United States.1252")
+
+require(knitr)
+
+source("./../scripts/model_evaluation.R")
+source("./../model/model_supportingFunctions.R")
+source("./../model/model_stupidBackoff.R")
+```
+
+# Testing Sentences
+
+```{r creatingTestDataSetOfSentences, collpase = T}
+sentences
+
+sentences_1
+```
+
+# Tri-gram model based on Stupid Backoff
+
+Using all of the trigrams, bigrams and unigrams within all of the sample corpus to calculate the score for a specific sequence of words. In order to avoid the 0 score - especially when a term is not known, the unigram will return OTH probability (OTH has been introduced when reducing the list of UNIGRAMS to be used).
+
+
+```{r loadTheNgramData, cache = T, collapse=T}
+s.corpora.1g <- readRDS("./../model/model.1g.rds")
+s.corpora.2g <- readRDS("./../model/model.2g.rds")
+
+s.corpora.3g <- readRDS("./../model/model.3g.rds")
+s.corpora.3g <- data.frame(terms = paste(s.corpora.3g$before.bigram, s.corpora.3g$next.word), total = s.corpora.3g$total, stringsAsFactors = F)
+saveRDS(s.corpora.3g, file = "./../model/model.3g.withTrigrams.rds")
+
+#Size of the object in memory
+format(object.size(s.corpora.3g$terms), "auto")
+format(object.size(s.corpora.3g$total), "auto")
+
+format(object.size(s.corpora.2g$terms), "auto")
+format(object.size(s.corpora.2g$total), "auto")
+
+format(object.size(s.corpora.1g$terms), "auto")
+format(object.size(s.corpora.1g$total), "auto")
+```
+
+```{r testStupidBackOff_3g_30_2g_75_1g_95_model1, collapse=T}
+stupidBackoff.model.base.evaluation <- sapply(sentences, FUN = estimateSentenceProbabilities,
+                                   t.terms = s.corpora.3g$terms, t.counters = s.corpora.3g$total,
+                                   b.terms = s.corpora.2g$terms, s.corpora.2g$total,
+                                   u.words = s.corpora.1g$terms, u.counters = s.corpora.1g$total)
+colnames(stupidBackoff.model.base.evaluation) <- NULL
+stupidBackoff.model.base.evaluation <- t(stupidBackoff.model.base.evaluation)
+model1.perplexity <- calculatePerplexity(stupidBackoff.model.base.evaluation)
+```
+
+`r kable(stupidBackoff.model.base.evaluation, caption = "Tri-grams StupidBackoff")`
+
+__Perplexity (log base2):__ `r model1.perplexity`
+
+```{r testStupidBackOff_3g_30_2g_75_1g_95_model2, collapse=T}
+stupidBackoff.model.base.evaluation2 <- sapply(sentences_1, FUN = estimateSentenceProbabilities,
+                                   t.terms = s.corpora.3g$terms, t.counters = s.corpora.3g$total,
+                                   b.terms = s.corpora.2g$terms, s.corpora.2g$total,
+                                   u.words = s.corpora.1g$terms, u.counters = s.corpora.1g$total)
+colnames(stupidBackoff.model.base.evaluation2) <- NULL
+stupidBackoff.model.base.evaluation2 <- t(stupidBackoff.model.base.evaluation2)
+model2.perplexity <- calculatePerplexity(stupidBackoff.model.base.evaluation2)
+```
+
+`r kable(stupidBackoff.model.base.evaluation2, caption = "Tri-grams StupidBackoff")`
+
+__Perplexity (log base2):__ `r model2.perplexity`
+
+
+# Some extra testing
+
+```{r}
+s.corpora.3g <- readRDS("./../model/model.3g.rds")
+tmp <- "and i’d"
+s.corpora.3g[s.corpora.3g$before.bigram == tmp,]
+
+```
+
