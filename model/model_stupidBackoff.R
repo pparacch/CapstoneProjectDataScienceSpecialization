@@ -46,7 +46,7 @@ sb_support.bi <- function(word_i, word_i_m1, b.terms, b.counters, u.words, u.cou
 
 sb_support.uni <- function(word_i, u.words, u.counters){
     prob <- prob.w_i(word_i = word_i, u.words = u.words, u.counters = u.counters)
-    sb_factor * prob
+    sb_factor * sb_factor * prob
 }
 
 prob.w_i.given.bigram <- function(word_i, bigramBeforeWord_1, t.terms, t.counters, b.terms, b.counters){

@@ -6,8 +6,8 @@ print("####################################################")
 print("############Stupid BackOff Implementation###########")
 print("####################################################")
 
-u.test.words <- c("the", "time", "of", "love", "</s>", "OTH")
-u.test.counters <- c(10, 20, 30, 40, 890, 10)
+u.test.words <- c("the", "time", "of", "love", "</s>")
+u.test.counters <- c(10, 20, 30, 40, 900)
 
 b.test.terms <- c("the time", "time of", "of love", "love </s>")
 b.test.counters <- c(100, 40, 600, 0)
@@ -78,14 +78,14 @@ print("#####################################################################")
 # u.test.words <- c("the", "time", "of", "love", "</s>")
 # u.test.counters <- c(10, 20, 30, 40, 900)
 
-test.input.terms <- c("the", "time", "doesNotExist") #doesNotExist -> OTH is used
-test.expected.prob <- c(0.004, 0.008, 0.004)
+test.input.terms <- c("the", "time", "doesNotExist")
+test.expected.prob <- c(0.0016, 0.0032, 0)
 
 test.name <- "Test StupidBackOff - Support Unigram Level"
 
 for(i in 1:length(test.input.terms)){
     test.result <- sb_support.uni(word_i = test.input.terms[i], u.words = u.test.words, u.counters = u.test.counters)
-    test.passed <- (test.expected.prob[i] == test.result)
+    test.passed <- (abs(test.expected.prob[i] - test.result) < 0.00001)
     print(paste(test.name, "::sb_support.uni::w_i = '", test.input.terms[i],"' ::value::",test.result, "::", test.passed , sep = ""))
     if(!test.passed)stop()
 } 
@@ -106,7 +106,7 @@ b.test.counters <- c(100, 40, 600, 0, 3)
 t.test.terms <- c("the time of", "time of love", "of love </s>")
 t.test.counters <- c(10, 20, 30)
 
-test.expected.prob <- c(0.1, 0.5, 0.05, 0.04, 0.02)
+test.expected.prob <- c(0.1, 0.5, 0.05, 0.04, 0.008)
 
 test.name <- "Test StupidBackOff"
 test.input.terms <- c("of", "the time", 

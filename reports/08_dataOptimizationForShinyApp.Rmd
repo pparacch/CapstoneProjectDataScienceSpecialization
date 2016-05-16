@@ -1,0 +1,103 @@
+---
+title: "Models & Reduced Ngrams"
+author: "Pier Lorenzo Paracchini"
+date: "15 mai 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# WINDOWS LOCALE SETTING
+Sys.setlocale(category = "LC_ALL",locale = "English_United States.1252")
+```
+
+# Data Optimization for using Stupid Backoff Trigram model as App Engine
+
+Using all of the trigrams, bigrams and unigrams within all of the sample corpus to calculate the score for a specific sequence of words. In order to avoid the 0 score - especially when a term is not known, the unigram will return OTH probability (OTH has been introduced when reducing the list of UNIGRAMS to be used).
+
+## Trigrams
+
+Required data structure:
+
+* term
+* next.word
+* t.count
+* b.count
+* score (calculated using the count(trigram)/count(bigram))
+
+
+```{r trigramsOptimization, cache = T, collapse=T}
+s.corpora.1g <- readRDS("./../model/model.1g.rds")
+s.corpora.2g <- readRDS("./../model/model.2g.rds")
+
+
+s.corpora.3g <- readRDS("./../model/model.3g.rds")
+s.corpora.3g$terms = paste(s.corpora.3g$before.bigram, s.corpora.3g$next.word)
+names(s.corpora.3g) <- c("term", "next.word", "t.count", "trigram")
+
+tmp <- merge(x = s.corpora.3g,  y = s.corpora.2g, by.x = "term", by.y = "terms", all.x = T)
+tmp$scores <- tmp$t.count/ tmp$total
+
+app.3g <- data.frame(term = tmp$term, next.word = tmp$next.word, t.count = tmp$t.count, b.count = tmp$total, score = tmp$scores)
+app.3g <- app.3g[order(app.3g$score, decreasing = T),]
+
+#Size of the object in memory
+format(object.size(app.3g), "auto")
+
+saveRDS(app.3g, file = "./../model/app.3g.rds")
+rm(list = ls())
+```
+
+## Bigrams
+
+Required data structure:
+
+* term
+* next.word
+* b.count
+* u.count
+* score (calculated using the count(bigram)/count(unigram))
+
+
+```{r bigramsOptimization, cache = T, collapse=T}
+s.corpora.1g <- readRDS("./../model/model.1g.rds")
+s.corpora.2g <- readRDS("./../model/model.2g.rds")
+s.corpora.2g$term1 <- sapply(X = s.corpora.2g$terms, FUN = function(x){unlist(strsplit(x, " "))[1]})
+s.corpora.2g$term2 <- sapply(X = s.corpora.2g$terms, FUN = function(x){unlist(strsplit(x, " "))[2]})
+names(s.corpora.2g) <- c("bigram", "b.count", "word1", "word2")
+
+tmp <- merge(x = s.corpora.2g,  y = s.corpora.1g, by.x = "word1", by.y = "terms", all.x = T)
+tmp$score <- 0.4 * (tmp$b.count/ tmp$total)
+
+app.2g <- data.frame(term = tmp$word1, next.word = tmp$word2, b.count = tmp$b.count, u.count = tmp$total, score = tmp$score)
+app.2g <- app.2g[order(app.2g$score, decreasing = T),]
+
+#Size of the object in memory
+format(object.size(app.2g), "auto")
+
+saveRDS(app.2g, file = "./../model/app.2g.rds")
+rm(list = ls())
+```
+
+## Unigrams
+
+Required data structure:
+
+* term
+* count
+* score (calculated using count(term)/N)
+
+
+```{r unigramsOptimization, cache = T, collapse=T}
+s.corpora.1g <- readRDS("./../model/model.1g.rds")
+N <- sum(s.corpora.1g$total)
+s.corpora.1g$score <- 0.4 * 0.4 * (s.corpora.1g$total/ N)
+
+app.1g <- data.frame(term = s.corpora.1g$terms, count = s.corpora.1g$total, score = s.corpora.1g$score)
+
+#Size of the object in memory
+format(object.size(app.1g), "auto")
+
+saveRDS(app.1g, file = "./../model/app.1g.rds")
+```
