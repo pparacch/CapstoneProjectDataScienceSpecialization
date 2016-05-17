@@ -4,11 +4,11 @@
 library(wordcloud)
 source("./helper.R")
 
-d.1g <- readRDS(file = "./data/model.1g.rds")
+d.1g <- readRDS(file = "./data/app.1g.rds")
 #REMOVING START/END OF SENTENCE from UNIGRAMS
-d.1g <- d.1g[-which(d.1g$terms == "<s>"),]
-d.1g <- d.1g[-which(d.1g$terms == "</s>"),]
+d.1g <- d.1g[-which(d.1g$term == "<s>"),]
+d.1g <- d.1g[-which(d.1g$term == "</s>"),]
 
-d.2g <- readRDS(file = "./data/model.2g.rds")
-d.3g <- readRDS(file = "./data/model.3g.rds")
+d.2g <- readRDS(file = "./data/app.2g.rds")
+d.3g <- readRDS(file = "./data/app.3g.rds")
 

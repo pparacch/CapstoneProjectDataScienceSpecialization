@@ -10,27 +10,53 @@ shinyUI(fluidPage(
     titlePanel("TextPredictor App"),
     sidebarLayout(
         sidebarPanel(
-            textInput("text_i", label = h3("Enter your text:"), 
-                      value = ""),
-            submitButton("Predict"),
+            h4("Enter your text:"),
+            tags$textarea(id="text_i", rows=3, cols=40, label = h3("Enter your text:")),
+            submitButton("Predict"), 
             br(),
             helpText("Note: The Text Predictor App uses english vocabulary only. Digits, punctuation chars (except contractions like I'm, aren't, ..), non-ASCII chars are not currently managed."),
             br(),
-            img(src = "test.jpg", height = 150, width = 300),
+            img(src = "wordcloud.png", width = 250),
             br(),
             br(),
-            span("Data Science Specialization Capstone Project", style = "color:blue"),
-            br(),
+            span("'Data Science Specialization' Capstone Project", style = "color:blue"),
             "empowered by", 
             span("Johns Hopkins University & SwiftKey", style = "color:blue") 
         ),
         mainPanel(
             tabsetPanel(
                 tabPanel("App Info"),
-                tabPanel("Next Words", 
+                tabPanel("Next Words",
                          br(),
+                         h4("Entered text:"),
+                         textOutput("text_o"),
                          br(),
-                         tableOutput("prediction_o")) 
+                         h4("Next words:"),
+                         uiOutput("word1"),
+                         uiOutput("word2"),
+                         uiOutput("word3"),
+                         uiOutput("word4"),
+                         uiOutput("word5")
+                         ),
+                tabPanel("Next Words: details", 
+                         br(),
+                         p("Here it is possible to see where the next words come from - trigrams, bigrams and unigrams. Trigrams take precedence over bigrams, and bigrams thake precedence over unigrams when building up teh list of the 5 next possible words."),
+                         br(),
+                         h3("... based on Trigrams:"),
+                         p("If trigrams are available, the table shows the possible next words order by Stupid Backoff score (log base 2) in decreasing order."),
+                         p(),
+                         div(dataTableOutput("predictionTrigramsAll_o"), style = "font-size:90%"), 
+                         br(),
+                         h3("... based on Bigrams:"),
+                         p("If bigrams are available, the table shows the possible next words order by Stupid Backoff score (log base 2) in decreasing order."),
+                         p(),
+                         div(dataTableOutput("predictionBigramsAll_o"), style = "font-size:90%"),
+                         br(),
+                         h3("... based on Most Frequent Unigrams:"),
+                         p("The table shows the more probable (10) unigrams order by Stupid Backoff score (log base 2) in decreasing order. These unigrams are going to be suggested as possible next words when there are no/ or limited selection of trigrams and bigrams (e.g. in the case of an unknown word)."),
+                         p(),
+                         div(dataTableOutput("predictionUnigramsTop_o"), style = "font-size:90%"),
+                         br()) 
                 )
             )
         )

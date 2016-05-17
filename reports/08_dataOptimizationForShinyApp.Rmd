@@ -101,3 +101,18 @@ format(object.size(app.1g), "auto")
 
 saveRDS(app.1g, file = "./../model/app.1g.rds")
 ```
+
+
+```{r}
+library(wordcloud)
+words <- c("nlp", "n-grams", "language modeling", "chain rule", "markov assumprion", "unigram model",
+          "bigram model", "trigram model", "evaluation", "perplexity", "shannon game", "overfitting",
+          "mle", "add-one", "Backoff", "interpolation", "add-k", "smoothing","Good-Turing", "Kneser-Ney")
+freq <- sample(1:1000, length(words), replace=FALSE)
+
+png("./../model/wordcloud.png", width=400,height=200)
+wordcloud(words = words, freq = freq, random.order = F, rot.per = 0.4, scale = c(4,.4))
+dev.off()
+
+```
+
