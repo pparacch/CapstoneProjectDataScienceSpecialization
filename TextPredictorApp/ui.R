@@ -31,13 +31,7 @@ shinyUI(fluidPage(
                          textOutput("text_o"),
                          br(),
                          uiOutput("possibleWords"),
-                         uiOutput("addNextWord")
-                         # uiOutput("word1"),
-                         # uiOutput("word2"),
-                         # uiOutput("word3"),
-                         # uiOutput("word4"),
-                         # uiOutput("word5")
-                         ),
+                         uiOutput("addNextWord")),
                 tabPanel("Next Words: details", 
                          br(),
                          p("Here it is possible to see where the next words come from - trigrams, bigrams and unigrams. Trigrams take precedence over bigrams, and bigrams thake precedence over unigrams when building up teh list of the 5 next possible words."),

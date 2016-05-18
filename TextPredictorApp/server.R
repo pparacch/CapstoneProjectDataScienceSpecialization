@@ -36,7 +36,7 @@ shinyServer(function(input, output, session) {
     }, options = list(lengthMenu = c(5, 30, 50), pageLength = 5))
     
     output$possibleWords <- renderUI({
-        if(input$predict > 0){
+        if(input$predict > 0 & !is.null(next.words())){
             result <- NULL
             for(i in 1:5){
                 result <- c(result, as.character(next.words()$next.word[i]))
@@ -47,7 +47,7 @@ shinyServer(function(input, output, session) {
     })
     
     output$addNextWord <- renderUI({
-        if(input$predict > 0){
+        if(input$predict > 0 & !is.null(next.words())){
             actionButton(inputId = "addWord", label = "Add Selected Word...") 
         }
     })
@@ -55,39 +55,4 @@ shinyServer(function(input, output, session) {
     observeEvent(input$addWord,{
         updateTextInput(session = session, inputId = "text_i", value = paste(input$text_i, input$nextWord))
     })
-    
-    # output$word1 <- renderUI({
-    #     word <- next.words()$next.word[1]
-    #     if(!is.null(word)){
-    #         actionButton("word1", word)    
-    #     }
-    # })
-    # 
-    # output$word2 <- renderUI({
-    #     word <- next.words()$next.word[2]
-    #     if(!is.null(word)){
-    #         actionButton("word1", word)    
-    #     }
-    # })
-    # 
-    # output$word3 <- renderUI({
-    #     word <- next.words()$next.word[3]
-    #     if(!is.null(word)){
-    #         actionButton("word1", word)    
-    #     }
-    # })
-    # 
-    # output$word4 <- renderUI({
-    #     word <- next.words()$next.word[4]
-    #     if(!is.null(word)){
-    #         actionButton("word1", word)    
-    #     }
-    # })
-    # 
-    # output$word5 <- renderUI({
-    #     word <- next.words()$next.word[5]
-    #     if(!is.null(word)){
-    #         actionButton("word1", word)    
-    #     }
-    # })
 })
