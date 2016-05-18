@@ -19,6 +19,10 @@ shinyServer(function(input, output, session) {
     next.bigrams.all <- reactive({getallBigrams(current.text())})
     next.unigrams.top <- reactive({gettopUnigrams(current.text())})
     
+    observeEvent(input$addWord,{
+        updateTextInput(session = session, inputId = "text_i", value = paste(input$text_i, input$nextWord))
+    })
+    
     output$text_o <- renderText({ 
        paste(current.text())
     })
@@ -52,7 +56,36 @@ shinyServer(function(input, output, session) {
         }
     })
     
-    observeEvent(input$addWord,{
-        updateTextInput(session = session, inputId = "text_i", value = paste(input$text_i, input$nextWord))
+    wordcloud_rep <- repeatable(wordcloud)
+    
+    output$trigramWordcloud <- renderPlot({
+       
+        if(current.text() != ""){
+            tmp <-  next.trigrams.all()
+            if(!is.null(tmp)){
+                terms <- paste(tmp$source, tmp$next.word)
+                counts <- 1000 + (tmp$score * 100)
+                
+                wordcloud_rep(terms, counts, scale=c(4,0.5),
+                              min.freq = 1, random.order = F, rot.per = .15, max.words=20,
+                              colors=brewer.pal(8, "Dark2"))
+            }
+        }
     })
+    
+    output$bigramWordcloud <- renderPlot({
+        
+        if(current.text() != ""){
+            tmp <-  next.bigrams.all()
+            if(!is.null(tmp)){
+                terms <- paste(tmp$source, tmp$next.word)
+                counts <- 1000 + (tmp$score * 100)
+                
+                wordcloud_rep(terms, counts, scale=c(4,0.5),
+                              min.freq = 1, random.order = F, rot.per = .15, max.words=20,
+                              colors=brewer.pal(8, "Dark2"))
+            }
+        }
+    })
+    
 })

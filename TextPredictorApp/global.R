@@ -3,6 +3,7 @@
 
 library(wordcloud)
 source("./helper.R")
+library(RColorBrewer)
 
 d.1g <- readRDS(file = "./data/app.1g.rds")
 #REMOVING START/END OF SENTENCE from UNIGRAMS

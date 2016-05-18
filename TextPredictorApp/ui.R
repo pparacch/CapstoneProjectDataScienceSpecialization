@@ -33,26 +33,33 @@ shinyUI(fluidPage(
                          uiOutput("possibleWords"),
                          uiOutput("addNextWord")),
                 tabPanel("Next Words: details", 
+                         h2("Examining the Language Model:"),
                          br(),
-                         p("Here it is possible to see where the next words come from - trigrams, bigrams and unigrams. Trigrams take precedence over bigrams, and bigrams thake precedence over unigrams when building up teh list of the 5 next possible words."),
+                         p("Here it is possible to see from where the next words come from - specifically trigrams, bigrams and unigrams. Trigrams take precedence over bigrams, and bigrams take precedence over unigrams when building up the list of the 5 next possible words."),
                          br(),
                          h3("... based on Trigrams:"),
-                         p("If trigrams are available, the table shows the possible next words order by Stupid Backoff score (log base 2) in decreasing order."),
+                         p("If trigrams are available, the table shows the possible next words ordered by Stupid Backoff score (log base 2) in decreasing order."),
                          p(),
                          div(dataTableOutput("predictionTrigramsAll_o"), style = "font-size:90%"), 
                          br(),
                          h3("... based on Bigrams:"),
-                         p("If bigrams are available, the table shows the possible next words order by Stupid Backoff score (log base 2) in decreasing order."),
+                         p("If bigrams are available, the table shows the possible next words ordered by Stupid Backoff score (log base 2) in decreasing order."),
                          p(),
                          div(dataTableOutput("predictionBigramsAll_o"), style = "font-size:90%"),
                          br(),
                          h3("... based on Most Frequent Unigrams:"),
-                         p("The table shows the more probable (10) unigrams order by Stupid Backoff score (log base 2) in decreasing order. These unigrams are going to be suggested as possible next words when there are no/ or limited selection of trigrams and bigrams (e.g. in the case of an unknown word)."),
+                         p("The table shows the more probable (15) unigrams ordered by Stupid Backoff score (log base 2) in decreasing order. These unigrams are going to be suggested as possible next words when there are no/ or limited selection of trigrams and bigrams (e.g. in the case of an unknown word)."),
                          p(),
                          div(dataTableOutput("predictionUnigramsTop_o"), style = "font-size:90%"),
-                         br()) 
-                )
+                         br(),
+                         h3("Wordclouds:"),
+                         br(),
+                         p("A visual representation of the bigrams and trigrams supporting the suggested next words using wordclouds."),
+                         plotOutput("bigramWordcloud"),
+                         plotOutput("trigramWordcloud")),
+                tabPanel("The Language Model")
             )
+            
         )
     )
-)
+))
