@@ -7,9 +7,12 @@
 library(shiny)
 
 
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
     
-    current.text <- reactive({ input$text_i })
+    current.text <- reactive({ 
+        input$predict
+        isolate(input$text_i) 
+        })
     
     next.words <- reactive({prediction.f(current.text())})
     next.trigrams.all <- reactive({getallTrigrams(current.text())})
@@ -17,7 +20,7 @@ shinyServer(function(input, output) {
     next.unigrams.top <- reactive({gettopUnigrams(current.text())})
     
     output$text_o <- renderText({ 
-        current.text()
+       paste(current.text())
     })
     
     output$predictionTrigramsAll_o <- renderDataTable({
@@ -32,38 +35,59 @@ shinyServer(function(input, output) {
         next.unigrams.top()
     }, options = list(lengthMenu = c(5, 30, 50), pageLength = 5))
     
-    output$word1 <- renderUI({
-        word <- next.words()$next.word[1]
-        if(!is.null(word)){
-            actionButton("word1", word)    
+    output$possibleWords <- renderUI({
+        if(input$predict > 0){
+            result <- NULL
+            for(i in 1:5){
+                result <- c(result, as.character(next.words()$next.word[i]))
+            }
+            
+            radioButtons("nextWord", "Next Word:", result)
         }
     })
     
-    output$word2 <- renderUI({
-        word <- next.words()$next.word[2]
-        if(!is.null(word)){
-            actionButton("word1", word)    
+    output$addNextWord <- renderUI({
+        if(input$predict > 0){
+            actionButton(inputId = "addWord", label = "Add Selected Word...") 
         }
     })
-
-    output$word3 <- renderUI({
-        word <- next.words()$next.word[3]
-        if(!is.null(word)){
-            actionButton("word1", word)    
-        }
+    
+    observeEvent(input$addWord,{
+        updateTextInput(session = session, inputId = "text_i", value = paste(input$text_i, input$nextWord))
     })
-
-    output$word4 <- renderUI({
-        word <- next.words()$next.word[4]
-        if(!is.null(word)){
-            actionButton("word1", word)    
-        }
-    })
-
-    output$word5 <- renderUI({
-        word <- next.words()$next.word[5]
-        if(!is.null(word)){
-            actionButton("word1", word)    
-        }
-    })
+    
+    # output$word1 <- renderUI({
+    #     word <- next.words()$next.word[1]
+    #     if(!is.null(word)){
+    #         actionButton("word1", word)    
+    #     }
+    # })
+    # 
+    # output$word2 <- renderUI({
+    #     word <- next.words()$next.word[2]
+    #     if(!is.null(word)){
+    #         actionButton("word1", word)    
+    #     }
+    # })
+    # 
+    # output$word3 <- renderUI({
+    #     word <- next.words()$next.word[3]
+    #     if(!is.null(word)){
+    #         actionButton("word1", word)    
+    #     }
+    # })
+    # 
+    # output$word4 <- renderUI({
+    #     word <- next.words()$next.word[4]
+    #     if(!is.null(word)){
+    #         actionButton("word1", word)    
+    #     }
+    # })
+    # 
+    # output$word5 <- renderUI({
+    #     word <- next.words()$next.word[5]
+    #     if(!is.null(word)){
+    #         actionButton("word1", word)    
+    #     }
+    # })
 })

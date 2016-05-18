@@ -12,7 +12,7 @@ shinyUI(fluidPage(
         sidebarPanel(
             h4("Enter your text:"),
             tags$textarea(id="text_i", rows=3, cols=40, label = h3("Enter your text:")),
-            submitButton("Predict"), 
+            actionButton("predict", "Predict"), 
             br(),
             helpText("Note: The Text Predictor App uses english vocabulary only. Digits, punctuation chars (except contractions like I'm, aren't, ..), non-ASCII chars are not currently managed."),
             br(),
@@ -28,15 +28,15 @@ shinyUI(fluidPage(
                 tabPanel("App Info"),
                 tabPanel("Next Words",
                          br(),
-                         h4("Entered text:"),
                          textOutput("text_o"),
                          br(),
-                         h4("Next words:"),
-                         uiOutput("word1"),
-                         uiOutput("word2"),
-                         uiOutput("word3"),
-                         uiOutput("word4"),
-                         uiOutput("word5")
+                         uiOutput("possibleWords"),
+                         uiOutput("addNextWord")
+                         # uiOutput("word1"),
+                         # uiOutput("word2"),
+                         # uiOutput("word3"),
+                         # uiOutput("word4"),
+                         # uiOutput("word5")
                          ),
                 tabPanel("Next Words: details", 
                          br(),
