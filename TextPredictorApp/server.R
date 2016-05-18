@@ -66,7 +66,7 @@ shinyServer(function(input, output, session) {
                 terms <- paste(tmp$source, tmp$next.word)
                 counts <- 1000 + (tmp$score * 100)
                 
-                wordcloud_rep(terms, counts, scale=c(4,0.5),
+                wordcloud_rep(terms, counts, scale=c(2,0.4),
                               min.freq = 1, random.order = F, rot.per = .15, max.words=20,
                               colors=brewer.pal(8, "Dark2"))
             }
@@ -81,7 +81,7 @@ shinyServer(function(input, output, session) {
                 terms <- paste(tmp$source, tmp$next.word)
                 counts <- 1000 + (tmp$score * 100)
                 
-                wordcloud_rep(terms, counts, scale=c(4,0.5),
+                wordcloud_rep(terms, counts, scale=c(2,0.4),
                               min.freq = 1, random.order = F, rot.per = .15, max.words=20,
                               colors=brewer.pal(8, "Dark2"))
             }
