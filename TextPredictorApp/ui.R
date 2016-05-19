@@ -6,7 +6,7 @@
 
 library(shiny)
 
-shinyUI(fluidPage(
+shinyUI(fluidPage(theme = "bootstrap.min.css",
     titlePanel("TextPredictor App"),
     sidebarLayout(
         sidebarPanel(
