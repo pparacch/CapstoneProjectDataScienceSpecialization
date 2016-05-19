@@ -54,8 +54,11 @@ shinyUI(fluidPage(theme = "bootstrap.min.css",
                 tabPanel("Next Words: wordclouds",
                          br(),
                          p("A visual representation of the bigrams and trigrams supporting the suggested next words using wordclouds."),
-                         plotOutput("bigramWordcloud"),
-                         plotOutput("trigramWordcloud"))
+                         #plotOutput("bigramWordcloud"),
+                         #plotOutput("trigramWordcloud"))
+                         fluidRow(column(4, plotOutput("trigramWordcloud")),
+                                  column(8, plotOutput("bigramWordcloud"))
+                         ))
             )
             
         )

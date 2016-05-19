@@ -18,7 +18,6 @@ cleanup_entered_words <- function(text, useStartMarker = T){
     return(text)
 }
 
-
 getallTrigrams <- function(text){
     result <- NULL
     
