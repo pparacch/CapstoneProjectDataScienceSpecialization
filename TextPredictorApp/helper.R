@@ -1,3 +1,24 @@
+cleanup_entered_words <- function(text, useStartMarker = T){
+    #to lowercase
+    text <- tolower(text)
+    #force to ascii - replace non ascii char to empty char
+    text <- iconv(x = text, from = localeToCharset(), to = "ASCII", " ")
+    #remove numbers
+    text <- gsub(pattern = "[[:digit:]]+", replacement = " ", x = text)
+    #remove punctuation
+    text <- gsub(pattern = "[^'[:^punct:]]", replacement = " ", x = text, perl = T)
+    
+    if(useStartMarker){
+        #add start-sentence marker
+        text <- paste("<s>", text)   
+    }
+    
+    #normalize spaces
+    text <- trimws(gsub(pattern = " {2,}", replacement = " ", x = text))
+    return(text)
+}
+
+
 getallTrigrams <- function(text){
     result <- NULL
     

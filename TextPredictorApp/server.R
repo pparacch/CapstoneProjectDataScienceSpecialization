@@ -11,8 +11,8 @@ shinyServer(function(input, output, session) {
     
     current.text <- reactive({ 
         input$predict
-        isolate(input$text_i) 
-        })
+        isolate({cleanup_entered_words(input$text_i)}) 
+    })
     
     next.words <- reactive({prediction.f(current.text())})
     next.trigrams.all <- reactive({getallTrigrams(current.text())})
@@ -20,11 +20,12 @@ shinyServer(function(input, output, session) {
     next.unigrams.top <- reactive({gettopUnigrams(current.text())})
     
     observeEvent(input$addWord,{
-        updateTextInput(session = session, inputId = "text_i", value = paste(input$text_i, input$nextWord))
+        value <- trimws(gsub(pattern = "<s>", replacement = "", x = current.text()))
+        updateTextInput(session = session, inputId = "text_i", value = paste(value, input$nextWord))
     })
     
     output$text_o <- renderText({ 
-       paste(current.text())
+        current.text()
     })
     
     output$predictionTrigramsAll_o <- renderDataTable({
