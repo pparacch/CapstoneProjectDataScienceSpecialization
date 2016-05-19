@@ -50,14 +50,12 @@ shinyUI(fluidPage(theme = "bootstrap.min.css",
                          h3("... based on Most Frequent Unigrams:"),
                          p("The table shows the more probable (15) unigrams ordered by Stupid Backoff score (log base 2) in decreasing order. These unigrams are going to be suggested as possible next words when there are no/ or limited selection of trigrams and bigrams (e.g. in the case of an unknown word)."),
                          p(),
-                         div(dataTableOutput("predictionUnigramsTop_o"), style = "font-size:90%"),
-                         br(),
-                         h3("Wordclouds:"),
+                         div(dataTableOutput("predictionUnigramsTop_o"), style = "font-size:90%")),
+                tabPanel("Next Words: wordclouds",
                          br(),
                          p("A visual representation of the bigrams and trigrams supporting the suggested next words using wordclouds."),
                          plotOutput("bigramWordcloud"),
-                         plotOutput("trigramWordcloud")),
-                tabPanel("The Language Model")
+                         plotOutput("trigramWordcloud"))
             )
             
         )
