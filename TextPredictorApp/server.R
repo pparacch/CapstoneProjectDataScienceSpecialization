@@ -24,20 +24,33 @@ shinyServer(function(input, output, session) {
         updateTextInput(session = session, inputId = "text_i", value = paste(value, input$nextWord))
     })
     
-    output$text_o <- renderText({ 
-        current.text()
+    output$text_o <- renderText({
+        input$predict
+        isolate({
+            if(input$predict > 0){
+                current.text()
+            }else{
+                ""
+            }
+        })
     })
     
     output$predictionTrigramsAll_o <- renderDataTable({
-        next.trigrams.all()
+        if(input$predict > 0){
+            next.trigrams.all()   
+        }
     }, options = list(lengthMenu = c(5, 30, 50), pageLength = 5))
     
     output$predictionBigramsAll_o <- renderDataTable({
-        next.bigrams.all()
+        if(input$predict > 0) {
+            next.bigrams.all()
+        }
     }, options = list(lengthMenu = c(5, 30, 50), pageLength = 5))
     
     output$predictionUnigramsTop_o <- renderDataTable({
-        next.unigrams.top()
+        if(input$predict > 0) {
+            next.unigrams.top()
+        }
     }, options = list(lengthMenu = c(5, 30, 50), pageLength = 5))
     
     output$possibleWords <- renderUI({
@@ -61,7 +74,8 @@ shinyServer(function(input, output, session) {
     
     output$trigramWordcloud <- renderPlot({
        
-        if(current.text() != ""){
+        #if(current.text() != ""){
+        if(input$predict > 0) {
             tmp <-  next.trigrams.all()
             if(!is.null(tmp)){
                 terms <- paste(tmp$source, tmp$next.word)
@@ -76,7 +90,8 @@ shinyServer(function(input, output, session) {
     
     output$bigramWordcloud <- renderPlot({
         
-        if(current.text() != ""){
+        #if(current.text() != ""){
+        if(input$predict > 0) {
             tmp <-  next.bigrams.all()
             if(!is.null(tmp)){
                 terms <- paste(tmp$source, tmp$next.word)
