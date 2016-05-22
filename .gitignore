@@ -20,7 +20,9 @@ vignettes/*.pdf
 
 #Data
 data/
-*/data/
+
+ingestionPipeline/data/
+
 scripts/*.md
 scripts/*.html
 scripts/*_cache/

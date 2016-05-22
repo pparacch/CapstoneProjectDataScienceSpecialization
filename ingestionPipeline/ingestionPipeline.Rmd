@@ -154,5 +154,5 @@ source("scripts/03_transformingData.R")
 
 filename8 <- collapseAllSampleToOneList(outputFolder = "./data/03_termFrequency/") 
 
-save(filenames8, file = "./data/03_termFrequency/07_filenames_collpased_term_trequency_allSample.rdata")
+save(filename8, file = "./data/03_termFrequency/07_filenames_collpased_term_trequency_allSample.rdata")
 ```
