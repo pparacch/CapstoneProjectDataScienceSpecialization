@@ -9,16 +9,16 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Corpora
+# Corpora (from a Sample)
 
-```{r loadData, echo = T, warning = F, message = F}
+```{r loadData, echo = T, warning = F, message = F, cache = F}
 rm(list = ls())
 source("./scripts/visualization.R")
 load("./data/02_cleaningSamples/corpora_randomSample_1.rdata_sentences.rdata_cleaned.rdata_tmCorpus.rdata_tdm_ng.rdata")
 load("./data/03_termFrequency/randomSample_1_term_frequency.rdata")
 ```
 
-## Twitter (sample1)
+## Twitter
 
 ### 1-grams
 
@@ -89,7 +89,7 @@ __How many unique words do you need in a frequency sorted dictionary to cover 50
 visualizeCumuluativeCoverage(allFtm.df = corpus.allTerms, title = "% Coverage By no of Unique Words (3-grams)")
 ```
 
-## News (sample1)
+## News
 
 ### 1-grams
 
@@ -160,7 +160,7 @@ __How many unique words do you need in a frequency sorted dictionary to cover 50
 visualizeCumuluativeCoverage(allFtm.df = corpus.allTerms, title = "% Coverage By no of Unique Words (3-grams)")
 ```
 
-## Blogs (sample1)
+## Blogs
 
 ### 1-grams
 
@@ -229,4 +229,84 @@ __How many unique words do you need in a frequency sorted dictionary to cover 50
 
 ```{r}
 visualizeCumuluativeCoverage(allFtm.df = corpus.allTerms, title = "% Coverage By no of Unique Words (3-grams)")
+```
+
+# Corpora (all samples)
+
+```{r loadAllData, echo = T, warning = F, message = F, cache = F}
+rm(list = ls())
+source("./scripts/visualization.R")
+load("./data/03_termFrequency/randomSample_all_collapsed_term_frequency.rdata")
+```
+
+## 1-grams
+
+```{r visualizeData_1g, warning = F, message = F}
+corpus.allTerms <- s.1g
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency.1(corpus.allTerms, 1500)
+visualizeBarPlot(ftm.df = frequentTermsLimited.df, titleBarPlot = "Frequent 1-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df)
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency.1(corpus.allTerms, 1)
+a <- getSomeInfoABoutCorpora.1(x = frequentTermsLimited.df)
+```
+
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| `r format(a$N, digits = 12, nsmall = 0)` | `r a$V` | `r a$C50` | `r a$C90` |
+
+
+```{r}
+visualizeCumuluativeCoverage.1(x = frequentTermsLimited.df, title = "% Coverage By no of Unique Words (1-grams)")
+```
+
+### 2-grams
+
+```{r visualizeData_2g, warning = F, message = F}
+corpus.allTerms <- s.2g
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency.1(corpus.allTerms, 1500)
+visualizeBarPlot(ftm.df = frequentTermsLimited.df, titleBarPlot = "Frequent 2-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df)
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency.1(corpus.allTerms, 1)
+a <- getSomeInfoABoutCorpora.1(x = frequentTermsLimited.df)
+```
+
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| `r format(a$N, digits = 12, nsmall = 0)` | `r a$V` | `r a$C50` | `r a$C90` |
+
+
+```{r}
+visualizeCumuluativeCoverage.1(x = frequentTermsLimited.df, title = "% Coverage By no of Unique Words (2-grams)")
+```
+
+### 3-grams
+
+```{r visualizeData_3g, warning = F, message = F}
+corpus.allTerms <- s.3g
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency.1(corpus.allTerms, 1500)
+visualizeBarPlot(ftm.df = frequentTermsLimited.df, titleBarPlot = "Frequent 3-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df)
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency.1(corpus.allTerms, 1)
+a <- getSomeInfoABoutCorpora.1(x = frequentTermsLimited.df)
+```
+
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| `r format(a$N, digits = 12, nsmall = 0)` | `r a$V` | `r a$C50` | `r a$C90` |
+
+
+```{r}
+visualizeCumuluativeCoverage.1(x = frequentTermsLimited.df, title = "% Coverage By no of Unique Words (3-grams)")
 ```

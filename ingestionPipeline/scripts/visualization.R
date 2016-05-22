@@ -15,6 +15,14 @@ getTermFrequencyInformationOrderedByTermFrequency <- function(aTdm, lowFrequency
     aTdm.l.termFreq.df[with(aTdm.l.termFreq.df, order(-aTdm.l.termFreq.df$freq)), ]
 }
 
+getTermFrequencyInformationOrderedByTermFrequency.1 <- function(x, lowFrequency){
+    idx <- order(x$total, decreasing = T)
+    x <- x[idx,c("terms", "total")]
+    x <- x[x$total >= lowFrequency,]
+    names(x) <- c("term", "freq")
+    return(x)
+}
+
 
 visualizeBarPlot <- function(ftm.df, colorBars = "grey40", titleBarPlot = ""){
     
@@ -56,10 +64,52 @@ visualizeCumuluativeCoverage <- function(allFtm.df, title, filter = NULL){
     legend(x = "topright", lty=c(1,1), lwd=c(3,3), col=c("orange", "red"), legend = c("50% coverage", "90% coverage")) 
 }
 
+visualizeCumuluativeCoverage.1 <- function(x, title, filter = NULL){
+    idx <- order(x$freq, decreasing = T)
+    terms.term <- x$term[idx]
+    terms.freq <- x$freq[idx]
+    
+    if(!is.null(filter)){
+        # print(paste("Removing idx", filter))
+        terms.term <- terms.term[-filter]
+        terms.freq <- terms.freq[-filter]
+    }
+    
+    terms.count <- sum(terms.freq)
+    terms.unique <- length(unique(terms.term))
+    terms.cumulativeCoverage <- (cumsum(terms.freq)/ terms.count) * 100
+    
+    
+    plot(terms.cumulativeCoverage, type = "l", xlab = "Number Of Words", ylab = "% Coverage", main = title)
+    abline(v = which(terms.cumulativeCoverage >= 50)[1], col = "orange", lwd = 3)
+    abline(v = which(terms.cumulativeCoverage >= 90)[1], col = "red", lwd = 3)
+    legend(x = "topright", lty=c(1,1), lwd=c(3,3), col=c("orange", "red"), legend = c("50% coverage", "90% coverage")) 
+}
+
 getSomeInfoABoutCorpora <- function(allFtm.df, title, filter = NULL){
     idx <- order(allFtm.df$freq, decreasing = T)
     terms.term <- rownames(allFtm.df)[idx]
     terms.freq <- allFtm.df$freq[idx]
+    
+    if(!is.null(filter)){
+        # print(paste("Removing idx", filter))
+        terms.term <- terms.term[-filter]
+        terms.freq <- terms.freq[-filter]
+    }
+    
+    terms.count <- sum(terms.freq)
+    terms.unique <- length(unique(terms.term))
+    terms.cumulativeCoverage <- (cumsum(terms.freq)/ terms.count) * 100
+    coverage.50 <- which(terms.cumulativeCoverage >= 50)[1]
+    coverage.90 <- which(terms.cumulativeCoverage >= 90)[1]
+    
+    list(N = terms.count, V = terms.unique, C50 = coverage.50, C90 = coverage.90)
+}
+
+getSomeInfoABoutCorpora.1 <- function(x, title, filter = NULL){
+    idx <- order(x$freq, decreasing = T)
+    terms.term <- x$term[idx]
+    terms.freq <- x$freq[idx]
     
     if(!is.null(filter)){
         # print(paste("Removing idx", filter))

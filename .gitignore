@@ -22,6 +22,8 @@ vignettes/*.pdf
 data/
 
 ingestionPipeline/data/
+ingestionPipeline/*_cache/
+ingestionPipeline/*_files/
 
 scripts/*.md
 scripts/*.html
