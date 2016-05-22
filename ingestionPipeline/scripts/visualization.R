@@ -86,6 +86,22 @@ visualizeCumuluativeCoverage.1 <- function(x, title, filter = NULL){
     legend(x = "topright", lty=c(1,1), lwd=c(3,3), col=c("orange", "red"), legend = c("50% coverage", "90% coverage")) 
 }
 
+visualizeCumuluativeCoverage.2 <- function(freqs, terms, title){
+    idx <- order(freqs, decreasing = T)
+    terms.term <- terms[idx]
+    terms.freq <- freqs[idx]
+    
+    terms.count <- sum(terms.freq)
+    terms.unique <- length(unique(terms.term))
+    terms.cumulativeCoverage <- (cumsum(terms.freq)/ terms.count) * 100
+    
+    
+    plot(terms.cumulativeCoverage, type = "l", xlab = "Number Of Words", ylab = "% Coverage", main = title)
+    abline(v = which(terms.cumulativeCoverage >= 50)[1], col = "orange", lwd = 3)
+    abline(v = which(terms.cumulativeCoverage >= 90)[1], col = "red", lwd = 3)
+    legend(x = "topright", lty=c(1,1), lwd=c(3,3), col=c("orange", "red"), legend = c("50% coverage", "90% coverage")) 
+}
+
 getSomeInfoABoutCorpora <- function(allFtm.df, title, filter = NULL){
     idx <- order(allFtm.df$freq, decreasing = T)
     terms.term <- rownames(allFtm.df)[idx]
