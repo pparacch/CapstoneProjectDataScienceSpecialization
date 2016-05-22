@@ -2,7 +2,7 @@ cleanup_entered_words <- function(text, useStartMarker = T){
     #to lowercase
     text <- tolower(text)
     #force to ascii - replace non ascii char to empty char
-    text <- iconv(x = text, from = localeToCharset(), to = "ASCII", " ")
+    #text <- iconv(x = text, from = localeToCharset(), to = "ASCII", " ")
     #remove numbers
     text <- gsub(pattern = "[[:digit:]]+", replacement = " ", x = text)
     #remove punctuation

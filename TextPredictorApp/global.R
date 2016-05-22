@@ -1,6 +1,7 @@
 # Objects defined in global.R are loaded into the global environment of the R session; 
 # all R code in a Shiny app is run in the global environment or a child of it.
 
+
 library(wordcloud)
 source("./helper.R")
 library(RColorBrewer)

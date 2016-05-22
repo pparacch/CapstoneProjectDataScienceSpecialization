@@ -21,6 +21,8 @@ vignettes/*.pdf
 #Data
 data/
 
+TextPredictorApp/rsconnect/
+
 ingestionPipeline/data/
 ingestionPipeline/*_cache/
 ingestionPipeline/*_files/

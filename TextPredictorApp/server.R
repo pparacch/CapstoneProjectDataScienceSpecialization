@@ -21,7 +21,9 @@ shinyServer(function(input, output, session) {
     
     observeEvent(input$addWord,{
         value <- trimws(gsub(pattern = "<s>", replacement = "", x = current.text()))
-        updateTextInput(session = session, inputId = "text_i", value = paste(value, input$nextWord))
+        if(input$nextWord != "</s>"){
+            updateTextInput(session = session, inputId = "text_i", value = paste(value, input$nextWord))
+        }
     })
     
     output$text_o <- renderText({
