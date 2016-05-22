@@ -1,0 +1,158 @@
+---
+title: "The Ingestion Pipeline"
+author: "Pier Lorenzo Paracchini"
+date: "21 mai 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# WINDOWS LOCALE SETTING
+Sys.setlocale(category = "LC_ALL",locale = "English_United States.1252")
+```
+
+## Original Corpora
+
+## Random Sampling of Original Corpora
+
+Create 6 random samples of the original corpora using a biased dice. Each random sample is created using a specific seed in order to guarantee repeatability and using 10% of the original corpus.
+
+```{r randomSampling, eval= F}
+rm(list =  ls())
+source("scripts/01_randomSamplingCorpora.R")
+
+filenames <- generate_random_samples(inputFolder = "./../data/original/final/en_US/", 
+                                     outputFolder = "./data/01_randomSampling/")
+save(filenames, file = "./data/01_randomSampling/filenames.rdata")
+```
+
+## Processing Sample Data
+
+### Sentence Isolation
+
+For each __corpus__ (twitter, news & blogs):
+
+* remove entries below a certain number of characters (reduce the no of entries)
+* use `Maxent_Sent_Token_Annotator` using the `openNLP` & `NLP` packages for sentence isolation (with default settings)
+
+```{r segmentationIntoSentence, eval = F}
+rm(list = ls())
+source("scripts/02_cleaningData.R")
+
+load(file = "./data/01_randomSampling/filenames.rdata")
+filenames2 <- character(length(filenames))
+
+for(i in 1:length(filenames)){
+    filenames2[i] <- extract_sentences(filenames[i], "./data/02_cleaningSamples/")
+    cat("\n")
+}
+
+save(filenames2, file = "./data/02_cleaningSamples/01_filenames_sentences.rdata")
+```
+
+### Cleaning the Sentences
+
+```{r cleaningSentences, eval = F}
+rm(list = ls())
+source("scripts/02_cleaningData.R")
+
+load(file = "./data/02_cleaningSamples/01_filenames_sentences.rdata")
+filenames3 <- character(length(filenames2))
+
+for(i in 1:length(filenames2)){
+    filenames3[i] <- corpora_text_cleaning(filenames2[i], "./data/02_cleaningSamples/")
+    cat("\n")
+}
+
+save(filenames3, file = "./data/02_cleaningSamples/02_filenames_sentences_cleaned.rdata")
+```
+
+### Transforming sentences into tm_corpus (with some preprocessing)
+
+Transforming sentencies into a corpus (`tm` package). Some preprocessing is done to the sentences
+
+* to lower,
+* remove profanity words
+* remove numbers
+* remove punctuation except apostrophe
+* add start and end sentence markers
+* normalize whitespaces
+
+```{r transformSentencesIntotmCorpus, eval = F}
+rm(list = ls())
+source("scripts/03_transformingData.R")
+
+load(file = "./data/02_cleaningSamples/02_filenames_sentences_cleaned.rdata")
+filenames4 <- character(length(filenames3))
+
+for(i in 1:length(filenames3)){
+    filenames4[i] <- corpora_transform(filenames3[i], "./data/02_cleaningSamples/")
+    cat("\n")
+}
+
+save(filenames4, file = "./data/02_cleaningSamples/03_filenames_sentences_to_corpus.rdata")
+```
+
+### Generating the Term Document Matrix (tm)
+
+```{r generating_tdm, eval = F}
+rm(list = ls())
+source("scripts/03_transformingData.R")
+
+load(file = "./data/02_cleaningSamples/03_filenames_sentences_to_corpus.rdata")
+filenames5 <- character(length(filenames4))
+
+for(i in 1:length(filenames4)){
+    filenames5[i] <- tm_generate_ng(filenames4[i], "./data/02_cleaningSamples/")
+    cat("\n")
+}
+
+save(filenames5, file = "./data/02_cleaningSamples/04_filenames_corpus_to_tdm_ng.rdata")
+```
+
+### Reducing Term Document Matrix to Term Frequency
+
+```{r generating_termFrequency, eval = F}
+rm(list = ls())
+source("scripts/03_transformingData.R")
+
+load(file = "./data/02_cleaningSamples/04_filenames_corpus_to_tdm_ng.rdata")
+filenames6 <- character(length(filenames5))
+
+for(i in 1:length(filenames5)){
+    filenames6[i] <- reduce_to_term_frequency(filenames5[i], "./data/03_termFrequency/", i)
+    cat("\n")
+}
+
+save(filenames6, file = "./data/03_termFrequency/05_filenames_term_trequency.rdata")
+```
+
+### Collapse Term Frequency for each n-gram over all samples
+
+#### Collapse for each sample between different Corpus
+
+```{r collapse_termFrequencyPerSample, eval = F}
+rm(list = ls())
+source("scripts/03_transformingData.R")
+
+load(file = "./data/03_termFrequency/05_filenames_term_trequency.rdata")
+filenames7 <- character(length(filenames6))
+
+for(i in 1:length(filenames6)){
+    filenames7[i] <- collapse_term_frequency(filenames6[i], "./data/03_termFrequency/", i)
+    cat("\n")
+}
+
+save(filenames7, file = "./data/03_termFrequency/06_filenames_collpased_term_trequency_perSample.rdata")
+```
+
+#### Collapse all samples
+
+```{r collapse_termFrequencyAllSamples, eval = F}
+rm(list = ls())
+source("scripts/03_transformingData.R")
+
+filename8 <- collapseAllSampleToOneList(outputFolder = "./data/03_termFrequency/") 
+
+save(filenames8, file = "./data/03_termFrequency/07_filenames_collpased_term_trequency_allSample.rdata")
+```

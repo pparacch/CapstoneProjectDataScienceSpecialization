@@ -1,0 +1,232 @@
+---
+title: "Ingestion Processing Report"
+author: "Pier Lorenzo Paracchini"
+date: "22 mai 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Corpora
+
+```{r loadData, echo = T, warning = F, message = F}
+rm(list = ls())
+source("./scripts/visualization.R")
+load("./data/02_cleaningSamples/corpora_randomSample_1.rdata_sentences.rdata_cleaned.rdata_tmCorpus.rdata_tdm_ng.rdata")
+load("./data/03_termFrequency/randomSample_1_term_frequency.rdata")
+```
+
+## Twitter (sample1)
+
+### 1-grams
+
+```{r visualizeTwitterData_1g, warning = F, message = F}
+corpus.tdm <- tdm_1g_corpus[["twitterCorpus"]]
+corpus.allTerms <- term_frequency_1g[["twitterCorpus"]]
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpus.tdm, 1500)
+visualizeBarPlot(ftm.df = frequentTermsLimited.df, titleBarPlot = "Frequent 1-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df)
+a <- getSomeInfoABoutCorpora(allFtm.df = corpus.allTerms)
+```
+
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| `r format(a$N, digits = 12, nsmall = 0)` | `r a$V` | `r a$C50` | `r a$C90` |
+
+
+```{r}
+visualizeCumuluativeCoverage(allFtm.df = corpus.allTerms, title = "% Coverage By no of Unique Words (1-grams)")
+```
+
+### 2-grams
+
+```{r visualizeTwitterData_2g, warning = F, message = F}
+corpus.tdm <- tdm_2g_corpus[["twitterCorpus"]]
+corpus.allTerms <- term_frequency_2g[["twitterCorpus"]]
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpus.tdm, 1500)
+visualizeBarPlot(ftm.df = frequentTermsLimited.df, titleBarPlot = "Frequent 2-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df)
+a <- getSomeInfoABoutCorpora(allFtm.df = corpus.allTerms)
+```
+
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| `r format(a$N, digits = 12, nsmall = 0)` | `r a$V` | `r a$C50` | `r a$C90` |
+
+
+```{r echo=F}
+visualizeCumuluativeCoverage(allFtm.df = corpus.allTerms, title = "% Coverage By no of Unique Words (2-grams)")
+```
+
+### 3-grams
+
+```{r visualizeTwitterData_3g, warning = F, message = F}
+corpus.tdm <- tdm_3g_corpus[["twitterCorpus"]]
+corpus.allTerms <- term_frequency_3g[["twitterCorpus"]]
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpus.tdm, 300)
+visualizeBarPlot(ftm.df = frequentTermsLimited.df, titleBarPlot = "Frequent 3-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df)
+a <- getSomeInfoABoutCorpora(allFtm.df = corpus.allTerms)
+```
+
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| `r format(a$N, digits = 12, nsmall = 0)` | `r a$V` | `r a$C50` | `r a$C90` |
+
+
+```{r}
+visualizeCumuluativeCoverage(allFtm.df = corpus.allTerms, title = "% Coverage By no of Unique Words (3-grams)")
+```
+
+## News (sample1)
+
+### 1-grams
+
+```{r visualizeNewsData_1g, warning = F, message = F}
+corpus.tdm <- tdm_1g_corpus[["newsCorpus"]]
+corpus.allTerms <- term_frequency_1g[["newsCorpus"]]
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpus.tdm, 1500)
+visualizeBarPlot(ftm.df = frequentTermsLimited.df, titleBarPlot = "Frequent 1-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df)
+a <- getSomeInfoABoutCorpora(allFtm.df = corpus.allTerms)
+```
+
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| `r format(a$N, digits = 12, nsmall = 0)` | `r a$V` | `r a$C50` | `r a$C90` |
+
+
+```{r}
+visualizeCumuluativeCoverage(allFtm.df = corpus.allTerms, title = "% Coverage By no of Unique Words (1-grams)")
+```
+
+### 2-grams
+
+```{r visualizeNewsData_2g, warning = F, message = F}
+corpus.tdm <- tdm_2g_corpus[["newsCorpus"]]
+corpus.allTerms <- term_frequency_2g[["newsCorpus"]]
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpus.tdm, 1500)
+visualizeBarPlot(ftm.df = frequentTermsLimited.df, titleBarPlot = "Frequent 2-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df)
+a <- getSomeInfoABoutCorpora(allFtm.df = corpus.allTerms)
+```
+
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| `r format(a$N, digits = 12, nsmall = 0)` | `r a$V` | `r a$C50` | `r a$C90` |
+
+
+```{r echo=F}
+visualizeCumuluativeCoverage(allFtm.df = corpus.allTerms, title = "% Coverage By no of Unique Words (2-grams)")
+```
+
+### 3-grams
+
+```{r visualizeNewsData_3g, warning = F, message = F}
+corpus.tdm <- tdm_3g_corpus[["newsCorpus"]]
+corpus.allTerms <- term_frequency_3g[["newsCorpus"]]
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpus.tdm, 200)
+visualizeBarPlot(ftm.df = frequentTermsLimited.df, titleBarPlot = "Frequent 3-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df)
+a <- getSomeInfoABoutCorpora(allFtm.df = corpus.allTerms)
+```
+
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| `r format(a$N, digits = 12, nsmall = 0)` | `r a$V` | `r a$C50` | `r a$C90` |
+
+
+```{r}
+visualizeCumuluativeCoverage(allFtm.df = corpus.allTerms, title = "% Coverage By no of Unique Words (3-grams)")
+```
+
+## Blogs (sample1)
+
+### 1-grams
+
+```{r visualizeBlogsData_1g, warning = F, message = F}
+corpus.tdm <- tdm_1g_corpus[["blogsCorpus"]]
+corpus.allTerms <- term_frequency_1g[["blogsCorpus"]]
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpus.tdm, 1500)
+visualizeBarPlot(ftm.df = frequentTermsLimited.df, titleBarPlot = "Frequent 1-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df)
+a <- getSomeInfoABoutCorpora(allFtm.df = corpus.allTerms)
+```
+
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| `r format(a$N, digits = 12, nsmall = 0)` | `r a$V` | `r a$C50` | `r a$C90` |
+
+
+```{r}
+visualizeCumuluativeCoverage(allFtm.df = corpus.allTerms, title = "% Coverage By no of Unique Words (1-grams)")
+```
+
+### 2-grams
+
+```{r visualizeBlogsData_2g, warning = F, message = F}
+corpus.tdm <- tdm_2g_corpus[["blogsCorpus"]]
+corpus.allTerms <- term_frequency_2g[["blogsCorpus"]]
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpus.tdm, 1500)
+visualizeBarPlot(ftm.df = frequentTermsLimited.df, titleBarPlot = "Frequent 2-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df)
+a <- getSomeInfoABoutCorpora(allFtm.df = corpus.allTerms)
+```
+
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| `r format(a$N, digits = 12, nsmall = 0)` | `r a$V` | `r a$C50` | `r a$C90` |
+
+
+```{r echo=F}
+visualizeCumuluativeCoverage(allFtm.df = corpus.allTerms, title = "% Coverage By no of Unique Words (2-grams)")
+```
+
+### 3-grams
+
+```{r visualizeBlogsData_3g, warning = F, message = F}
+corpus.tdm <- tdm_3g_corpus[["blogsCorpus"]]
+corpus.allTerms <- term_frequency_3g[["blogsCorpus"]]
+
+frequentTermsLimited.df <- getTermFrequencyInformationOrderedByTermFrequency(corpus.tdm, 200)
+visualizeBarPlot(ftm.df = frequentTermsLimited.df, titleBarPlot = "Frequent 3-grams")
+visualizeWordcloud(ftm.df = frequentTermsLimited.df)
+a <- getSomeInfoABoutCorpora(allFtm.df = corpus.allTerms)
+```
+
+__How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?__
+
+| N = number of tokens | V = vocabulary size | 50% coverage | 90% coverage |
+| ------------- |:-------------:| -----:|-----:|-----:|
+| `r format(a$N, digits = 12, nsmall = 0)` | `r a$V` | `r a$C50` | `r a$C90` |
+
+
+```{r}
+visualizeCumuluativeCoverage(allFtm.df = corpus.allTerms, title = "% Coverage By no of Unique Words (3-grams)")
+```

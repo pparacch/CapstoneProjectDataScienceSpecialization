@@ -20,6 +20,7 @@ vignettes/*.pdf
 
 #Data
 data/
+*/data/
 scripts/*.md
 scripts/*.html
 scripts/*_cache/
