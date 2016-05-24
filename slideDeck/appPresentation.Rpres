@@ -6,6 +6,12 @@
     text-align:left; width:100%;
 }
 
+.col2 {
+    columns: 2 200px;         /* number of columns and width in pixels*/
+    -webkit-columns: 2 200px; /* chrome, safari */
+    -moz-columns: 2 200px;    /* firefox */
+}
+
 </style>
 
 A Text Predictor Application
@@ -49,20 +55,24 @@ The Ingestion Process
 
 ![The Ingestion Process](images/ingestionProcess.png)
 
-The Language Model
+
+The Language Model - Creation
 ========================================================
 
-For more details on authoring R presentations please visit <https://support.rstudio.com/hc/en-us/articles/200486468>.
+![The Model Creation](images/theModel_1.png)
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
 
-Fifth Slide
+The Language Model: "Stupid" backoff
 ========================================================
 
-For more details on authoring R presentations please visit <https://support.rstudio.com/hc/en-us/articles/200486468>.
+<small>Different models have been implemented: n-grams (n = 1,2,3), linear interpolation (n-grams, n = 1,2,3) with Good Turing smoothing and "Stupid" backoff (with no discount).</small>
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
+<small>The model evaluations has been done using the <b>perplexity</b> measurement and an <b>ad-hoc testing dataset</b> (around 40 sentences). The "Stupid" Backoff model was the one able to minimize the <b>perplexity</b> measurement.</small>
+
+<img src="images/theModel_2.png" height="300" />
+
+
+The Application
+========================================================
+
+![The App](images/theApp.png)
