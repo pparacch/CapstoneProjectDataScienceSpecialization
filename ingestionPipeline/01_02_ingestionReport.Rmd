@@ -7,9 +7,125 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+#Required Libraries
+require(knitr)
 ```
 
-# Corpora (from a Sample)
+# Original "raw" Corpora
+
+```{r dataOriginalLoad, cache = T, include = F}
+##Loading the Corpora  - raw data from Twitter, News & Blogs
+con <- file("./../data/original/final/en_US/en_US.twitter.txt", "r") 
+data.twitter.all <- readLines(con, skipNul = T)
+close(con)
+
+con <- file("./../data/original/final/en_US/en_US.news.txt", "r") 
+data.news.all <- readLines(con, skipNul = T)
+close(con)
+
+con <- file("./../data/original/final/en_US/en_US.blogs.txt", "r") 
+data.blogs.all <- readLines(con, skipNul = T)
+close(con)
+
+
+getSummaryInfo <- function(data.twitter.all, data.news.all, data.blogs.all){
+    
+    data.twitter.all.nchar <- nchar(data.twitter.all)
+    data.news.all.nchar <- nchar(data.news.all)
+    data.blogs.all.nchar <- nchar(data.blogs.all)
+    
+    
+    #Some Statistic about the original files
+    data.sources <- c("twitters", "news", "blogs")
+    data.noOfLines <- c(length(data.twitter.all), length(data.news.all), length(data.blogs.all))
+    data.maxNoOfChars <- c(max(data.twitter.all.nchar), max(data.news.all.nchar), max(data.blogs.all.nchar))
+    data.minNoOfChars <- c(min(data.twitter.all.nchar), min(data.news.all.nchar), min(data.blogs.all.nchar))
+    
+    data.info <- data.frame(sources = data.sources, 
+                               noOfEntries = data.noOfLines, 
+                               maxNoOfChar = data.maxNoOfChars,
+                               minNoOfChar = data.minNoOfChars)
+    return(data.info)
+}
+
+data.info <- getSummaryInfo(data.twitter.all, data.news.all, data.blogs.all)
+```
+
+`r kable(data.info, caption = "Some basic statistics about the raw Corpora")`
+
+# Sampled Corpora
+
+## Some Info about the Samples
+
+```{r samplesInfo, include=F}
+load(file = "./data/01_randomSampling/filenames.rdata")
+
+samples <- list()
+
+for(i in 1:length(filenames)){
+    load(file = filenames[i])
+    samples[[i]] <- sample
+}
+
+load(file = "./data/02_cleaningSamples/01_filenames_sentences.rdata")
+samples.sent <- NULL
+
+for(i in 1:length(filenames2)){
+    load(file = filenames2[i])
+    samples.sent[[i]] <- result
+}
+
+sample1.sum <- getSummaryInfo(data.twitter.all = samples[[1]]$twitterCorpus,
+                              data.news.all = samples[[1]]$newsCorpus,
+                              data.blogs.all = samples[[1]]$blogsCorpus)
+sentences <- c(length(samples.sent[[1]]$twitterCorpus), length(samples.sent[[1]]$newsCorpus), length(samples.sent[[1]]$blogsCorpus))
+sample1.sum$noOfSentences <- sentences
+
+sample2.sum <- getSummaryInfo(data.twitter.all = samples[[2]]$twitterCorpus,
+                              data.news.all = samples[[2]]$newsCorpus,
+                              data.blogs.all = samples[[2]]$blogsCorpus)
+sentences <- c(length(samples.sent[[2]]$twitterCorpus), length(samples.sent[[2]]$newsCorpus), length(samples.sent[[2]]$blogsCorpus))
+sample2.sum$noOfSentences <- sentences
+
+sample3.sum <- getSummaryInfo(data.twitter.all = samples[[3]]$twitterCorpus,
+                              data.news.all = samples[[3]]$newsCorpus,
+                              data.blogs.all = samples[[3]]$blogsCorpus)
+sentences <- c(length(samples.sent[[3]]$twitterCorpus), length(samples.sent[[3]]$newsCorpus), length(samples.sent[[3]]$blogsCorpus))
+sample3.sum$noOfSentences <- sentences
+
+sample4.sum <- getSummaryInfo(data.twitter.all = samples[[4]]$twitterCorpus,
+                              data.news.all = samples[[4]]$newsCorpus,
+                              data.blogs.all = samples[[4]]$blogsCorpus)
+sentences <- c(length(samples.sent[[4]]$twitterCorpus), length(samples.sent[[4]]$newsCorpus), length(samples.sent[[4]]$blogsCorpus))
+sample4.sum$noOfSentences <- sentences
+
+sample5.sum <- getSummaryInfo(data.twitter.all = samples[[5]]$twitterCorpus,
+                              data.news.all = samples[[5]]$newsCorpus,
+                              data.blogs.all = samples[[5]]$blogsCorpus)
+sentences <- c(length(samples.sent[[5]]$twitterCorpus), length(samples.sent[[5]]$newsCorpus), length(samples.sent[[5]]$blogsCorpus))
+sample5.sum$noOfSentences <- sentences
+
+sample6.sum <- getSummaryInfo(data.twitter.all = samples[[6]]$twitterCorpus,
+                              data.news.all = samples[[6]]$newsCorpus,
+                              data.blogs.all = samples[[6]]$blogsCorpus)
+sentences <- c(length(samples.sent[[6]]$twitterCorpus), length(samples.sent[[6]]$newsCorpus), length(samples.sent[[6]]$blogsCorpus))
+sample6.sum$noOfSentences <- sentences
+```
+
+`r kable(sample1.sum, caption = "Some basic statistics about the raw Corpora #Sample1")`
+
+`r kable(sample2.sum, caption = "Some basic statistics about the raw Corpora #Sample2")`
+
+`r kable(sample3.sum, caption = "Some basic statistics about the raw Corpora #Sample3")`
+
+`r kable(sample4.sum, caption = "Some basic statistics about the raw Corpora #Sample4")`
+
+`r kable(sample5.sum, caption = "Some basic statistics about the raw Corpora #Sample5")`
+
+`r kable(sample6.sum, caption = "Some basic statistics about the raw Corpora #Sample6")`
+
+# A more detailed view of the Corpora (from Sample#1)
 
 ```{r loadData, echo = T, warning = F, message = F, cache = F}
 rm(list = ls())
