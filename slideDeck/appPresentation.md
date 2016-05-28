@@ -17,7 +17,7 @@
 A Text Predictor Application
 ========================================================
 author: Pier Lorenzo Paracchini
-date: 23.05.2016
+date: 28.05.2016
 autosize: true
 
 The Challenge
@@ -55,12 +55,16 @@ The Ingestion Process
 
 ![The Ingestion Process](images/ingestionProcess.png)
 
+<div class="footer" style="font-size:40%;"> 
+* Some more information about the ingestion process can be found in the <a href="http://rpubs.com/pparacch/184463">ingestion report</a></div>
 
 The Language Model - Creation
 ========================================================
 
 ![The Model Creation](images/theModel_1.png)
 
+<div class="footer" style="font-size:40%;"> 
+* Some more information about the strategy around ngrams size reduction can be found in the <a href="https://rpubs.com/pparacch/184468">reduction report</a></div>
 
 The Language Model: "Stupid" backoff
 ========================================================
@@ -72,7 +76,18 @@ The Language Model: "Stupid" backoff
 <img src="images/theModel_2.png" height="300" />
 
 
-The Application
+The Application - Basic Usage
 ========================================================
 
 ![The App](images/theApp.png)
+
+<div class="footer" style="font-size:40%;"><a href="https://pparacch.shinyapps.io/TextPredictorApplication/">TextPredictor App</a> at <b>shiny.app.io</b>, <a href="https://github.com/pparacch/CapstoneProjectDataScienceSpecialization">Capstone Project Repository</a> at <b>github.com</b></div>
+
+
+Kudos
+========================================================
+
+I would like to express my deepest appreciation to the <b>great professors</b> of <b>Johns Hopkins University</b> for making this specialization available at <b>Coursera</b>.  Special kudos to all of the participants of this Capstone project for the valuable discussions, tips and tricks made available in the forums. If you want to keep in contact please just add <a href="https://www.linkedin.com/in/pierlorenzoparacchini">my LinkedIn profile</a> to your <b>LinkedIn</b> connections.
+
+It has been a <b>long and challenging journey</b> with ups and downs, <b>worth every single moment</b>. <b>Thank you to you all!!</b>
+

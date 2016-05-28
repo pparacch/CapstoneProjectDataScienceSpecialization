@@ -1,18 +1,20 @@
 ---
 title: "Reducing ngrams (memory footprint)"
 author: "Pier Lorenzo Paracchini"
-date: "22 mai 2016"
+date: "28 mai 2016"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 
 require(knitr)
 source("./scripts/visualization.R")
 ```
 
 ## Current ngrams from Corpora (all samples)
+
+The "big" number of tokens and the "extended" size of the vocabulary for unigrams, bigrams and trigrams make it challenging to use such data for a "mobile-based" or "web-based" data product. Decision needs to be taken in order to reduce the n-grams to be used. 
 
 ```{r loadData, cache = F}
 sortingAndFeatureReduction <- function(d.ng){
@@ -57,10 +59,10 @@ Create a data structure like `bigram(w_i-2, w_i-1), next.word(w_i), count.trigra
 visualizeCumuluativeCoverage.2(s.3g$total, s.3g$terms, "3-grams")
 
 f.max30 <- cumsum(s.3g$total)/sum(s.3g$total) <= 0.30
-sum(f.max30)
+# sum(f.max30)
 
 f.max50 <- cumsum(s.3g$total)/sum(s.3g$total) <= 0.50
-sum(f.max50)
+# sum(f.max50)
 ```
 
 With a 30% coverage, we limit the trigrams to `r sum(f.max30)` over `r dim(s.3g)[1]` observed trigrams. 
@@ -68,11 +70,11 @@ With a 30% coverage, we limit the trigrams to `r sum(f.max30)` over `r dim(s.3g)
 ```{r reduceTrigrams2, collapse = T}
 f.max30 <- cumsum(s.3g$total)/sum(s.3g$total) <= 0.30
 s.3g.30 <- s.3g[f.max30,] 
-format(object.size(s.3g.30), "auto")
+# format(object.size(s.3g.30), "auto")
 ```
 
 ```{r transformTrigrams, collapse = T}
-print(paste("noElements:", dim(s.3g.30)[1]))
+# print(paste("noElements:", dim(s.3g.30)[1]))
 names(s.3g.30) <- c("trigram", "total")
 s.3g.30$before.bigram <- sapply(s.3g.30$trigram, function(x){paste(unlist(strsplit(x, split = " "))[1:2], collapse = " ")})
 s.3g.30$next.word <- sapply(s.3g.30$trigram, function(x){unlist(strsplit(x, split = " "))[3]})
@@ -83,20 +85,20 @@ s.3g.30 <- s.3g.30[, c("before.bigram", "next.word", "total")]
 
 # Bigram Strategy
 
-Limit the size of the bigram model in order to have a certain coverage.
+Limit the size of the bigram model in order to have a 75% coverage of the vocabulary.
 
 ```{r reduceBigrams, collapse = T}
 visualizeCumuluativeCoverage.2(s.2g$total, s.2g$terms, "2-grams")
 
 f.max50 <- cumsum(s.2g$total)/sum(s.2g$total) <= 0.5
-sum(f.max50)
+# sum(f.max50)
 
 f.max6x <- cumsum(s.2g$total)/sum(s.2g$total) <= 0.75
-sum(f.max6x)
+# sum(f.max6x)
 
 
 s.2g.6x <- s.2g[f.max6x,] 
-format(object.size(s.2g.6x), "auto")
+# format(object.size(s.2g.6x), "auto")
 
 
 consistencyCheckTrigramsVsBigrams <- function(){
@@ -121,7 +123,7 @@ Limit the size of the unigram model in order to have a 95% coverage, tme left-ou
 visualizeCumuluativeCoverage.2(s.1g$total, s.1g$terms, "1-grams")
 
 f.max9x <- cumsum(s.1g$total)/sum(s.1g$total) <= 0.9
-sum(f.max9x)
+# sum(f.max9x)
 s.1g.over9x <- s.1g[!f.max9x,] 
 s.1g.9x <- s.1g[f.max9x,] 
 s.1g.9x <- rbind(s.1g.9x, data.frame(terms = "OTH", total = sum(s.1g.over9x$total)))
@@ -132,7 +134,7 @@ consistencyCheckTrigramsVsUnigrams <- function(){
     b <- merge(x = a, y = s.1g.9x, by.x = "b", by.y = "terms", all.x = T)
     c <- is.na(b$total)
     if(sum(c) != 0){
-        print(paste("Adding Missing Unigrams:", sum(c)))
+        # print(paste("Adding Missing Unigrams:", sum(c)))
         
         idxs <- which(c)
         for(idx in idxs){
@@ -146,10 +148,10 @@ consistencyCheckTrigramsVsUnigrams <- function(){
         }
         
         if(sum(s.1g$total)!= sum(s.1g.9x$total)) stop()
-        
-    }else{
-        print("No Missing Unigrams...")
-    }     
+    }        
+    # }else{
+    #     print("No Missing Unigrams...")
+    # }     
 }
 
 
