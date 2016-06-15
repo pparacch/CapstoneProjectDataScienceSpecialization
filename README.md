@@ -22,6 +22,7 @@ The __original corpora__, with focus only on the __english language__ (*en_US*),
 
 * __[Milestone Report - RPubs](https://rpubs.com/pparacch/177065)__
 * __[TextPrediction APP - shiny.app.io]( https://pparacch.shinyapps.io/TextPredictorApplication/)__
+* __[TextPrediction - Slide Deck](https://rpubs.com/pparacch/184481)__
 
 Some extra reports have been created to give some more info about the ingestion process and the memory footprint challenge for the app.
 
