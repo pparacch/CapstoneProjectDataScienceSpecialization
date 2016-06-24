@@ -1,5 +1,5 @@
 # CapstoneProjectDataScienceSpecialization
-Capstone project of the Data Science Specialization (Johns Hopkins/ Coursera)
+Capstone project for the Data Science Specialization (Johns Hopkins/ Coursera)
 
 ## The Challenge
 
